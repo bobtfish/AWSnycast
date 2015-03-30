@@ -1,0 +1,8 @@
+{
+  "disable_remote_exec": true,
+  "data_dir": "/tmp/consul",
+  "dns_config": {
+    "allow_stale": true,
+    "enable_truncate": true,
+  } 
+}
