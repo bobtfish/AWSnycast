@@ -9,6 +9,7 @@ RUN cd /usr/local/sbin && \
 RUN apt-get update && apt-get install -y python-pip
 RUN pip install exabgp && pip install awscli
 RUN mkdir /etc/consul.conf.d
-ENTRYPOINT ["/usr/local/sbin/consul", "agent", "-server", "-data-dir=/tmp/consul", "-client=0.0.0.0", "-config-file", "/etc/consul.conf", "-config-dir", "/etc/consul.conf.d"]
+ADD consul.conf.json /etc/consul.conf.json
+ENTRYPOINT ["/usr/local/sbin/consul", "agent", "-server", "-data-dir=/tmp/consul", "-client=0.0.0.0", "-config-file", "/etc/consul.conf.json", "-config-dir", "/etc/consul.conf.d"]
 EXPOSE 8400 8500 8600/udp
 
