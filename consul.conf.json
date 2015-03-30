@@ -3,6 +3,6 @@
   "data_dir": "/tmp/consul",
   "dns_config": {
     "allow_stale": true,
-    "enable_truncate": true,
-  } 
+    "enable_truncate": true
+  }
 }
