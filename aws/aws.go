@@ -34,7 +34,7 @@ func NewMetadataFetcher(debug bool) (MetadataFetcher, error) {
 }
 
 type RouteTableFetcher interface {
-	GetRouteTables() ([]string, error)
+	GetRouteTables() ([]*ec2.RouteTable, error)
 }
 
 type RouteTableFetcherEC2 struct {
@@ -42,16 +42,15 @@ type RouteTableFetcherEC2 struct {
 	conn   *ec2.EC2
 }
 
-func (r RouteTableFetcherEC2) GetRouteTables() ([]string, error) {
+func (r RouteTableFetcherEC2) GetRouteTables() ([]*ec2.RouteTable, error) {
 	resp, err := r.conn.DescribeRouteTables(&ec2.DescribeRouteTablesInput{})
 	if err != nil {
 		log.Printf("Error on RouteTableStateRefresh: %s", err)
-		return []string{}, err
+		return []*ec2.RouteTable{}, err
 	}
 	rt := resp.RouteTables
 	log.Printf("%+v", rt)
-	ret := make([]string, 0)
-	return ret, nil
+	return rt, nil
 }
 
 func NewRouteTableFetcher(region string, debug bool) (RouteTableFetcher, error) {
