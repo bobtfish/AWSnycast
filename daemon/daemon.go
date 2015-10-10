@@ -21,7 +21,7 @@ func (d *Daemon) Setup() error {
 		d.MetadataFetcher = m
 	}
 	if d.RouteTableFetcher == nil {
-		rtf, err := aws.NewRouteTableFetcher(d.Debug)
+		rtf, err := aws.NewRouteTableFetcher("us-west-1", d.Debug)
 		if err != nil {
 			return err
 		}
@@ -35,5 +35,13 @@ func (d *Daemon) Run() int {
 		log.Printf("Error setting up: %s", err.Error())
 		return 1
 	}
+    rt, err := d.RouteTableFetcher.GetRouteTables()
+    if err != nil {
+        log.Printf("Error %v", err)
+        return 1
+    }
+    for _, val := range rt {
+        log.Printf("Route table %v", val)
+    }
 	return 0
 }

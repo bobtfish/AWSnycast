@@ -38,43 +38,15 @@ type RouteTableFetcher interface {
 }
 
 type RouteTableFetcherEC2 struct {
+	Region string
+	conn   *ec2.EC2
 }
 
-func (rtf RouteTableFetcherEC2) GetRouteTables() ([]string, error) {
-	providers := []credentials.Provider{
-		&credentials.EnvProvider{},
-		&ec2rolecreds.EC2RoleProvider{},
-	}
-	cred := credentials.NewChainCredentials(providers)
-	_, credErr := cred.Get()
-	if credErr != nil {
-		return []string{}, credErr
-	}
-	//	credVal.AccessKeyID
-	//	credVal.SecretAccessKey
-	//	credVal.SessionToken
-	awsConfig := &aws.Config{
-		Credentials: cred,
-		Region:      aws.String("us-west-1"),
-		MaxRetries:  aws.Int(3),
-	}
-	iamconn := iam.New(awsConfig)
-	_, err := iamconn.GetUser(nil)
-
-	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() == "SignatureDoesNotMatch" {
-			return []string{}, fmt.Errorf("Failed authenticating with AWS: please verify credentials")
-		}
-	}
-	ec2conn := ec2.New(awsConfig)
-	resp, err := ec2conn.DescribeRouteTables(&ec2.DescribeRouteTablesInput{})
+func (r RouteTableFetcherEC2) GetRouteTables() ([]string, error) {
+	resp, err := r.conn.DescribeRouteTables(&ec2.DescribeRouteTablesInput{})
 	if err != nil {
-		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidRouteTableID.NotFound" {
-			resp = nil
-		} else {
-			log.Printf("Error on RouteTableStateRefresh: %s", err)
-			return []string{}, err
-		}
+		log.Printf("Error on RouteTableStateRefresh: %s", err)
+		return []string{}, err
 	}
 	rt := resp.RouteTables
 	log.Printf("%+v", rt)
@@ -82,6 +54,30 @@ func (rtf RouteTableFetcherEC2) GetRouteTables() ([]string, error) {
 	return ret, nil
 }
 
-func NewRouteTableFetcher(debug bool) (RouteTableFetcher, error) {
-	return RouteTableFetcherEC2{}, nil
+func NewRouteTableFetcher(region string, debug bool) (RouteTableFetcher, error) {
+	r := RouteTableFetcherEC2{}
+	providers := []credentials.Provider{
+		&credentials.EnvProvider{},
+		&ec2rolecreds.EC2RoleProvider{},
+	}
+	cred := credentials.NewChainCredentials(providers)
+	_, credErr := cred.Get()
+	if credErr != nil {
+		return r, credErr
+	}
+	awsConfig := &aws.Config{
+		Credentials: cred,
+		Region:      aws.String(region),
+		MaxRetries:  aws.Int(3),
+	}
+	iamconn := iam.New(awsConfig)
+	_, err := iamconn.GetUser(nil)
+
+	if awsErr, ok := err.(awserr.Error); ok {
+		if awsErr.Code() == "SignatureDoesNotMatch" {
+			return r, fmt.Errorf("Failed authenticating with AWS: please verify credentials")
+		}
+	}
+	r.conn = ec2.New(awsConfig)
+	return r, nil
 }
