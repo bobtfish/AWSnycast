@@ -420,15 +420,14 @@ func TestRouteTableFilterDestinationCidrBlockViaInstanceInactive(t *testing.T) {
 }
 
 func TestRouteTableFilterTagMatch(t *testing.T) {
-    f := RouteTableFilterTagMatch{
-        Key: "Name",
-        Value: "uswest1 devb private insecure",
-    }
-    if f.Keep(&rtb2) {
-        t.Fail()
-    }
-    if !f.Keep(&rtb1) {
-        t.Fail()
-    }
+	f := RouteTableFilterTagMatch{
+		Key:   "Name",
+		Value: "uswest1 devb private insecure",
+	}
+	if f.Keep(&rtb2) {
+		t.Fail()
+	}
+	if !f.Keep(&rtb1) {
+		t.Fail()
+	}
 }
-
