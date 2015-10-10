@@ -43,6 +43,28 @@ type RouteTableFetcherEC2 struct {
 	conn   *ec2.EC2
 }
 
+func (r RouteTableFetcherEC2) ReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string) error {
+	for _, route := range rtb.Routes {
+		if *(route.DestinationCidrBlock) == cidr {
+			params := &ec2.ReplaceRouteInput{
+				DestinationCidrBlock: aws.String(cidr),
+				RouteTableId:         rtb.RouteTableId,
+				InstanceId:           aws.String(instance),
+			}
+			resp, err := r.conn.ReplaceRoute(params)
+			if err != nil {
+				// Print the error, cast err to awserr.Error to get the Code and
+				// Message from an error.
+				fmt.Println(err.Error())
+				return err
+			}
+			fmt.Println(resp)
+			return nil
+		}
+	}
+	return errors.New("Never found CIDR in route table to replace")
+}
+
 func (r RouteTableFetcherEC2) GetRouteTables() ([]*ec2.RouteTable, error) {
 	resp, err := r.conn.DescribeRouteTables(&ec2.DescribeRouteTablesInput{})
 	if err != nil {
