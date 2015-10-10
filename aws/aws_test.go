@@ -316,3 +316,36 @@ func TestRouteTableFilterMain(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestRoutTableFilterSubnet(t *testing.T) {
+	f := RouteTableFilterSubnet{
+		SubnetId: "subnet-28b0e940",
+	}
+	if f.Keep(&rtb1) {
+		t.Fail()
+	}
+	if !f.Keep(&rtb2) {
+		t.Fail()
+	}
+}
+
+func TestRouteTableForSubnetExplicitAssociation(t *testing.T) {
+	rt := RouteTableForSubnet("subnet-37b0e95f", []*ec2.RouteTable{&rtb1, &rtb2, &rtb3, &rtb4})
+	if rt == nil || rt != &rtb3 {
+		t.Fail()
+	}
+}
+
+func TestRouteTableForSubnetDefaultMain(t *testing.T) {
+	rt := RouteTableForSubnet("subnet-38b0e95f", []*ec2.RouteTable{&rtb1, &rtb2, &rtb3, &rtb4})
+	if rt == nil || rt != &rtb2 {
+		t.Fail()
+	}
+}
+
+func TestRouteTableForSubnetNone(t *testing.T) {
+	rt := RouteTableForSubnet("subnet-38b0e95f", []*ec2.RouteTable{&rtb1, &rtb3, &rtb4})
+	if rt != nil {
+		t.Fail()
+	}
+}

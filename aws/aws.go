@@ -141,3 +141,28 @@ func FilterRouteTables(f RouteTableFilter, tables []*ec2.RouteTable) []*ec2.Rout
 	}
 	return out
 }
+
+func RouteTableForSubnet(subnet string, tables []*ec2.RouteTable) *ec2.RouteTable {
+	subnet_rtb := FilterRouteTables(RouteTableFilterSubnet{SubnetId: subnet}, tables)
+	if len(subnet_rtb) == 0 {
+		main_rtbs := FilterRouteTables(RouteTableFilterMain{}, tables)
+		if len(main_rtbs) == 0 {
+			return nil
+		}
+		return main_rtbs[0]
+	}
+	return subnet_rtb[0]
+}
+
+type RouteTableFilterSubnet struct {
+	SubnetId string
+}
+
+func (fs RouteTableFilterSubnet) Keep(rt *ec2.RouteTable) bool {
+	for _, a := range rt.Associations {
+		if a.SubnetId != nil && *(a.SubnetId) == fs.SubnetId {
+			return true
+		}
+	}
+	return false
+}
