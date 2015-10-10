@@ -123,6 +123,17 @@ func (fs RouteTableFilterOr) Keep(rt *ec2.RouteTable) bool {
 	return false
 }
 
+type RouteTableFilterMain struct {}
+
+func (fs RouteTableFilterMain) Keep(rt *ec2.RouteTable) bool {
+    for _, a := range rt.Associations {
+        if *(a.Main) {
+            return true
+        }
+    }
+    return false
+}
+
 func FilterRouteTables(f RouteTableFilter, tables []*ec2.RouteTable) []*ec2.RouteTable {
 	out := make([]*ec2.RouteTable, 0, len(tables))
 	for _, rtb := range tables {

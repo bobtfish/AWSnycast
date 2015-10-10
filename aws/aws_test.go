@@ -237,7 +237,7 @@ func TestRouteTableFilterNever(t *testing.T) {
 	}
 }
 
-func RouteTableFilterAndTwoNever(t *testing.T) {
+func TestRouteTableFilterAndTwoNever(t *testing.T) {
 	f := RouteTableFilterAnd{
 		RouteTableFilters: []RouteTableFilter{
 			RouteTableFilterNever{},
@@ -249,7 +249,7 @@ func RouteTableFilterAndTwoNever(t *testing.T) {
 	}
 }
 
-func RouteTableFilterAndOneNever(t *testing.T) {
+func TestRouteTableFilterAndOneNever(t *testing.T) {
 	f := RouteTableFilterAnd{
 		RouteTableFilters: []RouteTableFilter{
 			RouteTableFilterNever{},
@@ -261,8 +261,8 @@ func RouteTableFilterAndOneNever(t *testing.T) {
 	}
 }
 
-func RouteTableFilterOrOneNever(t *testing.T) {
-	f := RouteTableFilterAnd{
+func TestRouteTableFilterOrOneNever(t *testing.T) {
+	f := RouteTableFilterOr{
 		RouteTableFilters: []RouteTableFilter{
 			RouteTableFilterNever{},
 			RouteTableFilterAlways{},
@@ -273,8 +273,8 @@ func RouteTableFilterOrOneNever(t *testing.T) {
 	}
 }
 
-func RouteTableFilterOrOneNever2(t *testing.T) {
-	f := RouteTableFilterAnd{
+func TestRouteTableFilterOrOneNever2(t *testing.T) {
+	f := RouteTableFilterOr{
 		RouteTableFilters: []RouteTableFilter{
 			RouteTableFilterAlways{},
 			RouteTableFilterNever{},
@@ -285,8 +285,8 @@ func RouteTableFilterOrOneNever2(t *testing.T) {
 	}
 }
 
-func RouteTableFilterOrAlways(t *testing.T) {
-	f := RouteTableFilterAnd{
+func TestRouteTableFilterOrAlways(t *testing.T) {
+	f := RouteTableFilterOr{
 		RouteTableFilters: []RouteTableFilter{
 			RouteTableFilterAlways{},
 			RouteTableFilterAlways{},
@@ -306,3 +306,14 @@ func TestFilterRouteTables(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestRouteTableFilterMain(t *testing.T) {
+    f := RouteTableFilterMain{}
+    if f.Keep(&rtb1) {
+        t.Fail()
+    }
+    if !f.Keep(&rtb2) {
+        t.Fail()
+    }
+}
+
