@@ -201,3 +201,18 @@ func (fs RouteTableFilterDestinationCidrBlock) Keep(rt *ec2.RouteTable) bool {
 	}
 	return false
 }
+
+type RouteTableFilterTagMatch struct {
+    Key string
+    Value string
+}
+
+func (fs RouteTableFilterTagMatch) Keep(rt *ec2.RouteTable) bool {
+    for _, t := range rt.Tags {
+        if *(t.Key) == fs.Key && *(t.Value) == fs.Value {
+            return true
+        }
+    }
+    return false
+}
+
