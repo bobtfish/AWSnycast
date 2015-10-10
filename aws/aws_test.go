@@ -195,6 +195,21 @@ var (
 		},
 		VpcId: aws.String("vpc-9496cffc"),
 	}
+
+	rtb5 = ec2.RouteTable{
+		RouteTableId: aws.String("rtb-f0ea3b96"),
+		Routes: []*ec2.Route{
+			&ec2.Route{
+				DestinationCidrBlock: aws.String("0.0.0.0/0"),
+				InstanceId:           aws.String("i-605bd2ab"),
+				InstanceOwnerId:      aws.String("613514870339"),
+				NetworkInterfaceId:   aws.String("eni-09472251"),
+				Origin:               aws.String("CreateRoute"),
+				State:                aws.String("inactive"),
+			},
+		},
+		VpcId: aws.String("vpc-9496cffc"),
+	}
 )
 
 type FakeRouteTableFetcher struct {
@@ -376,17 +391,30 @@ func TestRouteTableFilterDestinationCidrBlockViaIGW(t *testing.T) {
 }
 
 func TestRouteTableFilterDestinationCidrBlockViaInstance(t *testing.T) {
-    f := RouteTableFilterDestinationCidrBlock{
-        DestinationCidrBlock: "0.0.0.0/0",
-        ViaInstance:               true,
-    }
-    /* Via IGW */
-    if f.Keep(&rtb4) {
-        t.Fail()
-    }
-    /* Via instance */
-    if !f.Keep(&rtb2) {
-        t.Fail()
-    }
+	f := RouteTableFilterDestinationCidrBlock{
+		DestinationCidrBlock: "0.0.0.0/0",
+		ViaInstance:          true,
+	}
+	/* Via IGW */
+	if f.Keep(&rtb4) {
+		t.Fail()
+	}
+	/* Via instance */
+	if !f.Keep(&rtb2) {
+		t.Fail()
+	}
 }
 
+func TestRouteTableFilterDestinationCidrBlockViaInstanceInactive(t *testing.T) {
+	f := RouteTableFilterDestinationCidrBlock{
+		DestinationCidrBlock: "0.0.0.0/0",
+		ViaInstance:          true,
+		InstanceNotActive:    true,
+	}
+	if f.Keep(&rtb2) {
+		t.Fail()
+	}
+	if !f.Keep(&rtb5) {
+		t.Fail()
+	}
+}

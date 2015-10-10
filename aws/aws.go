@@ -172,6 +172,7 @@ type RouteTableFilterDestinationCidrBlock struct {
 	DestinationCidrBlock string
 	ViaIGW               bool
 	ViaInstance          bool
+	InstanceNotActive    bool
 }
 
 func (fs RouteTableFilterDestinationCidrBlock) Keep(rt *ec2.RouteTable) bool {
@@ -183,9 +184,15 @@ func (fs RouteTableFilterDestinationCidrBlock) Keep(rt *ec2.RouteTable) bool {
 				}
 			} else {
 				if fs.ViaInstance {
-                    if r.InstanceId != nil {
-                        return true
-                    }
+					if r.InstanceId != nil {
+						if fs.InstanceNotActive {
+							if *(r.State) != "active" {
+								return true
+							}
+						} else {
+							return true
+						}
+					}
 				} else {
 					return true
 				}
