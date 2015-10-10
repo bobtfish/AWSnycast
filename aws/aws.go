@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/awslabs/aws-sdk-go/aws/credentials/ec2rolecreds"
 	"log"
+	"strings"
 )
 
 type MetadataFetcher interface {
@@ -162,6 +163,33 @@ func (fs RouteTableFilterSubnet) Keep(rt *ec2.RouteTable) bool {
 	for _, a := range rt.Associations {
 		if a.SubnetId != nil && *(a.SubnetId) == fs.SubnetId {
 			return true
+		}
+	}
+	return false
+}
+
+type RouteTableFilterDestinationCidrBlock struct {
+	DestinationCidrBlock string
+	ViaIGW               bool
+	ViaInstance          bool
+}
+
+func (fs RouteTableFilterDestinationCidrBlock) Keep(rt *ec2.RouteTable) bool {
+	for _, r := range rt.Routes {
+		if r.DestinationCidrBlock != nil && *(r.DestinationCidrBlock) == fs.DestinationCidrBlock {
+			if fs.ViaIGW {
+				if r.GatewayId != nil && strings.HasPrefix(*(r.GatewayId), "igw-") {
+					return true
+				}
+			} else {
+				if fs.ViaInstance {
+                    if r.InstanceId != nil {
+                        return true
+                    }
+				} else {
+					return true
+				}
+			}
 		}
 	}
 	return false

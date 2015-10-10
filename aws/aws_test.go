@@ -349,3 +349,44 @@ func TestRouteTableForSubnetNone(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestRouteTableFilterDestinationCidrBlock(t *testing.T) {
+	f := RouteTableFilterDestinationCidrBlock{
+		DestinationCidrBlock: "0.0.0.0/0",
+	}
+	if f.Keep(&rtb1) {
+		t.Fail()
+	}
+	if !f.Keep(&rtb2) {
+		t.Fail()
+	}
+}
+
+func TestRouteTableFilterDestinationCidrBlockViaIGW(t *testing.T) {
+	f := RouteTableFilterDestinationCidrBlock{
+		DestinationCidrBlock: "0.0.0.0/0",
+		ViaIGW:               true,
+	}
+	if f.Keep(&rtb2) {
+		t.Fail()
+	}
+	if !f.Keep(&rtb4) {
+		t.Fail()
+	}
+}
+
+func TestRouteTableFilterDestinationCidrBlockViaInstance(t *testing.T) {
+    f := RouteTableFilterDestinationCidrBlock{
+        DestinationCidrBlock: "0.0.0.0/0",
+        ViaInstance:               true,
+    }
+    /* Via IGW */
+    if f.Keep(&rtb4) {
+        t.Fail()
+    }
+    /* Via instance */
+    if !f.Keep(&rtb2) {
+        t.Fail()
+    }
+}
+
