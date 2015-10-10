@@ -48,9 +48,7 @@ func (r RouteTableFetcherEC2) GetRouteTables() ([]*ec2.RouteTable, error) {
 		log.Printf("Error on RouteTableStateRefresh: %s", err)
 		return []*ec2.RouteTable{}, err
 	}
-	rt := resp.RouteTables
-	log.Printf("%+v", rt)
-	return rt, nil
+	return resp.RouteTables, nil
 }
 
 func NewRouteTableFetcher(region string, debug bool) (RouteTableFetcher, error) {
@@ -123,15 +121,15 @@ func (fs RouteTableFilterOr) Keep(rt *ec2.RouteTable) bool {
 	return false
 }
 
-type RouteTableFilterMain struct {}
+type RouteTableFilterMain struct{}
 
 func (fs RouteTableFilterMain) Keep(rt *ec2.RouteTable) bool {
-    for _, a := range rt.Associations {
-        if *(a.Main) {
-            return true
-        }
-    }
-    return false
+	for _, a := range rt.Associations {
+		if *(a.Main) {
+			return true
+		}
+	}
+	return false
 }
 
 func FilterRouteTables(f RouteTableFilter, tables []*ec2.RouteTable) []*ec2.RouteTable {

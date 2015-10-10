@@ -308,12 +308,11 @@ func TestFilterRouteTables(t *testing.T) {
 }
 
 func TestRouteTableFilterMain(t *testing.T) {
-    f := RouteTableFilterMain{}
-    if f.Keep(&rtb1) {
-        t.Fail()
-    }
-    if !f.Keep(&rtb2) {
-        t.Fail()
-    }
+	f := RouteTableFilterMain{}
+	if f.Keep(&rtb1) {
+		t.Fail()
+	}
+	if !f.Keep(&rtb2) {
+		t.Fail()
+	}
 }
-
