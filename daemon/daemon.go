@@ -35,13 +35,13 @@ func (d *Daemon) Run() int {
 		log.Printf("Error setting up: %s", err.Error())
 		return 1
 	}
-    rt, err := d.RouteTableFetcher.GetRouteTables()
-    if err != nil {
-        log.Printf("Error %v", err)
-        return 1
-    }
-    for _, val := range rt {
-        log.Printf("Route table %v", val)
-    }
+	rt, err := d.RouteTableFetcher.GetRouteTables()
+	if err != nil {
+		log.Printf("Error %v", err)
+		return 1
+	}
+	for _, val := range rt {
+		log.Printf("Route table %v", val)
+	}
 	return 0
 }

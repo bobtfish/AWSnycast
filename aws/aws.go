@@ -80,3 +80,55 @@ func NewRouteTableFetcher(region string, debug bool) (RouteTableFetcher, error) 
 	r.conn = ec2.New(awsConfig)
 	return r, nil
 }
+
+type RouteTableFilter interface {
+	Keep(*ec2.RouteTable) bool
+}
+
+type RouteTableFilterAlways struct{}
+
+func (fs RouteTableFilterAlways) Keep(rt *ec2.RouteTable) bool {
+	return false
+}
+
+type RouteTableFilterNever struct{}
+
+func (fs RouteTableFilterNever) Keep(rt *ec2.RouteTable) bool {
+	return true
+}
+
+type RouteTableFilterAnd struct {
+	RouteTableFilters []RouteTableFilter
+}
+
+func (fs RouteTableFilterAnd) Keep(rt *ec2.RouteTable) bool {
+	for _, f := range fs.RouteTableFilters {
+		if !f.Keep(rt) {
+			return false
+		}
+	}
+	return true
+}
+
+type RouteTableFilterOr struct {
+	RouteTableFilters []RouteTableFilter
+}
+
+func (fs RouteTableFilterOr) Keep(rt *ec2.RouteTable) bool {
+	for _, f := range fs.RouteTableFilters {
+		if f.Keep(rt) {
+			return true
+		}
+	}
+	return false
+}
+
+func FilterRouteTables(f RouteTableFilter, tables []*ec2.RouteTable) []*ec2.RouteTable {
+	out := make([]*ec2.RouteTable, 0, len(tables))
+	for _, rtb := range tables {
+		if f.Keep(rtb) {
+			out = append(out, rtb)
+		}
+	}
+	return out
+}
