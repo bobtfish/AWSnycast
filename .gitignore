@@ -1,3 +1,7 @@
-AWSnycast
+integration/vpc/variables.tf.json
 integration/vpc/terraform.tfstate
 integration/vpc/terraform.tfstate.backup
+integration/vpc/id_rsa.pub
+integration/vpc/id_rsa
+integration/vpc/.terraform/
+AWSnycast
