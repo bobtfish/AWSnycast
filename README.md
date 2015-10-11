@@ -29,6 +29,52 @@ time that is beyond the goals for this project.
 
 Which routes to advertise into which route tables is configured with a YAML config file.
 
-
-
+        ---
+        healthcheck:
+            public:
+                type: ping
+                destination: 8.8.8.8
+                rise: 2  # How many need to succeed in a row to be up
+                fall: 10 # How many need to fail in a row to be down
+                every: 1 # How often, in seconds
+            localservice:
+                type: tcp
+                destination: 192.168.1.1
+                rise: 2
+                fall: 2
+                every: 30
+                send: HEAD / HTTP/1.0 # String to send
+                expect: 200 OK        # Response to get back
+        routetables:
+            # This is our AZ, so always try to takeover routes always
+            a:
+                find:
+                    type: by_tag
+                    config:
+                        key: Name
+                        value: private a
+                upsert_routes:
+                  - cidr: 0.0.0.0/0     # NAT box, so manage the default route
+                    instance: SELF
+                    healthcheck: public
+                  - cidr: 192.168.1.1/32 # Manage an AWSnycast service on this machine
+                    instance: SELF
+                    healthcheck: localservice
+            # This is not our AZ, so only takeover routes only if they don't exist already, or
+            # the instance serving them is dead (terminated or stopped)
+            b:
+                find:
+                    type: by_tag
+                    config:
+                        key: Name
+                        value: private b
+                upsert_routes:
+                  - cidr: 0.0.0.0/0
+                    if_unhealthy: true
+                    instance: SELF
+                    healthcheck: public
+                  - cidr: 192.168.1.1/32
+                    if_unhealthy: true
+                    instance: SELF
+                    healthcheck: localservice
 
