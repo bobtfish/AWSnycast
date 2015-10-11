@@ -1,7 +1,17 @@
 # AWSnycast
 
 AWSnycast is a routing daemon for AWS route tables, to simulate an Anycast like service, and act as an
-extension of in-datacenter Anycast.
+extension of in-datacenter Anycast. It can also be used to provide a scalable HA NAT service.
+
+# NAT
+
+A common pattern in AWS is to route egressing traffic (from private subnets) through a NAT instance
+in a public subnet. AWSnycast can manage one or more NAT instances for you automatically, allowing
+you to deploy one or more NAT instances per VPC. If an AZ has a NAT instance, then it should be used
+for that AZ's traffic (to avoid cross AZ transfer costs + latency). AWSnycast will ensure that routes
+are repaired if one of your NAT instances fails.
+
+# Anycast in AWS?
 
 In datacenters, a common pattern is to have a /24 network for Anycast, and then in each datacenter,
 use systems like [exabgp](https://github.com/Exa-Networks/exabgp) and [bird](http://bird.network.cz/)
