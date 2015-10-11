@@ -4,7 +4,7 @@ all: ssh_key .terraform variables.tf.json
 		true
 
 sshnat:
-	ssh -A -i ../id_rsa ubuntu@$$(terraform output nat_public_ips|cut -d, -f1)
+	ssh -A -i id_rsa ubuntu@$$(terraform output nat_public_ips|cut -d, -f1)
 
 .terraform:
 	terraform get
