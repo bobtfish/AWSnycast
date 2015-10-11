@@ -1,1 +1,3 @@
 AWSnycast
+integration/vpc/terraform.tfstate
+integration/vpc/terraform.tfstate.backup
