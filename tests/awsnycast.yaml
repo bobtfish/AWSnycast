@@ -1,0 +1,38 @@
+---
+healthcheck:
+    public:
+        type: ping
+        destination: 8.8.8.8
+        rise: 2
+        fall: 10
+        every: 1
+routetables:
+    a:
+        find:
+            type: by_tag
+            config:
+                key: Name
+                value: private a
+         upsert_routes:
+           - cidr: 0.0.0.0/0
+             instance: SELF
+             healthcheck: public
+           - cidr: 192.168.1.1/32
+             instance: SELF
+             healthcheck: localservice
+    b:
+        find:
+            type: by_tag
+            config:
+                key: Name
+                value: private b
+        upsert_routes:
+          - cidr: 0.0.0.0/0
+            if_unhealthy: true
+            instance: SELF
+            healthcheck: public
+          - cidr: 192.168.1.1/32
+            if_unhealthy: true
+            instance: SELF
+            healthcheck: localservice
+
