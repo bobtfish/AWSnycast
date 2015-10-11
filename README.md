@@ -76,7 +76,9 @@ Which routes to advertise into which route tables is configured with a YAML conf
                 delete_routes_if_unhealthy:
                   - 192.168.1.1/32
             # This is not our AZ, so only takeover routes only if they don't exist already, or
-            # the instance serving them is dead (terminated or stopped)
+            # the instance serving them is dead (terminated or stopped).
+            # Every backup AWSnycast instance should have if_unhealthy: true set for route tables
+            # it is the backup server for, otherwise multiple instances can cause routes to flap
             b:
                 find:
                     type: by_tag
@@ -85,7 +87,7 @@ Which routes to advertise into which route tables is configured with a YAML conf
                         value: private b
                 upsert_routes:
                   - cidr: 0.0.0.0/0
-                    if_unhealthy: true
+                    if_unhealthy: true # Note this is what causes routes only to be taken over if failed
                     instance: SELF
                     healthcheck: public
                   - cidr: 192.168.1.1/32
