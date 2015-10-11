@@ -60,6 +60,11 @@ Which routes to advertise into which route tables is configured with a YAML conf
                   - cidr: 192.168.1.1/32 # Manage an AWSnycast service on this machine
                     instance: SELF
                     healthcheck: localservice
+                # Remove the route (falling back to the 192.168.1.0/24 in-datacenter Anycast range)
+                # if the instance providing it dies, even if we're not ready to provide a route
+                # to it ourselves.
+                delete_routes_if_unhealthy:
+                  - 192.168.1.1/32
             # This is not our AZ, so only takeover routes only if they don't exist already, or
             # the instance serving them is dead (terminated or stopped)
             b:
@@ -77,4 +82,6 @@ Which routes to advertise into which route tables is configured with a YAML conf
                     if_unhealthy: true
                     instance: SELF
                     healthcheck: localservice
+                delete_routes_if_unhealthy:
+                  - 192.168.1.1/32
 
