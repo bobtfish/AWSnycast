@@ -1,6 +1,8 @@
 package config
 
 import (
+	"errors"
+	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
@@ -34,6 +36,40 @@ type Config struct {
 	RouteTables  map[string]RouteTable  `yaml:"routetables"`
 }
 
+func (c *Config) Default() {
+}
+func (c Config) Validate() error {
+	return nil
+}
+
+func (r *RouteTable) Default() {
+}
+func (r RouteTable) Validate() error {
+	return nil
+}
+
+func (h *Healthcheck) Default() {
+	if h.Rise == 0 {
+		h.Rise = 2
+	}
+	if h.Fall == 0 {
+		h.Fall = 3
+	}
+}
+
+func (h Healthcheck) Validate() error {
+	if h.Type != "ping" {
+		return errors.New(fmt.Sprintf("Unknown healthcheck type '%s'", h.Type))
+	}
+	if h.Rise == 0 {
+		return errors.New("rise must be > 0")
+	}
+	if h.Fall == 0 {
+		return errors.New("fall must be > 0")
+	}
+	return nil
+}
+
 func New(filename string) (*Config, error) {
 	c := new(Config)
 	data, err := ioutil.ReadFile(filename)
@@ -41,5 +77,8 @@ func New(filename string) (*Config, error) {
 		return c, err
 	}
 	err = yaml.Unmarshal(data, &c)
+	if err == nil {
+		c.Default()
+	}
 	return c, err
 }

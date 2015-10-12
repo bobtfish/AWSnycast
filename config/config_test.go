@@ -98,3 +98,59 @@ func TestLoadConfigHealthchecks(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestHealthcheckValidate(t *testing.T) {
+	h := Healthcheck{
+		Type: "ping",
+	}
+	h.Default()
+	err := h.Validate()
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+}
+
+func TestHealthcheckValidateFailType(t *testing.T) {
+	h := Healthcheck{
+		Type: "notping",
+	}
+	err := h.Validate()
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "Unknown healthcheck type 'notping'" {
+		t.Log(err.Error())
+		t.Fail()
+	}
+}
+
+func TestHealthcheckValidateFailRise(t *testing.T) {
+	h := Healthcheck{
+		Type: "ping",
+		Fall: 1,
+	}
+	err := h.Validate()
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "rise must be > 0" {
+		t.Log(err.Error())
+		t.Fail()
+	}
+}
+
+func TestHealthcheckValidateFailFall(t *testing.T) {
+	h := Healthcheck{
+		Type: "ping",
+		Rise: 1,
+	}
+	err := h.Validate()
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "fall must be > 0" {
+		t.Log(err.Error())
+		t.Fail()
+	}
+}
