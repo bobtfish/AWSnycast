@@ -3,6 +3,7 @@ package daemon
 import (
 	"errors"
 	"fmt"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"testing"
 )
 
@@ -23,13 +24,23 @@ func (m FakeMetadataFetcher) GetMetadata(key string) (string, error) {
 	return v, errors.New(fmt.Sprintf("Key %s unknown"))
 }
 
+type FakeRouteTableFetcher struct{}
+
+func (r FakeRouteTableFetcher) GetRouteTables() ([]*ec2.RouteTable, error) {
+	return []*ec2.RouteTable{}, nil
+}
+
 func getD(a bool) Daemon {
-	d := Daemon{}
-	fake := FakeMetadataFetcher{
+	d := Daemon{
+		ConfigFile: "../tests/awsnycast.yaml",
+	}
+	fakeM := FakeMetadataFetcher{
 		FAvailable: a,
 	}
-	fake.Meta = make(map[string]string)
-	d.MetadataFetcher = fake
+	fakeR := FakeRouteTableFetcher{}
+	fakeM.Meta = make(map[string]string)
+	d.MetadataFetcher = fakeM
+	d.RouteTableFetcher = fakeR
 	return d
 }
 
@@ -37,6 +48,7 @@ func TestSetupUnavailable(t *testing.T) {
 	d := getD(false)
 	err := d.Setup()
 	if err != nil {
+		t.Log(err)
 		t.Fail()
 	}
 	if d.MetadataFetcher.Available() {

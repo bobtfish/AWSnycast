@@ -13,7 +13,7 @@ routetables:
             config:
                 key: Name
                 value: private a
-         upsert_routes:
+        upsert_routes:
            - cidr: 0.0.0.0/0
              instance: SELF
              healthcheck: public

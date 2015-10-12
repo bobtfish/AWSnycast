@@ -5,7 +5,11 @@ import (
 )
 
 func TestLoadConfig(t *testing.T) {
-	c := New("config_file_example.yaml")
+	c, err := New("../tests/awsnycast.yaml")
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
 	if c == nil {
 		t.Fail()
 	}

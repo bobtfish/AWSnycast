@@ -3,17 +3,24 @@ package daemon
 import (
 	"fmt"
 	"github.com/bobtfish/AWSnycast/aws"
+	"github.com/bobtfish/AWSnycast/config"
 	"log"
 )
 
 type Daemon struct {
 	ConfigFile        string
 	Debug             bool
+	Config            *config.Config
 	MetadataFetcher   aws.MetadataFetcher
 	RouteTableFetcher aws.RouteTableFetcher
 }
 
 func (d *Daemon) Setup() error {
+	config, err := config.New(d.ConfigFile)
+	if err != nil {
+		return err
+	}
+	d.Config = config
 	if d.MetadataFetcher == nil {
 		m, err := aws.NewMetadataFetcher(d.Debug)
 		if err != nil {
