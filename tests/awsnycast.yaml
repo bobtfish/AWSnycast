@@ -1,5 +1,5 @@
 ---
-healthcheck:
+healthchecks:
     public:
         type: ping
         destination: 8.8.8.8

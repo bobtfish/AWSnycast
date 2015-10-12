@@ -9,8 +9,8 @@ type Healthcheck struct {
 	Type        string `yaml:"type"`
 	Destination string `yaml:"destination"`
 	Rise        uint   `yaml:"rise"`
-	Fall        uint   `yaml:"rise"`
-	Every       uint   `yaml:"rise"`
+	Fall        uint   `yaml:"fall"`
+	Every       uint   `yaml:"every"`
 }
 
 type RouteFindSpec struct {

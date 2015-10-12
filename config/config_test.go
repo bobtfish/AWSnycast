@@ -21,3 +21,10 @@ func TestLoadConfigFails(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestLoadConfigHealthchecks(t *testing.T) {
+	c, _ := New("../tests/awsnycast.yaml")
+	if c.Healthchecks == nil {
+		t.Fail()
+	}
+}

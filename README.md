@@ -40,7 +40,7 @@ time that is beyond the goals for this project.
 Which routes to advertise into which route tables is configured with a YAML config file.
 
         ---
-        healthcheck:
+        healthchecks:
             public:
                 type: ping
                 destination: 8.8.8.8
