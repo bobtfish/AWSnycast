@@ -5,7 +5,33 @@ import (
 	"io/ioutil"
 )
 
+type Healthcheck struct {
+	Type        string `yaml:"type"`
+	Destination string `yaml:"destination"`
+	Rise        uint   `yaml:"rise"`
+	Fall        uint   `yaml:"rise"`
+	Every       uint   `yaml:"rise"`
+}
+
+type RouteFindSpec struct {
+	Type   string            `yaml:"type"`
+	Config map[string]string `yaml:"config"`
+}
+
+type UpsertRoutesSpec struct {
+	Cidr        string `yaml:"cidr"`
+	Instance    string `yaml:"instance"`
+	Healthcheck string `yaml:"healthcheck"`
+}
+
+type RouteTable struct {
+	Find         RouteFindSpec      `yaml:"find"`
+	UpsertRoutes []UpsertRoutesSpec `yaml:"upsert_routes"`
+}
+
 type Config struct {
+	Healthchecks map[string]Healthcheck `yaml:"healthchecks"`
+	RouteTables  map[string]RouteTable  `yaml:"routetables"`
 }
 
 func New(filename string) (*Config, error) {

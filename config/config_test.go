@@ -14,3 +14,10 @@ func TestLoadConfig(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestLoadConfigFails(t *testing.T) {
+	_, err := New("../tests/doesnotexist.yaml")
+	if err == nil {
+		t.Fail()
+	}
+}
