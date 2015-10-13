@@ -117,7 +117,7 @@ func TestHealthcheckValidate(t *testing.T) {
 		Type: "ping",
 	}
 	h.Default()
-	err := h.Validate()
+	err := h.Validate("foo")
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -128,11 +128,11 @@ func TestHealthcheckValidateFailType(t *testing.T) {
 	h := Healthcheck{
 		Type: "notping",
 	}
-	err := h.Validate()
+	err := h.Validate("foo")
 	if err == nil {
 		t.Fail()
 	}
-	if err.Error() != "Unknown healthcheck type 'notping'" {
+	if err.Error() != "Unknown healthcheck type 'notping' in foo" {
 		t.Log(err.Error())
 		t.Fail()
 	}
@@ -143,11 +143,11 @@ func TestHealthcheckValidateFailRise(t *testing.T) {
 		Type: "ping",
 		Fall: 1,
 	}
-	err := h.Validate()
+	err := h.Validate("foo")
 	if err == nil {
 		t.Fail()
 	}
-	if err.Error() != "rise must be > 0" {
+	if err.Error() != "rise must be > 0 in foo" {
 		t.Log(err.Error())
 		t.Fail()
 	}
@@ -158,11 +158,11 @@ func TestHealthcheckValidateFailFall(t *testing.T) {
 		Type: "ping",
 		Rise: 1,
 	}
-	err := h.Validate()
+	err := h.Validate("foo")
 	if err == nil {
 		t.Fail()
 	}
-	if err.Error() != "fall must be > 0" {
+	if err.Error() != "fall must be > 0 in foo" {
 		t.Log(err.Error())
 		t.Fail()
 	}
@@ -191,11 +191,17 @@ func TestConfigValidateNoRouteTables(t *testing.T) {
 }
 
 func TestConfigValidate(t *testing.T) {
+	u := make([]UpsertRoutesSpec, 1)
+	u[0] = UpsertRoutesSpec{
+		Cidr: "127.0.0.1",
+	}
 	r := make(map[string]RouteTable)
-	r["a"] = RouteTable{}
+	r["a"] = RouteTable{
+		UpsertRoutes: u,
+	}
 	c := Config{
 		RouteTables: r,
-	} // FIXME needs to be sane
+	}
 	c.Default()
 	err := c.Validate()
 	if err != nil {

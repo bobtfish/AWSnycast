@@ -42,6 +42,14 @@ func (c *Config) Default() {
 	if c.Healthchecks == nil {
 		c.Healthchecks = make(map[string]Healthcheck)
 	}
+	if c.RouteTables != nil {
+		for _, v := range c.RouteTables {
+			v.Default()
+		}
+	}
+	for _, v := range c.Healthchecks {
+		v.Default()
+	}
 }
 func (c Config) Validate() error {
 	if c.RouteTables == nil {
@@ -49,6 +57,16 @@ func (c Config) Validate() error {
 	}
 	if len(c.RouteTables) == 0 {
 		return errors.New("No route_tables defined in config")
+	}
+	for k, v := range c.RouteTables {
+		if err := v.Validate(k); err != nil {
+			return err
+		}
+	}
+	for k, v := range c.Healthchecks {
+		if err := v.Validate(k); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -102,15 +120,15 @@ func (h *Healthcheck) Default() {
 	}
 }
 
-func (h Healthcheck) Validate() error {
+func (h Healthcheck) Validate(name string) error {
 	if h.Type != "ping" {
-		return errors.New(fmt.Sprintf("Unknown healthcheck type '%s'", h.Type))
+		return errors.New(fmt.Sprintf("Unknown healthcheck type '%s' in %s", h.Type, name))
 	}
 	if h.Rise == 0 {
-		return errors.New("rise must be > 0")
+		return errors.New(fmt.Sprintf("rise must be > 0 in %s", name))
 	}
 	if h.Fall == 0 {
-		return errors.New("fall must be > 0")
+		return errors.New(fmt.Sprintf("fall must be > 0 in %s", name))
 	}
 	return nil
 }
