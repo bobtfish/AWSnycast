@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
 	"net"
 	"strings"
 )
@@ -44,10 +43,9 @@ func (c *Config) Default() {
 		c.Healthchecks = make(map[string]Healthcheck)
 	}
 	if c.RouteTables != nil {
-		for _, v := range c.RouteTables {
-			log.Printf("Config default, route table: %+v", v)
+		for k, v := range c.RouteTables {
 			v.Default()
-			log.Printf("Post default of the route table: %+v", v)
+			c.RouteTables[k] = v
 		}
 	}
 	for _, v := range c.Healthchecks {
@@ -75,7 +73,9 @@ func (c Config) Validate() error {
 }
 
 func (r *RouteFindSpec) Default() {
-	r.Config = make(map[string]string)
+	if r.Config == nil {
+		r.Config = make(map[string]string)
+	}
 }
 func (r *RouteFindSpec) Validate(name string) error {
 	if r.Type == "" {
@@ -112,13 +112,10 @@ func (r *RouteTable) Default() {
 	}
 	n := make([]UpsertRoutesSpec, len(r.UpsertRoutes))
 	for i, v := range r.UpsertRoutes {
-		log.Printf("CIDR %s", v.Cidr)
 		v.Default()
 		n[i] = v
-		log.Printf("CIDR %s", v.Cidr)
 	}
 	r.UpsertRoutes = n
-	log.Printf("Route table is now %+v", r)
 }
 func (r RouteTable) Validate(name string) error {
 	if r.UpsertRoutes == nil || len(r.UpsertRoutes) == 0 {

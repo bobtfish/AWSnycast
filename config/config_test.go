@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -25,25 +26,32 @@ func TestLoadConfigFails(t *testing.T) {
 func TestLoadConfigHealthchecks(t *testing.T) {
 	c, _ := New("../tests/awsnycast.yaml")
 	if c.Healthchecks == nil {
+		t.Log("c.Healthchecks == nil")
 		t.Fail()
 	}
 	h, ok := c.Healthchecks["public"]
 	if !ok {
+		t.Log("c.Healthchecks['public'] not ok")
 		t.Fail()
 	}
 	if h.Type != "ping" {
+		t.Log("type not ping")
 		t.Fail()
 	}
 	if h.Destination != "8.8.8.8" {
+		t.Log("Destination not 8.8.8.8")
 		t.Fail()
 	}
 	if h.Rise != 2 {
+		t.Log("Rise not 2")
 		t.Fail()
 	}
 	if h.Fall != 10 {
+		t.Log("fall not 10")
 		t.Fail()
 	}
 	if h.Every != 1 {
+		t.Log("every not 1")
 		t.Fail()
 	}
 	a, ok := c.RouteTables["a"]
@@ -52,33 +60,41 @@ func TestLoadConfigHealthchecks(t *testing.T) {
 		t.Fail()
 	}
 	if a.Find.Type != "by_tag" {
+		t.Log("Not by_tag")
 		t.Fail()
 	}
 	if v, ok := a.Find.Config["key"]; ok {
 		if v != "Name" {
+			t.Log("Config key Name not found")
 			t.Fail()
 		}
 	} else {
+		t.Log(fmt.Sprintf("Config key not found: %+v", a.Find.Config))
 		t.Fail()
 	}
 	if v, ok := a.Find.Config["value"]; ok {
 		if v != "private a" {
+			t.Log("Config value not private a")
 			t.Fail()
 		}
 	} else {
+		t.Log("Config value not present")
 		t.Fail()
 	}
 	routes := a.UpsertRoutes
 	if len(routes) != 2 {
+		t.Log("Route len not 2")
 		t.Fail()
 	}
 	for _, route := range routes {
 		if route.Cidr == "0.0.0.0/0" || route.Cidr == "192.168.1.1/32" {
 			if route.Instance != "SELF" {
+				t.Log("route.Instance not SELF")
 				t.Fail()
 			}
 			if route.Cidr == "0.0.0.0/0" {
 				if route.Healthcheck != "public" {
+					t.Log("Healthcheck not public")
 					t.Fail()
 				}
 			} else {
@@ -206,6 +222,11 @@ func TestConfigValidate(t *testing.T) {
 	err := c.Validate()
 	if err != nil {
 		t.Log(err)
+		t.Fail()
+	}
+	rt := c.RouteTables["a"]
+	ur := rt.UpsertRoutes[0]
+	if ur.Cidr != "127.0.0.1/32" {
 		t.Fail()
 	}
 }
@@ -367,9 +388,27 @@ func TestRouteFindSpecValidateNoConfig(t *testing.T) {
 	// FIXME Check error
 }
 
-func TestRouteTableDefault(t *testing.T) {
+func TestRouteTableDefaultEmpty(t *testing.T) {
 	r := RouteTable{}
 	r.Default()
+}
+
+func TestRouteTableDefault(t *testing.T) {
+	routes := make([]UpsertRoutesSpec, 1)
+	routes[0] = UpsertRoutesSpec{
+		Cidr: "127.0.0.1",
+	}
+	r := RouteTable{
+		UpsertRoutes: routes,
+	}
+	r.Default()
+	if len(r.UpsertRoutes) != 1 {
+		t.Fail()
+	}
+	routeSpec := r.UpsertRoutes[0]
+	if routeSpec.Cidr != "127.0.0.1/32" {
+		t.Fail()
+	}
 }
 
 func TestRouteTableValidateNullRoutes(t *testing.T) {
@@ -394,7 +433,9 @@ func TestRouteTableValidateNoRoutes(t *testing.T) {
 
 func TestRouteTableValidate(t *testing.T) {
 	routes := make([]UpsertRoutesSpec, 1)
-	routes[0] = UpsertRoutesSpec{}
+	routes[0] = UpsertRoutesSpec{
+		Cidr: "127.0.0.1",
+	}
 	r := RouteTable{
 		UpsertRoutes: routes,
 	}
