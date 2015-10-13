@@ -186,14 +186,19 @@ func TestHealthcheckValidateFailFall(t *testing.T) {
 
 func TestConfigDefault(t *testing.T) {
 	r := make(map[string]RouteTable)
+	r["a"] = RouteTable{
+		UpsertRoutes: []UpsertRoutesSpec{UpsertRoutesSpec{Cidr: "127.0.0.1"}},
+	}
 	c := Config{
 		RouteTables: r,
-	} // FIXME
+	}
 	c.Default()
 	if c.Healthchecks == nil {
 		t.Fail()
 	}
-	// FIXME check things
+	if c.RouteTables["a"].UpsertRoutes[0].Cidr != "127.0.0.1/32" {
+		t.Fail()
+	}
 }
 
 func TestConfigValidateNoRouteTables(t *testing.T) {
