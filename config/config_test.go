@@ -176,8 +176,9 @@ func TestConfigDefault(t *testing.T) {
 func TestConfigValidate(t *testing.T) {
 	c := Config{}
 	c.Default()
-	err := c.Validate()
+	err := c.Validate("foo")
 	if err != nil {
+		t.Log(err)
 		t.Fail()
 	}
 }
@@ -186,13 +187,27 @@ func TestUpsertRoutesSpecDefault(t *testing.T) {
 	u := UpsertRoutesSpec{}
 	u.Default()
 }
-func TestUpsertRoutesSpecValidate(t *testing.T) {}
+func TestUpsertRoutesSpecValidate(t *testing.T) {
+	r := UpsertRoutesSpec{}
+	err := r.Validate("foo")
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+}
 
 func TestRouteFindSpecDefault(t *testing.T) {
 	r := RouteFindSpec{}
 	r.Default()
 }
-func TestRouteFindSpecValidate(t *testing.T) {}
+func TestRouteFindSpecValidate(t *testing.T) {
+	r := RouteFindSpec{}
+	err := r.Validate("foo")
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+}
 
 func TestRouteTableDefault(t *testing.T) {
 	r := RouteTable{}

@@ -38,13 +38,14 @@ type Config struct {
 
 func (c *Config) Default() {
 }
-func (c Config) Validate() error {
+func (c Config) Validate(name string) error {
 	return nil
 }
 
 func (r *RouteFindSpec) Default() {
 }
-func (r *RouteFindSpec) Validate(name string) {
+func (r *RouteFindSpec) Validate(name string) error {
+	return nil
 }
 
 func (r *UpsertRoutesSpec) Default() {
