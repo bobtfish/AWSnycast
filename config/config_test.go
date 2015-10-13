@@ -169,19 +169,61 @@ func TestHealthcheckValidateFailFall(t *testing.T) {
 }
 
 func TestConfigDefault(t *testing.T) {
-	c := Config{} // FIXME
+	r := make(map[string]RouteTable)
+	c := Config{
+		RouteTables: r,
+	} // FIXME
 	c.Default()
+	if c.Healthchecks == nil {
+		t.Fail()
+	}
 	// FIXME check things
 }
 
-func TestConfigValidate(t *testing.T) {
-	c := Config{} // FIXME needs to be sane
+func TestConfigValidateNoRouteTables(t *testing.T) {
+	c := Config{}
 	c.Default()
-	err := c.Validate("foo")
+	err := c.Validate()
+	if err == nil {
+		t.Fail()
+	}
+	// FIXME check error
+}
+
+func TestConfigValidate(t *testing.T) {
+	r := make(map[string]RouteTable)
+	c := Config{
+		RouteTables: r,
+	} // FIXME needs to be sane
+	c.Default()
+	err := c.Validate()
 	if err != nil {
 		t.Log(err)
 		t.Fail()
 	}
+}
+
+func TestConfigValidateEmpty(t *testing.T) {
+	c := Config{}
+	c.Default()
+	err := c.Validate()
+	if err == nil {
+		t.Fail()
+	}
+	// FIXME test err
+}
+
+func TestConfigValidateEmptyRouteTables(t *testing.T) {
+	r := make(map[string]RouteTable)
+	c := Config{
+		RouteTables: r,
+	}
+	c.Default()
+	err := c.Validate()
+	if err == nil {
+		t.Fail()
+	}
+	// FIXME test err
 }
 
 // FIXME - need tests for each part of config failing, and check errors.

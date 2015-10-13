@@ -39,8 +39,14 @@ type Config struct {
 }
 
 func (c *Config) Default() {
+	if c.Healthchecks == nil {
+		c.Healthchecks = make(map[string]Healthcheck)
+	}
 }
-func (c Config) Validate(name string) error {
+func (c Config) Validate() error {
+	if c.RouteTables == nil {
+		return errors.New("No route_tables in config")
+	}
 	return nil
 }
 
