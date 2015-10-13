@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"log"
 	"net"
 	"strings"
 )
@@ -44,7 +45,9 @@ func (c *Config) Default() {
 	}
 	if c.RouteTables != nil {
 		for _, v := range c.RouteTables {
+			log.Printf("Config default, route table: %+v", v)
 			v.Default()
+			log.Printf("Post default of the route table: %+v", v)
 		}
 	}
 	for _, v := range c.Healthchecks {
@@ -103,10 +106,28 @@ func (r *UpsertRoutesSpec) Validate(name string) error {
 }
 
 func (r *RouteTable) Default() {
+	r.Find.Default()
+	if r.UpsertRoutes == nil {
+		r.UpsertRoutes = make([]UpsertRoutesSpec, 0)
+	}
+	n := make([]UpsertRoutesSpec, len(r.UpsertRoutes))
+	for i, v := range r.UpsertRoutes {
+		log.Printf("CIDR %s", v.Cidr)
+		v.Default()
+		n[i] = v
+		log.Printf("CIDR %s", v.Cidr)
+	}
+	r.UpsertRoutes = n
+	log.Printf("Route table is now %+v", r)
 }
 func (r RouteTable) Validate(name string) error {
 	if r.UpsertRoutes == nil || len(r.UpsertRoutes) == 0 {
 		return errors.New(fmt.Sprintf("No upsert_routes key in route table '%s'", name))
+	}
+	for _, v := range r.UpsertRoutes {
+		if err := v.Validate(name); err != nil {
+			return err
+		}
 	}
 	return nil
 }
