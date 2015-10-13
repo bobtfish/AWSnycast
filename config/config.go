@@ -100,7 +100,7 @@ func (r *UpsertRoutesSpec) Validate(name string) error {
 		return errors.New(fmt.Sprintf("cidr is not defined in %s", name))
 	}
 	if _, _, err := net.ParseCIDR(r.Cidr); err != nil {
-		return errors.New(fmt.Sprintf("Could not parse '%s' as a CIDR: %s", r.Cidr, err.Error()))
+		return errors.New(fmt.Sprintf("Could not parse %s in %s", err.Error(), name))
 	}
 	return nil
 }

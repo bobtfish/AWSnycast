@@ -208,7 +208,10 @@ func TestConfigValidateNoRouteTables(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
-	// FIXME check error
+	if err.Error() != "No route_tables key in config" {
+		t.Log(err.Error())
+		t.Fail()
+	}
 }
 
 func TestConfigValidate(t *testing.T) {
@@ -243,7 +246,10 @@ func TestConfigValidateEmpty(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
-	// FIXME test err
+	if err.Error() != "No route_tables key in config" {
+		t.Log(err.Error())
+		t.Fail()
+	}
 }
 
 func TestConfigValidateEmptyRouteTables(t *testing.T) {
@@ -256,7 +262,10 @@ func TestConfigValidateEmptyRouteTables(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
-	// FIXME test err
+	if err.Error() != "No route_tables defined in config" {
+		t.Log(err.Error())
+		t.Fail()
+	}
 }
 
 // FIXME - need tests for each part of config failing, and check errors.
@@ -284,7 +293,10 @@ func TestUpsertRoutesSpecValidateBadInstance(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
-	// FIXME Check error
+	if err.Error() != "Could not parse invalid CIDR address: 127.0.0.1 in foo" {
+		t.Log(err.Error())
+		t.Fail()
+	}
 }
 
 func TestUpsertRoutesSpecValidateMissingCidr(t *testing.T) {
@@ -295,7 +307,10 @@ func TestUpsertRoutesSpecValidateMissingCidr(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
-	// FIXME Check error
+	if err.Error() != "cidr is not defined in foo" {
+		t.Log(err.Error())
+		t.Fail()
+	}
 }
 
 func TestUpsertRoutesSpecValidateBadCidr1(t *testing.T) {
@@ -307,7 +322,10 @@ func TestUpsertRoutesSpecValidateBadCidr1(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
-	// FIXME Check error
+	if err.Error() != "Could not parse invalid CIDR address: 300.0.0.0/16 in foo" {
+		t.Log(err.Error())
+		t.Fail()
+	}
 }
 
 func TestUpsertRoutesSpecValidateBadCidr2(t *testing.T) {
@@ -319,7 +337,10 @@ func TestUpsertRoutesSpecValidateBadCidr2(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
-	// FIXME Check error
+	if err.Error() != "Could not parse invalid CIDR address: 3.0.0.0/160 in foo" {
+		t.Log(err.Error())
+		t.Fail()
+	}
 }
 
 func TestUpsertRoutesSpecValidateBadCidr3(t *testing.T) {
@@ -327,11 +348,14 @@ func TestUpsertRoutesSpecValidateBadCidr3(t *testing.T) {
 		Cidr:     "foo",
 		Instance: "SELF",
 	}
-	err := r.Validate("foo")
+	err := r.Validate("bar")
 	if err == nil {
 		t.Fail()
 	}
-	// FIXME Check error
+	if err.Error() != "Could not parse invalid CIDR address: foo in bar" {
+		t.Log(err.Error())
+		t.Fail()
+	}
 }
 
 func TestUpsertRoutesSpecValidate(t *testing.T) {
@@ -379,7 +403,10 @@ func TestRouteFindSpecValidateNoType(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
-	// FIXME Check error
+	if err.Error() != "Route find spec foo needs a type key" {
+		t.Log(err.Error())
+		t.Fail()
+	}
 }
 
 func TestRouteFindSpecValidateNoConfig(t *testing.T) {
@@ -390,7 +417,10 @@ func TestRouteFindSpecValidateNoConfig(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
-	// FIXME Check error
+	if err.Error() != "No config supplied" {
+		t.Log(err.Error())
+		t.Fail()
+	}
 }
 
 func TestRouteTableDefaultEmpty(t *testing.T) {
@@ -422,7 +452,10 @@ func TestRouteTableValidateNullRoutes(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
-	// FIXME Check error
+	if err.Error() != "No upsert_routes key in route table 'foo'" {
+		t.Log(err.Error())
+		t.Fail()
+	}
 }
 
 func TestRouteTableValidateNoRoutes(t *testing.T) {
@@ -433,7 +466,10 @@ func TestRouteTableValidateNoRoutes(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
-	// FIXME Check error
+	if err.Error() != "No upsert_routes key in route table 'foo'" {
+		t.Log(err.Error())
+		t.Fail()
+	}
 }
 
 func TestRouteTableValidate(t *testing.T) {
