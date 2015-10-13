@@ -99,6 +99,19 @@ func TestLoadConfigHealthchecks(t *testing.T) {
 	}
 }
 
+func TestHealthcheckDefault(t *testing.T) {
+	h := Healthcheck{
+		Type: "ping",
+	}
+	h.Default()
+	if h.Rise != 2 {
+		t.Fail()
+	}
+	if h.Fall != 3 {
+		t.Fail()
+	}
+}
+
 func TestHealthcheckValidate(t *testing.T) {
 	h := Healthcheck{
 		Type: "ping",
@@ -151,6 +164,32 @@ func TestHealthcheckValidateFailFall(t *testing.T) {
 	}
 	if err.Error() != "fall must be > 0" {
 		t.Log(err.Error())
+		t.Fail()
+	}
+}
+
+func TestConfigDefault(t *testing.T) {
+	c := Config{}
+	c.Default()
+}
+
+func TestConfigValidate(t *testing.T) {
+	c := Config{}
+	c.Default()
+	err := c.Validate()
+	if err != nil {
+		t.Fail()
+	}
+}
+func TestRouteTableDefault(t *testing.T) {
+	r := RouteTable{}
+	r.Default()
+}
+func TestRouteTableValidate(t *testing.T) {
+	r := RouteTable{}
+	r.Default()
+	err := r.Validate()
+	if err != nil {
 		t.Fail()
 	}
 }
