@@ -192,6 +192,7 @@ func TestConfigValidateNoRouteTables(t *testing.T) {
 
 func TestConfigValidate(t *testing.T) {
 	r := make(map[string]RouteTable)
+	r["a"] = RouteTable{}
 	c := Config{
 		RouteTables: r,
 	} // FIXME needs to be sane

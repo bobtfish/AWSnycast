@@ -45,7 +45,10 @@ func (c *Config) Default() {
 }
 func (c Config) Validate() error {
 	if c.RouteTables == nil {
-		return errors.New("No route_tables in config")
+		return errors.New("No route_tables key in config")
+	}
+	if len(c.RouteTables) == 0 {
+		return errors.New("No route_tables defined in config")
 	}
 	return nil
 }
