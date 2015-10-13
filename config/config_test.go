@@ -181,14 +181,50 @@ func TestConfigValidate(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestUpsertRoutesSpecDefault(t *testing.T) {
+	u := UpsertRoutesSpec{}
+	u.Default()
+}
+func TestUpsertRoutesSpecValidate(t *testing.T) {}
+
+func TestRouteFindSpecDefault(t *testing.T) {
+	r := RouteFindSpec{}
+	r.Default()
+}
+func TestRouteFindSpecValidate(t *testing.T) {}
+
 func TestRouteTableDefault(t *testing.T) {
 	r := RouteTable{}
 	r.Default()
 }
-func TestRouteTableValidate(t *testing.T) {
+
+func TestRouteTableValidateNullRoutes(t *testing.T) {
 	r := RouteTable{}
+	err := r.Validate("foo")
+	if err == nil {
+		t.Fail()
+	}
+}
+
+func TestRouteTableValidateNoRoutes(t *testing.T) {
+	r := RouteTable{
+		UpsertRoutes: make([]UpsertRoutesSpec, 0),
+	}
+	err := r.Validate("foo")
+	if err == nil {
+		t.Fail()
+	}
+}
+
+func TestRouteTableValidate(t *testing.T) {
+	routes := make([]UpsertRoutesSpec, 1)
+	routes[0] = UpsertRoutesSpec{}
+	r := RouteTable{
+		UpsertRoutes: routes,
+	}
 	r.Default()
-	err := r.Validate()
+	err := r.Validate("foo")
 	if err != nil {
 		t.Fail()
 	}

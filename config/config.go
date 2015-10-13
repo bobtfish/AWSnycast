@@ -42,9 +42,23 @@ func (c Config) Validate() error {
 	return nil
 }
 
+func (r *RouteFindSpec) Default() {
+}
+func (r *RouteFindSpec) Validate(name string) {
+}
+
+func (r *UpsertRoutesSpec) Default() {
+}
+func (r *UpsertRoutesSpec) Validate(name string) error {
+	return nil
+}
+
 func (r *RouteTable) Default() {
 }
-func (r RouteTable) Validate() error {
+func (r RouteTable) Validate(name string) error {
+	if r.UpsertRoutes == nil || len(r.UpsertRoutes) == 0 {
+		return errors.New(fmt.Sprintf("No upsert_routes key in route table '%s'", name))
+	}
 	return nil
 }
 
