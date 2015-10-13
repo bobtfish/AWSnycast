@@ -169,12 +169,13 @@ func TestHealthcheckValidateFailFall(t *testing.T) {
 }
 
 func TestConfigDefault(t *testing.T) {
-	c := Config{}
+	c := Config{} // FIXME
 	c.Default()
+	// FIXME check things
 }
 
 func TestConfigValidate(t *testing.T) {
-	c := Config{}
+	c := Config{} // FIXME needs to be sane
 	c.Default()
 	err := c.Validate("foo")
 	if err != nil {
@@ -182,6 +183,8 @@ func TestConfigValidate(t *testing.T) {
 		t.Fail()
 	}
 }
+
+// FIXME - need tests for each part of config failing, and check errors.
 
 func TestUpsertRoutesSpecDefault(t *testing.T) {
 	u := UpsertRoutesSpec{
@@ -192,49 +195,74 @@ func TestUpsertRoutesSpecDefault(t *testing.T) {
 		t.Log("Not canonicalized in UpsertRoutesSpecDefault")
 		t.Fail()
 	}
+	if u.Instance != "SELF" {
+		t.Log("Instance not defaulted to SELF")
+	}
 }
 
-func TestUpsertRoutesSpecValidateMissingCidr(t *testing.T) {
-	r := UpsertRoutesSpec{}
+func TestUpsertRoutesSpecValidateBadInstance(t *testing.T) {
+	r := UpsertRoutesSpec{
+		Instance: "vpc-1234",
+		Cidr:     "127.0.0.1",
+	}
 	err := r.Validate("foo")
 	if err == nil {
 		t.Fail()
 	}
+	// FIXME Check error
+}
+
+func TestUpsertRoutesSpecValidateMissingCidr(t *testing.T) {
+	r := UpsertRoutesSpec{
+		Instance: "SELF",
+	}
+	err := r.Validate("foo")
+	if err == nil {
+		t.Fail()
+	}
+	// FIXME Check error
 }
 
 func TestUpsertRoutesSpecValidateBadCidr1(t *testing.T) {
 	r := UpsertRoutesSpec{
-		Cidr: "300.0.0.0/16",
+		Cidr:     "300.0.0.0/16",
+		Instance: "SELF",
 	}
 	err := r.Validate("foo")
 	if err == nil {
 		t.Fail()
 	}
+	// FIXME Check error
 }
 
 func TestUpsertRoutesSpecValidateBadCidr2(t *testing.T) {
 	r := UpsertRoutesSpec{
-		Cidr: "3.0.0.0/160",
+		Cidr:     "3.0.0.0/160",
+		Instance: "SELF",
 	}
 	err := r.Validate("foo")
 	if err == nil {
 		t.Fail()
 	}
+	// FIXME Check error
 }
 
 func TestUpsertRoutesSpecValidateBadCidr3(t *testing.T) {
 	r := UpsertRoutesSpec{
-		Cidr: "foo",
+		Cidr:     "foo",
+		Instance: "SELF",
 	}
 	err := r.Validate("foo")
 	if err == nil {
 		t.Fail()
 	}
+	// FIXME Check error
 }
 
 func TestUpsertRoutesSpecValidate(t *testing.T) {
 	r := UpsertRoutesSpec{
-		Cidr: "0.0.0.0/0",
+		Cidr:     "0.0.0.0/0",
+		Instance: "SELF",
 	}
 	err := r.Validate("foo")
 	if err != nil {
@@ -246,14 +274,48 @@ func TestUpsertRoutesSpecValidate(t *testing.T) {
 func TestRouteFindSpecDefault(t *testing.T) {
 	r := RouteFindSpec{}
 	r.Default()
+	if r.Config == nil {
+		t.Fail()
+	}
 }
 func TestRouteFindSpecValidate(t *testing.T) {
-	r := RouteFindSpec{}
+	c := make(map[string]string)
+	c["key"] = "Name"
+	c["value"] = "private a"
+	r := RouteFindSpec{
+		Type:   "by_tag",
+		Config: c,
+	}
 	err := r.Validate("foo")
 	if err != nil {
 		t.Log(err)
 		t.Fail()
 	}
+}
+
+func TestRouteFindSpecValidateNoType(t *testing.T) {
+	c := make(map[string]string)
+	c["key"] = "Name"
+	c["value"] = "private a"
+	r := RouteFindSpec{
+		Config: c,
+	}
+	err := r.Validate("foo")
+	if err == nil {
+		t.Fail()
+	}
+	// FIXME Check error
+}
+
+func TestRouteFindSpecValidateNoConfig(t *testing.T) {
+	r := RouteFindSpec{
+		Type: "by_tag",
+	}
+	err := r.Validate("foo")
+	if err == nil {
+		t.Fail()
+	}
+	// FIXME Check error
 }
 
 func TestRouteTableDefault(t *testing.T) {
@@ -267,6 +329,7 @@ func TestRouteTableValidateNullRoutes(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
+	// FIXME Check error
 }
 
 func TestRouteTableValidateNoRoutes(t *testing.T) {
@@ -277,6 +340,7 @@ func TestRouteTableValidateNoRoutes(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
+	// FIXME Check error
 }
 
 func TestRouteTableValidate(t *testing.T) {

@@ -49,11 +49,15 @@ func (r *RouteFindSpec) Validate(name string) error {
 }
 
 func (r *UpsertRoutesSpec) Default() {
+	if r.Cidr == "127.0.0.1" { // FIXME
+		r.Cidr = "127.0.0.1/32"
+	}
 }
 func (r *UpsertRoutesSpec) Validate(name string) error {
 	if r.Cidr == "" {
 		return errors.New(fmt.Sprintf("cidr is not defined in %s", name))
 	}
+	// FIXME
 	return nil
 }
 
