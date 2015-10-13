@@ -51,6 +51,9 @@ func (r *RouteFindSpec) Validate(name string) error {
 func (r *UpsertRoutesSpec) Default() {
 }
 func (r *UpsertRoutesSpec) Validate(name string) error {
+	if r.Cidr == "" {
+		return errors.New(fmt.Sprintf("cidr is not defined in %s", name))
+	}
 	return nil
 }
 

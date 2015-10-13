@@ -184,11 +184,58 @@ func TestConfigValidate(t *testing.T) {
 }
 
 func TestUpsertRoutesSpecDefault(t *testing.T) {
-	u := UpsertRoutesSpec{}
+	u := UpsertRoutesSpec{
+		Cidr: "127.0.0.1",
+	}
 	u.Default()
+	if u.Cidr != "127.0.0.1/32" {
+		t.Log("Not canonicalized in UpsertRoutesSpecDefault")
+		t.Fail()
+	}
 }
-func TestUpsertRoutesSpecValidate(t *testing.T) {
+
+func TestUpsertRoutesSpecValidateMissingCidr(t *testing.T) {
 	r := UpsertRoutesSpec{}
+	err := r.Validate("foo")
+	if err == nil {
+		t.Fail()
+	}
+}
+
+func TestUpsertRoutesSpecValidateBadCidr1(t *testing.T) {
+	r := UpsertRoutesSpec{
+		Cidr: "300.0.0.0/16",
+	}
+	err := r.Validate("foo")
+	if err == nil {
+		t.Fail()
+	}
+}
+
+func TestUpsertRoutesSpecValidateBadCidr2(t *testing.T) {
+	r := UpsertRoutesSpec{
+		Cidr: "3.0.0.0/160",
+	}
+	err := r.Validate("foo")
+	if err == nil {
+		t.Fail()
+	}
+}
+
+func TestUpsertRoutesSpecValidateBadCidr3(t *testing.T) {
+	r := UpsertRoutesSpec{
+		Cidr: "foo",
+	}
+	err := r.Validate("foo")
+	if err == nil {
+		t.Fail()
+	}
+}
+
+func TestUpsertRoutesSpecValidate(t *testing.T) {
+	r := UpsertRoutesSpec{
+		Cidr: "0.0.0.0/0",
+	}
 	err := r.Validate("foo")
 	if err != nil {
 		t.Log(err)
