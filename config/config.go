@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"net"
+	"strings"
 )
 
 type Healthcheck struct {
@@ -43,21 +45,33 @@ func (c Config) Validate(name string) error {
 }
 
 func (r *RouteFindSpec) Default() {
+	r.Config = make(map[string]string)
 }
 func (r *RouteFindSpec) Validate(name string) error {
+	if r.Type == "" {
+		return errors.New(fmt.Sprintf("Route find spec %s needs a type key", name))
+	}
+	if r.Type != "by_tag" {
+		return errors.New(fmt.Sprintf("Route find spec %s type '%s' not known", name, r.Type))
+	}
+	if r.Config == nil {
+		return errors.New("No config supplied")
+	}
 	return nil
 }
 
 func (r *UpsertRoutesSpec) Default() {
-	if r.Cidr == "127.0.0.1" { // FIXME
-		r.Cidr = "127.0.0.1/32"
+	if !strings.Contains(r.Cidr, "/") {
+		r.Cidr = fmt.Sprintf("%s/32", r.Cidr)
 	}
 }
 func (r *UpsertRoutesSpec) Validate(name string) error {
 	if r.Cidr == "" {
 		return errors.New(fmt.Sprintf("cidr is not defined in %s", name))
 	}
-	// FIXME
+	if _, _, err := net.ParseCIDR(r.Cidr); err != nil {
+		return errors.New(fmt.Sprintf("Could not parse '%s' as a CIDR: %s", r.Cidr, err.Error()))
+	}
 	return nil
 }
 
