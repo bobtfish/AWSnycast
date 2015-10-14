@@ -22,5 +22,5 @@ variables.tf.json:
 		ruby getvariables.rb > variables.tf.json
 
 clean:
-		rm -f id_rsa id_rsa.pub variables.tf.json
+		rm -rf .terraform id_rsa id_rsa.pub variables.tf.json
 
