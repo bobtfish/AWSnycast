@@ -67,6 +67,23 @@ func TestSetupAvailable(t *testing.T) {
 	}
 }
 
+func TestSetupHealthChecks(t *testing.T) {
+	d := getD(true)
+	err := d.Setup()
+	if err != nil {
+		t.Fail()
+	}
+	if d.Config.Healthchecks["public"].IsRunning() {
+		t.Log("HealthChecks already running")
+		t.Fail()
+	}
+	d.runHealthChecks()
+	if !d.Config.Healthchecks["public"].IsRunning() {
+		t.Log("HealthChecks did not start running")
+		t.Fail()
+	}
+}
+
 func TestGetSubnetIdMacFail(t *testing.T) {
 	d := getD(true)
 	_, err := d.GetSubnetId()

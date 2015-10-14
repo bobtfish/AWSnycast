@@ -116,9 +116,9 @@ func TestLoadConfigHealthchecks(t *testing.T) {
 }
 
 func TestConfigDefault(t *testing.T) {
-	r := make(map[string]RouteTable)
-	r["a"] = RouteTable{
-		UpsertRoutes: []UpsertRoutesSpec{UpsertRoutesSpec{Cidr: "127.0.0.1"}},
+	r := make(map[string]*RouteTable)
+	r["a"] = &RouteTable{
+		UpsertRoutes: []*UpsertRoutesSpec{&UpsertRoutesSpec{Cidr: "127.0.0.1"}},
 	}
 	c := Config{
 		RouteTables: r,
@@ -146,12 +146,12 @@ func TestConfigValidateNoRouteTables(t *testing.T) {
 }
 
 func TestConfigValidate(t *testing.T) {
-	u := make([]UpsertRoutesSpec, 1)
-	u[0] = UpsertRoutesSpec{
+	u := make([]*UpsertRoutesSpec, 1)
+	u[0] = &UpsertRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
-	r := make(map[string]RouteTable)
-	r["a"] = RouteTable{
+	r := make(map[string]*RouteTable)
+	r["a"] = &RouteTable{
 		UpsertRoutes: u,
 	}
 	c := Config{
@@ -184,7 +184,7 @@ func TestConfigValidateEmpty(t *testing.T) {
 }
 
 func TestConfigValidateEmptyRouteTables(t *testing.T) {
-	r := make(map[string]RouteTable)
+	r := make(map[string]*RouteTable)
 	c := Config{
 		RouteTables: r,
 	}
@@ -202,7 +202,7 @@ func TestConfigValidateEmptyRouteTables(t *testing.T) {
 // FIXME - need tests for each part of config failing, and check errors.
 
 func TestUpsertRoutesSpecDefault(t *testing.T) {
-	u := UpsertRoutesSpec{
+	u := &UpsertRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
 	u.Default()
@@ -216,7 +216,7 @@ func TestUpsertRoutesSpecDefault(t *testing.T) {
 }
 
 func TestUpsertRoutesSpecValidateBadInstance(t *testing.T) {
-	r := UpsertRoutesSpec{
+	r := &UpsertRoutesSpec{
 		Instance: "vpc-1234",
 		Cidr:     "127.0.0.1",
 	}
@@ -360,8 +360,8 @@ func TestRouteTableDefaultEmpty(t *testing.T) {
 }
 
 func TestRouteTableDefault(t *testing.T) {
-	routes := make([]UpsertRoutesSpec, 1)
-	routes[0] = UpsertRoutesSpec{
+	routes := make([]*UpsertRoutesSpec, 1)
+	routes[0] = &UpsertRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
 	r := RouteTable{
@@ -391,7 +391,7 @@ func TestRouteTableValidateNullRoutes(t *testing.T) {
 
 func TestRouteTableValidateNoRoutes(t *testing.T) {
 	r := RouteTable{
-		UpsertRoutes: make([]UpsertRoutesSpec, 0),
+		UpsertRoutes: make([]*UpsertRoutesSpec, 0),
 	}
 	err := r.Validate("foo")
 	if err == nil {
@@ -404,8 +404,8 @@ func TestRouteTableValidateNoRoutes(t *testing.T) {
 }
 
 func TestRouteTableValidate(t *testing.T) {
-	routes := make([]UpsertRoutesSpec, 1)
-	routes[0] = UpsertRoutesSpec{
+	routes := make([]*UpsertRoutesSpec, 1)
+	routes[0] = &UpsertRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
 	r := RouteTable{

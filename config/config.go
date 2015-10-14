@@ -22,23 +22,22 @@ type UpsertRoutesSpec struct {
 }
 
 type RouteTable struct {
-	Find         RouteFindSpec      `yaml:"find"`
-	UpsertRoutes []UpsertRoutesSpec `yaml:"upsert_routes"`
+	Find         RouteFindSpec       `yaml:"find"`
+	UpsertRoutes []*UpsertRoutesSpec `yaml:"upsert_routes"`
 }
 
 type Config struct {
-	Healthchecks map[string]healthcheck.Healthcheck `yaml:"healthchecks"`
-	RouteTables  map[string]RouteTable              `yaml:"routetables"`
+	Healthchecks map[string]*healthcheck.Healthcheck `yaml:"healthchecks"`
+	RouteTables  map[string]*RouteTable              `yaml:"routetables"`
 }
 
 func (c *Config) Default() {
 	if c.Healthchecks == nil {
-		c.Healthchecks = make(map[string]healthcheck.Healthcheck)
+		c.Healthchecks = make(map[string]*healthcheck.Healthcheck)
 	}
 	if c.RouteTables != nil {
-		for k, v := range c.RouteTables {
+		for _, v := range c.RouteTables {
 			v.Default()
-			c.RouteTables[k] = v
 		}
 	}
 	for _, v := range c.Healthchecks {
@@ -101,14 +100,11 @@ func (r *UpsertRoutesSpec) Validate(name string) error {
 func (r *RouteTable) Default() {
 	r.Find.Default()
 	if r.UpsertRoutes == nil {
-		r.UpsertRoutes = make([]UpsertRoutesSpec, 0)
+		r.UpsertRoutes = make([]*UpsertRoutesSpec, 0)
 	}
-	n := make([]UpsertRoutesSpec, len(r.UpsertRoutes))
-	for i, v := range r.UpsertRoutes {
+	for _, v := range r.UpsertRoutes {
 		v.Default()
-		n[i] = v
 	}
-	r.UpsertRoutes = n
 }
 func (r RouteTable) Validate(name string) error {
 	if r.UpsertRoutes == nil || len(r.UpsertRoutes) == 0 {

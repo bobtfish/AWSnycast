@@ -116,6 +116,6 @@ func (h *Healthcheck) Run() {
 	h.isRunning = true
 }
 
-func (h *Healthcheck) IsRunning() bool {
+func (h Healthcheck) IsRunning() bool {
 	return h.isRunning
 }

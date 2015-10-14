@@ -52,6 +52,14 @@ func (d *Daemon) GetSubnetId() (string, error) {
 	return d.MetadataFetcher.GetMetadata(fmt.Sprintf("network/interfaces/macs/%s/subnet-id", mac))
 }
 
+func (d *Daemon) runHealthChecks() {
+	log.Printf("Starting healthchecks")
+	for _, v := range d.Config.Healthchecks {
+		v.Run()
+	}
+	log.Printf("Done starting healthchecks")
+}
+
 func (d *Daemon) Run() int {
 	if err := d.Setup(); err != nil {
 		log.Printf("Error setting up: %s", err.Error())
@@ -71,10 +79,6 @@ func (d *Daemon) Run() int {
 	for _, _ = range rt {
 		//log.Printf("Route table %v", val)
 	}
-	log.Printf("Starting healthchecks")
-	for _, v := range d.Config.Healthchecks {
-		v.Run()
-	}
-	log.Printf("Done starting healthchecks")
+	d.runHealthChecks()
 	return 0
 }
