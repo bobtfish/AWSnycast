@@ -19,7 +19,8 @@ func TestHealthcheckDefault(t *testing.T) {
 
 func TestHealthcheckValidate(t *testing.T) {
 	h := Healthcheck{
-		Type: "ping",
+		Type:        "ping",
+		Destination: "127.0.0.1",
 	}
 	h.Default()
 	err := h.Validate("foo")
@@ -29,9 +30,39 @@ func TestHealthcheckValidate(t *testing.T) {
 	}
 }
 
-func TestHealthcheckValidateFailType(t *testing.T) {
+func TestHealthcheckValidateFailNoDestination(t *testing.T) {
 	h := Healthcheck{
 		Type: "notping",
+	}
+	err := h.Validate("foo")
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "Healthcheck foo has no destination set" {
+		t.Log(err.Error())
+		t.Fail()
+	}
+}
+
+func TestHealthcheckValidateFailDestination(t *testing.T) {
+	h := Healthcheck{
+		Type:        "notping",
+		Destination: "www.google.com",
+	}
+	err := h.Validate("foo")
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "Healthcheck foo destination 'www.google.com' does not parse as an IP address" {
+		t.Log(err.Error())
+		t.Fail()
+	}
+}
+
+func TestHealthcheckValidateFailType(t *testing.T) {
+	h := Healthcheck{
+		Type:        "notping",
+		Destination: "127.0.0.1",
 	}
 	err := h.Validate("foo")
 	if err == nil {
@@ -45,8 +76,9 @@ func TestHealthcheckValidateFailType(t *testing.T) {
 
 func TestHealthcheckValidateFailRise(t *testing.T) {
 	h := Healthcheck{
-		Type: "ping",
-		Fall: 1,
+		Type:        "ping",
+		Fall:        1,
+		Destination: "127.0.0.1",
 	}
 	err := h.Validate("foo")
 	if err == nil {
@@ -60,8 +92,9 @@ func TestHealthcheckValidateFailRise(t *testing.T) {
 
 func TestHealthcheckValidateFailFall(t *testing.T) {
 	h := Healthcheck{
-		Type: "ping",
-		Rise: 1,
+		Type:        "ping",
+		Rise:        1,
+		Destination: "127.0.0.1",
 	}
 	err := h.Validate("foo")
 	if err == nil {
@@ -71,4 +104,8 @@ func TestHealthcheckValidateFailFall(t *testing.T) {
 		t.Log(err.Error())
 		t.Fail()
 	}
+}
+
+func TestHealthcheckGetRunner(t *testing.T) {
+
 }
