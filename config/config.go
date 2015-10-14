@@ -25,8 +25,8 @@ func init() {
 			return nil, errors.New("No key in config for by_tag route table finder")
 		}
 		if _, ok := spec.Config["value"]; !ok {
-                        return nil, errors.New("No value in config for by_tag route table finder")
-                }
+			return nil, errors.New("No value in config for by_tag route table finder")
+		}
 		return aws.RouteTableFilterTagMatch{
 			Key:   spec.Config["key"],
 			Value: spec.Config["value"],
@@ -48,7 +48,7 @@ type UpsertRoutesSpec struct {
 }
 
 type RouteTable struct {
-	Find         RouteTableFindSpec       `yaml:"find"`
+	Find         RouteTableFindSpec  `yaml:"find"`
 	UpsertRoutes []*UpsertRoutesSpec `yaml:"upsert_routes"`
 }
 
