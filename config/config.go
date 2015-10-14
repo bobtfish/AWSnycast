@@ -3,7 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
-	"github.com/bobtfish/AWSNycast/healthcheck"
+	"github.com/bobtfish/AWSnycast/healthcheck"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"net"
