@@ -13,6 +13,7 @@ type Daemon struct {
 	Config            *config.Config
 	MetadataFetcher   aws.MetadataFetcher
 	RouteTableFetcher aws.RouteTableFetcher
+	Region string
 }
 
 func (d *Daemon) Setup() error {
@@ -28,8 +29,13 @@ func (d *Daemon) Setup() error {
 		}
 		d.MetadataFetcher = m
 	}
+	az, err := d.MetadataFetcher.GetMetadata("placement/availability-zone")
+        if err != nil {
+                log.Printf("Error getting AZ: %s", err.Error())
+        }
+        d.Region = az[:len(az)-1]
 	if d.RouteTableFetcher == nil {
-		rtf, err := aws.NewRouteTableFetcher("us-west-1", d.Debug)
+		rtf, err := aws.NewRouteTableFetcher(d.Region, d.Debug)
 		if err != nil {
 			return err
 		}
@@ -60,6 +66,7 @@ func (d *Daemon) runHealthChecks() {
 	log.Printf("Done starting healthchecks")
 }
 
+
 func (d *Daemon) Run() int {
 	if err := d.Setup(); err != nil {
 		log.Printf("Error setting up: %s", err.Error())
@@ -76,8 +83,8 @@ func (d *Daemon) Run() int {
 		log.Printf("Error %v", err)
 		return 1
 	}
-	for _, _ = range rt {
-		//log.Printf("Route table %v", val)
+	for _, val := range rt {
+		log.Printf("Route table %v", val)
 	}
 	d.runHealthChecks()
 	return 0

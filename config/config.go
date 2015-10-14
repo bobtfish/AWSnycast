@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -10,9 +11,34 @@ import (
 	"strings"
 )
 
-type RouteFindSpec struct {
+type RouteTableFindSpec struct {
 	Type   string            `yaml:"type"`
 	Config map[string]string `yaml:"config"`
+}
+
+var routeFindTypes map[string]func(RouteTableFindSpec) (aws.RouteTableFilter, error)
+
+func init() {
+	routeFindTypes = make(map[string]func(RouteTableFindSpec) (aws.RouteTableFilter, error))
+	routeFindTypes["by_tag"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
+		if _, ok := spec.Config["key"]; !ok {
+			return nil, errors.New("No key in config for by_tag route table finder")
+		}
+		if _, ok := spec.Config["value"]; !ok {
+                        return nil, errors.New("No value in config for by_tag route table finder")
+                }
+		return aws.RouteTableFilterTagMatch{
+			Key:   spec.Config["key"],
+			Value: spec.Config["value"],
+		}, nil
+	}
+}
+
+func (spec RouteTableFindSpec) GetFilter() (aws.RouteTableFilter, error) {
+	if genFilter, found := routeFindTypes[spec.Type]; found {
+		return genFilter(spec)
+	}
+	return nil, errors.New(fmt.Sprintf("Healthcheck type '%s' not found in the healthcheck registry", spec.Type))
 }
 
 type UpsertRoutesSpec struct {
@@ -22,7 +48,7 @@ type UpsertRoutesSpec struct {
 }
 
 type RouteTable struct {
-	Find         RouteFindSpec       `yaml:"find"`
+	Find         RouteTableFindSpec       `yaml:"find"`
 	UpsertRoutes []*UpsertRoutesSpec `yaml:"upsert_routes"`
 }
 
@@ -64,12 +90,12 @@ func (c Config) Validate() error {
 	return nil
 }
 
-func (r *RouteFindSpec) Default() {
+func (r *RouteTableFindSpec) Default() {
 	if r.Config == nil {
 		r.Config = make(map[string]string)
 	}
 }
-func (r *RouteFindSpec) Validate(name string) error {
+func (r *RouteTableFindSpec) Validate(name string) error {
 	if r.Type == "" {
 		return errors.New(fmt.Sprintf("Route find spec %s needs a type key", name))
 	}
