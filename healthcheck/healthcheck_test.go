@@ -161,7 +161,7 @@ func MyFakeHealthConstructorFail(h Healthcheck) (HealthChecker, error) {
 func TestHealthcheckRunSimple(t *testing.T) {
 	registerHealthcheck("test_ok", MyFakeHealthConstructorOk)
 	registerHealthcheck("test_fail", MyFakeHealthConstructorFail)
-	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1"}
+	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 1}
 	ok, err := h_ok.GetHealthChecker()
 	if err != nil {
 		t.Fail()
@@ -175,6 +175,59 @@ func TestHealthcheckRunSimple(t *testing.T) {
 		t.Fail()
 	}
 	if fail.Healthcheck() {
+		t.Fail()
+	}
+	h_ok.Default()
+	h_ok.Setup()
+	if h_ok.IsHealthy() {
+		t.Fail()
+	}
+	h_ok.PerformHealthcheck()
+	if !h_ok.IsHealthy() {
+		t.Fail()
+	}
+}
+
+func TestHealthcheckRise(t *testing.T) {
+	registerHealthcheck("test_ok", MyFakeHealthConstructorOk)
+	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
+	h_ok.Default()
+	h_ok.Setup()
+	if h_ok.IsHealthy() {
+		t.Log("Started healthy")
+		t.Fail()
+	}
+	h_ok.PerformHealthcheck()
+	if h_ok.IsHealthy() {
+		t.Log("Became healthy after 1")
+		t.Fail()
+	}
+	h_ok.PerformHealthcheck()
+	if !h_ok.IsHealthy() {
+		t.Log("Never became healthy")
+		t.Fail()
+	}
+}
+
+func TestHealthcheckFall(t *testing.T) {
+	registerHealthcheck("test_fail", MyFakeHealthConstructorFail)
+	h_ok := Healthcheck{Type: "test_fail", Destination: "127.0.0.1", Fall: 2}
+	h_ok.Default()
+	h_ok.Setup()
+	h_ok.History = []bool{true, true, true, true, true, true, true, true, true, true, true}
+	h_ok.isHealthy = true
+	if !h_ok.IsHealthy() {
+		t.Log("Started unhealthy")
+		t.Fail()
+	}
+	h_ok.PerformHealthcheck()
+	if !h_ok.IsHealthy() {
+		t.Log("Became unhealthy after 1")
+		t.Fail()
+	}
+	h_ok.PerformHealthcheck()
+	if h_ok.IsHealthy() {
+		t.Log("Never became unhealthy")
 		t.Fail()
 	}
 }
