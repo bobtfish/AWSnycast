@@ -1,6 +1,7 @@
 package healthcheck
 
 import (
+	"errors"
 	"testing"
 )
 
@@ -106,6 +107,74 @@ func TestHealthcheckValidateFailFall(t *testing.T) {
 	}
 }
 
-func TestHealthcheckGetRunner(t *testing.T) {
+func myHealthCheckConstructorFail(h Healthcheck) (HealthChecker, error) {
+	return nil, errors.New("Test")
+}
 
+func TestHealthcheckRegisterNew(t *testing.T) {
+	registerHealthcheck("testconstructorfail", myHealthCheckConstructorFail)
+	h := Healthcheck{
+		Type:        "testconstructorfail",
+		Destination: "127.0.0.1",
+	}
+	_, err := h.GetHealthChecker()
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "Test" {
+		t.Log(err.Error())
+		t.Fail()
+	}
+}
+
+func TestHealthcheckGetHealthcheckNotExist(t *testing.T) {
+	h := Healthcheck{
+		Type:        "test_this_healthcheck_does_not_exist",
+		Destination: "127.0.0.1",
+	}
+	_, err := h.GetHealthChecker()
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "Healthcheck type 'test_this_healthcheck_does_not_exist' not found in the healthcheck registry" {
+		t.Log(err.Error())
+		t.Fail()
+	}
+}
+
+type MyFakeHealthCheck struct {
+	Healthy bool
+}
+
+func (h MyFakeHealthCheck) Healthcheck() bool {
+	return h.Healthy
+}
+
+func MyFakeHealthConstructorOk(h Healthcheck) (HealthChecker, error) {
+	return MyFakeHealthCheck{Healthy: true}, nil
+}
+
+func MyFakeHealthConstructorFail(h Healthcheck) (HealthChecker, error) {
+	return MyFakeHealthCheck{Healthy: false}, nil
+}
+
+func TestHealthcheckRunSimple(t *testing.T) {
+	registerHealthcheck("test_ok", MyFakeHealthConstructorOk)
+	registerHealthcheck("test_fail", MyFakeHealthConstructorFail)
+	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1"}
+	ok, err := h_ok.GetHealthChecker()
+	if err != nil {
+		t.Fail()
+	}
+	h_fail := Healthcheck{Type: "test_fail", Destination: "127.0.0.1"}
+	fail, err := h_fail.GetHealthChecker()
+	if err != nil {
+		t.Fail()
+	}
+	if !ok.Healthcheck() {
+		t.Fail()
+	}
+	if fail.Healthcheck() {
+		t.Fail()
+	}
 }

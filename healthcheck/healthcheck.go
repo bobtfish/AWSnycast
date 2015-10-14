@@ -6,6 +6,19 @@ import (
 	"net"
 )
 
+var healthCheckTypes map[string]func(Healthcheck) (HealthChecker, error)
+
+func registerHealthcheck(name string, f func(Healthcheck) (HealthChecker, error)) {
+	if healthCheckTypes == nil {
+		healthCheckTypes = make(map[string]func(Healthcheck) (HealthChecker, error))
+	}
+	healthCheckTypes[name] = f
+}
+
+type HealthChecker interface {
+	Healthcheck() bool
+}
+
 type Healthcheck struct {
 	Type        string `yaml:"type"`
 	Destination string `yaml:"destination"`
@@ -14,13 +27,11 @@ type Healthcheck struct {
 	Every       uint   `yaml:"every"`
 }
 
-type HealtCheckRunner struct {
-	Run     func() (bool, bool)
-	Healthy bool
-}
-
-func (h Healthcheck) GetRunner() HealtCheckRunner {
-	return HealtCheckRunner{}
+func (h Healthcheck) GetHealthChecker() (HealthChecker, error) {
+	if constructor, found := healthCheckTypes[h.Type]; found {
+		return constructor(h)
+	}
+	return nil, errors.New(fmt.Sprintf("Healthcheck type '%s' not found in the healthcheck registry", h.Type))
 }
 
 func (h *Healthcheck) Default() {
