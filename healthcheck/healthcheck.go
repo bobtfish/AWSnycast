@@ -28,6 +28,7 @@ type Healthcheck struct {
 	Every         uint   `yaml:"every"`
 	History       []bool `yaml:"-"`
 	healthchecker HealthChecker
+	isRunning     bool
 }
 
 func (h Healthcheck) GetHealthChecker() (HealthChecker, error) {
@@ -106,4 +107,15 @@ func (h *Healthcheck) Setup() error {
 	}
 	h.healthchecker = hc
 	return nil
+}
+
+func (h *Healthcheck) Run() {
+	if h.isRunning {
+		return
+	}
+	h.isRunning = true
+}
+
+func (h *Healthcheck) IsRunning() bool {
+	return h.isRunning
 }

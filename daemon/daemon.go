@@ -35,6 +35,12 @@ func (d *Daemon) Setup() error {
 		}
 		d.RouteTableFetcher = rtf
 	}
+	for _, v := range d.Config.Healthchecks {
+		err := v.Setup()
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -65,5 +71,10 @@ func (d *Daemon) Run() int {
 	for _, _ = range rt {
 		//log.Printf("Route table %v", val)
 	}
+	log.Printf("Starting healthchecks")
+	for _, v := range d.Config.Healthchecks {
+		v.Run()
+	}
+	log.Printf("Done starting healthchecks")
 	return 0
 }

@@ -231,3 +231,14 @@ func TestHealthcheckFall(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestHealthcheckRun(t *testing.T) {
+	registerHealthcheck("test_ok", MyFakeHealthConstructorOk)
+	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
+	h_ok.Default()
+	h_ok.Setup()
+	h_ok.Run()
+	if !h_ok.IsRunning() {
+		t.Fail()
+	}
+}
