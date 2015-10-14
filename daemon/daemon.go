@@ -82,8 +82,16 @@ func (d *Daemon) Run() int {
 		log.Printf("Error %v", err)
 		return 1
 	}
-	for _, val := range rt {
-		log.Printf("Route table %v", val)
+	for name, configRouteTables := range d.Config.RouteTables {
+		filter, err := configRouteTables.Find.GetFilter()
+		if err != nil {
+			log.Printf("Error %v", err)
+			return 1
+		}
+		remaining := aws.FilterRouteTables(filter, rt)
+		for _, val := range remaining {
+			log.Printf("Finder name %s found route table %v", name, val)
+		}
 	}
 	d.runHealthChecks()
 	return 0
