@@ -64,6 +64,9 @@ func (h Healthcheck) IsHealthy() bool {
 }
 
 func (h *Healthcheck) PerformHealthcheck() {
+	if h.healthchecker == nil {
+		panic("Setup() never called for healthcheck before Run")
+	}
 	result := h.healthchecker.Healthcheck()
 	maxIdx := uint(len(h.History) - 1)
 	h.History = append(h.History[:1], h.History[2:]...)
