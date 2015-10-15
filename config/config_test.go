@@ -301,18 +301,18 @@ func TestUpsertRoutesSpecValidate(t *testing.T) {
 	}
 }
 
-func TestRouteFindSpecDefault(t *testing.T) {
-	r := RouteFindSpec{}
+func TestRouteTableFindSpecDefault(t *testing.T) {
+	r := RouteTableFindSpec{}
 	r.Default()
 	if r.Config == nil {
 		t.Fail()
 	}
 }
-func TestRouteFindSpecValidate(t *testing.T) {
+func TestRouteTableFindSpecValidate(t *testing.T) {
 	c := make(map[string]string)
 	c["key"] = "Name"
 	c["value"] = "private a"
-	r := RouteFindSpec{
+	r := RouteTableFindSpec{
 		Type:   "by_tag",
 		Config: c,
 	}
@@ -323,11 +323,11 @@ func TestRouteFindSpecValidate(t *testing.T) {
 	}
 }
 
-func TestRouteFindSpecValidateNoType(t *testing.T) {
+func TestRouteTableFindSpecValidateNoType(t *testing.T) {
 	c := make(map[string]string)
 	c["key"] = "Name"
 	c["value"] = "private a"
-	r := RouteFindSpec{
+	r := RouteTableFindSpec{
 		Config: c,
 	}
 	err := r.Validate("foo")
@@ -340,8 +340,8 @@ func TestRouteFindSpecValidateNoType(t *testing.T) {
 	}
 }
 
-func TestRouteFindSpecValidateNoConfig(t *testing.T) {
-	r := RouteFindSpec{
+func TestRouteTableFindSpecValidateNoConfig(t *testing.T) {
+	r := RouteTableFindSpec{
 		Type: "by_tag",
 	}
 	err := r.Validate("foo")
