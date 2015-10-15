@@ -83,23 +83,35 @@ func (d *Daemon) RunOneRouteTable(rt []*ec2.RouteTable, name string, configRoute
 	remaining := aws.FilterRouteTables(filter, rt)
 	for _, rtb := range remaining {
 		log.Printf("Finder name %s found route table %v", name, rtb)
-	RouteLoop:
 		for _, upsertRoute := range configRouteTables.UpsertRoutes {
-			if upsertRoute.Healthcheck != "" {
-				if _, ok := d.Config.Healthchecks[upsertRoute.Healthcheck]; ok {
-				} else {
-					panic("moo")
-				}
-				break RouteLoop
+			log.Printf("Trying to upsert route to %s", upsertRoute.Cidr)
+			if err := d.RunOneUpsertRoute(rtb, name, upsertRoute); err != nil {
+				log.Printf(err.Error())
 			}
-			destInstance := upsertRoute.Instance
-			if upsertRoute.Instance == "SELF" {
-				destInstance = d.Instance
-			}
-			log.Printf(destInstance)
 		}
 	}
 	return nil
+}
+
+func (d *Daemon) RunOneUpsertRoute(rtb *ec2.RouteTable, name string, upsertRoute *config.UpsertRoutesSpec) error {
+	destInstance := upsertRoute.Instance
+	if upsertRoute.Instance == "SELF" {
+		destInstance = d.Instance
+	}
+	if upsertRoute.Healthcheck != "" {
+		if hc, ok := d.Config.Healthchecks[upsertRoute.Healthcheck]; ok {
+			if !hc.IsHealthy() {
+				log.Printf("Skipping upsert route %s, healthcheck %s isn't healthy yet", name, upsertRoute.Healthcheck)
+				return nil
+			}
+		} else {
+			panic("moo")
+		}
+	}
+
+	log.Printf("REAL Upsert route %s => %s into table %s", upsertRoute.Cidr, destInstance, name)
+
+	return d.RouteTableFetcher.(aws.RouteTableFetcherEC2).ReplaceInstanceRoute(*rtb, upsertRoute.Cidr, destInstance)
 }
 
 func (d *Daemon) RunRouteTables() error {
