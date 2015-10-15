@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 )
 
 var healthCheckTypes map[string]func(Healthcheck) (HealthChecker, error)
@@ -112,19 +113,32 @@ func (h *Healthcheck) Setup() error {
 	return nil
 }
 
+func sleepAndSend(t uint, send chan<- bool) {
+	go func() {
+		time.Sleep(time.Duration(t) * time.Second)
+		send <- true
+	}()
+}
+
 func (h *Healthcheck) Run() {
 	if h.isRunning {
 		return
 	}
 	hasquit := make(chan bool)
 	quit := make(chan bool)
-	go func() {
-	Loop:
+	run := make(chan bool)
+	go func() { // Simple and dumb runner. Runs healthcheck and then sleeps the 'Every' time.
+	Loop: // Healthchecks are expected to complete much faster than the Every time!
 		for {
 			select {
 			case <-quit:
 				log.Println("healthcheck is exiting")
 				break Loop
+			case <-run:
+				log.Println("healthcheck is running")
+				h.PerformHealthcheck()
+				log.Println("healthcheck has run")
+				sleepAndSend(h.Every, run) // Queue the next run up
 			}
 		}
 		hasquit <- true
@@ -133,6 +147,7 @@ func (h *Healthcheck) Run() {
 	h.hasQuitChan = hasquit
 	h.quitChan = quit
 	h.isRunning = true
+	run <- true // Fire straight away once set running
 }
 
 func (h Healthcheck) IsRunning() bool {

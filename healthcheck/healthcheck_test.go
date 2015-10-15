@@ -2,7 +2,6 @@ package healthcheck
 
 import (
 	"errors"
-	"runtime"
 	"testing"
 )
 
