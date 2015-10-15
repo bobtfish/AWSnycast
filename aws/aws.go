@@ -48,6 +48,8 @@ func (r RouteTableFetcherEC2) CreateOrReplaceInstanceRoute(rtb ec2.RouteTable, c
 		if err.Error() != "Never found CIDR in route table to replace" {
 			return err
 		}
+	} else {
+		return nil
 	}
 	opts := ec2.CreateRouteInput{
 		RouteTableId:         rtb.RouteTableId,
@@ -55,7 +57,7 @@ func (r RouteTableFetcherEC2) CreateOrReplaceInstanceRoute(rtb ec2.RouteTable, c
 		InstanceId:           aws.String(instance),
 	}
 
-	log.Printf("[INFO] Creating route for %s: %#v", rtb.RouteTableId, opts)
+	log.Printf("[INFO] Creating route for %s: %#v", *rtb.RouteTableId, opts)
 	if _, err := r.conn.CreateRoute(&opts); err != nil {
 		return err
 	}
@@ -65,6 +67,10 @@ func (r RouteTableFetcherEC2) CreateOrReplaceInstanceRoute(rtb ec2.RouteTable, c
 func (r RouteTableFetcherEC2) ReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string) error {
 	for _, route := range rtb.Routes {
 		if *(route.DestinationCidrBlock) == cidr {
+			if *(route.InstanceId) == instance {
+				log.Printf("Skipping doing anything, %s is already routed via %s", cidr, instance)
+				return nil
+			}
 			params := &ec2.ReplaceRouteInput{
 				DestinationCidrBlock: aws.String(cidr),
 				RouteTableId:         rtb.RouteTableId,

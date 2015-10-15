@@ -100,6 +100,7 @@ func (d *Daemon) RunOneUpsertRoute(rtb *ec2.RouteTable, name string, upsertRoute
 		destInstance = d.Instance
 	}
 	if upsertRoute.Healthcheck != "" {
+		log.Printf("Checking healthcheck: %s", upsertRoute.Healthcheck)
 		if hc, ok := d.Config.Healthchecks[upsertRoute.Healthcheck]; ok {
 			if !hc.IsHealthy() {
 				log.Printf("Skipping upsert route %s, healthcheck %s isn't healthy yet", name, upsertRoute.Healthcheck)
@@ -108,9 +109,8 @@ func (d *Daemon) RunOneUpsertRoute(rtb *ec2.RouteTable, name string, upsertRoute
 		} else {
 			panic("moo")
 		}
+		log.Printf("Is healthy")
 	}
-
-	log.Printf("REAL Upsert route %s => %s into table %s", upsertRoute.Cidr, destInstance, name)
 
 	return d.RouteTableFetcher.(aws.RouteTableFetcherEC2).CreateOrReplaceInstanceRoute(*rtb, upsertRoute.Cidr, destInstance)
 }

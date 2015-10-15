@@ -77,6 +77,7 @@ func (h *Healthcheck) PerformHealthcheck() {
 				return
 			}
 		}
+		log.Printf("Healthcheck %s to %s is unhealthy", h.Type, h.Destination)
 		h.isHealthy = false
 	} else {
 		for i := maxIdx; i > (maxIdx - h.Rise); i-- {
@@ -85,6 +86,7 @@ func (h *Healthcheck) PerformHealthcheck() {
 			}
 		}
 		h.isHealthy = true
+		log.Printf("Healthcheck %s to %s is healthy", h.Type, h.Destination)
 	}
 }
 
