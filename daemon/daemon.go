@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"errors"
 	"fmt"
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/config"
@@ -14,6 +15,7 @@ type Daemon struct {
 	MetadataFetcher   aws.MetadataFetcher
 	RouteTableFetcher aws.RouteTableFetcher
 	Region            string
+	quitChan          <-chan bool
 }
 
 func (d *Daemon) Setup() error {
@@ -31,7 +33,7 @@ func (d *Daemon) Setup() error {
 	}
 	az, err := d.MetadataFetcher.GetMetadata("placement/availability-zone")
 	if err != nil {
-		log.Printf("Error getting AZ: %s", err.Error())
+		return errors.New(fmt.Sprintf("Error getting AZ: %s", err.Error()))
 	}
 	d.Region = az[:len(az)-1]
 	if d.RouteTableFetcher == nil {
@@ -93,6 +95,8 @@ func (d *Daemon) Run() int {
 			log.Printf("Finder name %s found route table %v", name, val)
 		}
 	}
+	d.quitChan = make(chan bool)
 	d.runHealthChecks()
+	<-d.quitChan
 	return 0
 }
