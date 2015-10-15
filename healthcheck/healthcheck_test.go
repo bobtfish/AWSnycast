@@ -2,6 +2,7 @@ package healthcheck
 
 import (
 	"errors"
+	"runtime"
 	"testing"
 )
 
@@ -239,6 +240,21 @@ func TestHealthcheckRun(t *testing.T) {
 	h_ok.Setup()
 	h_ok.Run()
 	if !h_ok.IsRunning() {
+		t.Fail()
+	}
+}
+
+func TestHealthcheckStop(t *testing.T) {
+	registerHealthcheck("test_ok", MyFakeHealthConstructorOk)
+	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
+	h_ok.Default()
+	h_ok.Setup()
+	h_ok.Run()
+	if !h_ok.IsRunning() {
+		t.Fail()
+	}
+	h_ok.Stop()
+	if h_ok.IsRunning() {
 		t.Fail()
 	}
 }

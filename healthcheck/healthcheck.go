@@ -3,6 +3,7 @@ package healthcheck
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net"
 )
 
@@ -29,6 +30,8 @@ type Healthcheck struct {
 	History       []bool `yaml:"-"`
 	healthchecker HealthChecker
 	isRunning     bool
+	quitChan      chan<- bool
+	hasQuitChan   <-chan bool
 }
 
 func (h Healthcheck) GetHealthChecker() (HealthChecker, error) {
@@ -113,9 +116,37 @@ func (h *Healthcheck) Run() {
 	if h.isRunning {
 		return
 	}
+	hasquit := make(chan bool)
+	quit := make(chan bool)
+	go func() {
+	Loop:
+		for {
+			select {
+			case <-quit:
+				log.Println("healthcheck is exiting")
+				break Loop
+			}
+		}
+		hasquit <- true
+		close(hasquit)
+	}()
+	h.hasQuitChan = hasquit
+	h.quitChan = quit
 	h.isRunning = true
 }
 
 func (h Healthcheck) IsRunning() bool {
 	return h.isRunning
+}
+
+func (h *Healthcheck) Stop() {
+	if !h.IsRunning() {
+		return
+	}
+	h.quitChan <- true
+	close(h.quitChan)
+	<-h.hasQuitChan // Block till finished
+	h.quitChan = nil
+	h.hasQuitChan = nil
+	h.isRunning = false
 }
