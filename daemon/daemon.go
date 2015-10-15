@@ -7,6 +7,7 @@ import (
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/config"
 	"log"
+	"time"
 )
 
 type Daemon struct {
@@ -64,7 +65,7 @@ func (d *Daemon) GetSubnetId() (string, error) {
 }
 
 func (d *Daemon) GetInstance() (string, error) {
-	return "i-123", nil
+	return d.MetadataFetcher.GetMetadata("instance-id")
 }
 
 func (d *Daemon) runHealthChecks() {
@@ -111,7 +112,7 @@ func (d *Daemon) RunOneUpsertRoute(rtb *ec2.RouteTable, name string, upsertRoute
 
 	log.Printf("REAL Upsert route %s => %s into table %s", upsertRoute.Cidr, destInstance, name)
 
-	return d.RouteTableFetcher.(aws.RouteTableFetcherEC2).ReplaceInstanceRoute(*rtb, upsertRoute.Cidr, destInstance)
+	return d.RouteTableFetcher.(aws.RouteTableFetcherEC2).CreateOrReplaceInstanceRoute(*rtb, upsertRoute.Cidr, destInstance)
 }
 
 func (d *Daemon) RunRouteTables() error {
@@ -148,6 +149,7 @@ func (d *Daemon) Run() int {
 	log.Printf(subnet)
 	log.Printf(instanceId)
 	d.runHealthChecks()
+	time.Sleep(time.Second * 3)
 	err = d.RunRouteTables()
 	if err != nil {
 		log.Printf("Error: %v", err)
