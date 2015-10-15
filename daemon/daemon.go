@@ -60,6 +60,10 @@ func (d *Daemon) GetSubnetId() (string, error) {
 	return d.MetadataFetcher.GetMetadata(fmt.Sprintf("network/interfaces/macs/%s/subnet-id", mac))
 }
 
+func (d *Daemon) GetInstanceId() (string, error) {
+	return "i-123", nil
+}
+
 func (d *Daemon) runHealthChecks() {
 	log.Printf("Starting healthchecks")
 	for _, v := range d.Config.Healthchecks {
@@ -78,6 +82,11 @@ func (d *Daemon) Run() int {
 		log.Printf("Error getting metadata: %s", err.Error())
 		return 1
 	}
+	instanceId, err := d.GetInstanceId()
+	if err != nil {
+		log.Printf("Error getting metadata: %s", err.Error())
+		return 1
+	}
 	log.Printf(subnet)
 	rt, err := d.RouteTableFetcher.GetRouteTables()
 	if err != nil {
@@ -91,8 +100,23 @@ func (d *Daemon) Run() int {
 			return 1
 		}
 		remaining := aws.FilterRouteTables(filter, rt)
-		for _, val := range remaining {
-			log.Printf("Finder name %s found route table %v", name, val)
+		for _, rtb := range remaining {
+			log.Printf("Finder name %s found route table %v", name, rtb)
+		RouteLoop:
+			for _, upsertRoute := range configRouteTables.UpsertRoutes {
+				if upsertRoute.Healthcheck != "" {
+					if _, ok := d.Config.Healthchecks[upsertRoute.Healthcheck]; ok {
+					} else {
+						panic("moo")
+					}
+					break RouteLoop
+				}
+				destInstance := upsertRoute.Instance
+				if upsertRoute.Instance == "SELF" {
+					destInstance = instanceId
+				}
+				log.Printf(destInstance)
+			}
 		}
 	}
 	d.quitChan = make(chan bool)

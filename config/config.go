@@ -112,6 +112,9 @@ func (r *UpsertRoutesSpec) Default() {
 	if !strings.Contains(r.Cidr, "/") {
 		r.Cidr = fmt.Sprintf("%s/32", r.Cidr)
 	}
+	if r.Instance == "" {
+		r.Instance = "SELF"
+	}
 }
 func (r *UpsertRoutesSpec) Validate(name string) error {
 	if r.Cidr == "" {
