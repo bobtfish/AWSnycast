@@ -36,7 +36,7 @@ resource "aws_instance" "nat-b" {
     subnet_id = "${aws_subnet.publicb.id}"
     security_groups = ["${aws_security_group.allow_all.id}"]
     tags {
-        Name = "nat eu-west-1a"
+        Name = "nat eu-west-1b"
     }
     user_data = "${replace(replace(replace(file(\"${path.module}/nat.conf\"), \"__NETWORKPREFIX__\", \"10.0\"), \"__B_EXTRA__\", \"\"), \"__A_EXTRA__\", \"if_unhealthy: true\")}"
     iam_instance_profile = "${aws_iam_instance_profile.test_profile.id}"
