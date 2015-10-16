@@ -43,8 +43,8 @@ type RouteTableFetcherEC2 struct {
 	conn   *ec2.EC2
 }
 
-func (r RouteTableFetcherEC2) CreateOrReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string) error {
-	if err := r.ReplaceInstanceRoute(rtb, cidr, instance); err != nil {
+func (r RouteTableFetcherEC2) CreateOrReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string, noop bool) error {
+	if err := r.ReplaceInstanceRoute(rtb, cidr, instance, noop); err != nil {
 		if err.Error() != "Never found CIDR in route table to replace" {
 			return err
 		}
@@ -58,13 +58,15 @@ func (r RouteTableFetcherEC2) CreateOrReplaceInstanceRoute(rtb ec2.RouteTable, c
 	}
 
 	log.Printf("[INFO] Creating route for %s: %#v", *rtb.RouteTableId, opts)
-	if _, err := r.conn.CreateRoute(&opts); err != nil {
-		return err
+	if !noop {
+		if _, err := r.conn.CreateRoute(&opts); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func (r RouteTableFetcherEC2) ReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string) error {
+func (r RouteTableFetcherEC2) ReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string, noop bool) error {
 	for _, route := range rtb.Routes {
 		if *(route.DestinationCidrBlock) == cidr {
 			if *(route.InstanceId) == instance {
@@ -76,14 +78,16 @@ func (r RouteTableFetcherEC2) ReplaceInstanceRoute(rtb ec2.RouteTable, cidr stri
 				RouteTableId:         rtb.RouteTableId,
 				InstanceId:           aws.String(instance),
 			}
-			resp, err := r.conn.ReplaceRoute(params)
-			if err != nil {
-				// Print the error, cast err to awserr.Error to get the Code and
-				// Message from an error.
-				fmt.Println(err.Error())
-				return err
+			if !noop {
+				resp, err := r.conn.ReplaceRoute(params)
+				if err != nil {
+					// Print the error, cast err to awserr.Error to get the Code and
+					// Message from an error.
+					fmt.Println(err.Error())
+					return err
+				}
+				fmt.Println(resp)
 			}
-			fmt.Println(resp)
 			return nil
 		}
 	}

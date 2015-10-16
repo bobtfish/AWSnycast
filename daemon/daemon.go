@@ -12,6 +12,7 @@ import (
 
 type Daemon struct {
 	oneShot           bool
+	noop              bool
 	ConfigFile        string
 	Debug             bool
 	Config            *config.Config
@@ -113,7 +114,7 @@ func (d *Daemon) RunOneUpsertRoute(rtb *ec2.RouteTable, name string, upsertRoute
 		log.Printf("Is healthy")
 	}
 
-	return d.RouteTableFetcher.(aws.RouteTableFetcherEC2).CreateOrReplaceInstanceRoute(*rtb, upsertRoute.Cidr, destInstance)
+	return d.RouteTableFetcher.(aws.RouteTableFetcherEC2).CreateOrReplaceInstanceRoute(*rtb, upsertRoute.Cidr, destInstance, d.noop)
 }
 
 func (d *Daemon) RunRouteTables() error {
@@ -129,8 +130,9 @@ func (d *Daemon) RunRouteTables() error {
 	return nil
 }
 
-func (d *Daemon) Run(oneShot bool) int {
+func (d *Daemon) Run(oneShot bool, noop bool) int {
 	d.oneShot = oneShot
+	d.noop = noop
 	if err := d.Setup(); err != nil {
 		log.Printf("Error setting up: %s", err.Error())
 		return 1
