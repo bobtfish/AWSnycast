@@ -45,6 +45,7 @@ type UpsertRoutesSpec struct {
 	Cidr        string `yaml:"cidr"`
 	Instance    string `yaml:"instance"`
 	Healthcheck string `yaml:"healthcheck"`
+	IfUnhealthy bool   `yaml:"if_unhealthy"`
 }
 
 type RouteTable struct {

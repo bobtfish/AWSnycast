@@ -43,8 +43,8 @@ type RouteTableFetcherEC2 struct {
 	conn   *ec2.EC2
 }
 
-func (r RouteTableFetcherEC2) CreateOrReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string, noop bool) error {
-	if err := r.ReplaceInstanceRoute(rtb, cidr, instance, noop); err != nil {
+func (r RouteTableFetcherEC2) CreateOrReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string, ifUnhealthy bool, noop bool) error {
+	if err := r.ReplaceInstanceRoute(rtb, cidr, instance, ifUnhealthy, noop); err != nil {
 		if err.Error() != "Never found CIDR in route table to replace" {
 			return err
 		}
@@ -66,7 +66,7 @@ func (r RouteTableFetcherEC2) CreateOrReplaceInstanceRoute(rtb ec2.RouteTable, c
 	return nil
 }
 
-func (r RouteTableFetcherEC2) ReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string, noop bool) error {
+func (r RouteTableFetcherEC2) ReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string, ifUnhealthy bool, noop bool) error {
 	for _, route := range rtb.Routes {
 		if *(route.DestinationCidrBlock) == cidr {
 			if *(route.InstanceId) == instance {
@@ -77,6 +77,10 @@ func (r RouteTableFetcherEC2) ReplaceInstanceRoute(rtb ec2.RouteTable, cidr stri
 				DestinationCidrBlock: aws.String(cidr),
 				RouteTableId:         rtb.RouteTableId,
 				InstanceId:           aws.String(instance),
+			}
+			if ifUnhealthy && *(route.State) == "active" {
+				log.Printf("Not replacing route, as current route is active/healthy")
+				return nil
 			}
 			if !noop {
 				resp, err := r.conn.ReplaceRoute(params)

@@ -114,7 +114,7 @@ func (d *Daemon) RunOneUpsertRoute(rtb *ec2.RouteTable, name string, upsertRoute
 		log.Printf("Is healthy")
 	}
 
-	return d.RouteTableFetcher.(aws.RouteTableFetcherEC2).CreateOrReplaceInstanceRoute(*rtb, upsertRoute.Cidr, destInstance, d.noop)
+	return d.RouteTableFetcher.(aws.RouteTableFetcherEC2).CreateOrReplaceInstanceRoute(*rtb, upsertRoute.Cidr, destInstance, upsertRoute.IfUnhealthy, d.noop)
 }
 
 func (d *Daemon) RunRouteTables() error {
