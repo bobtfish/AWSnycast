@@ -7,8 +7,9 @@ import (
 )
 
 var (
-	debug = flag.Bool("debug", false, "Enable debugging")
-	f     = flag.String("f", "/etc/awsnycast.yaml", "point configration file, default /etc/awsnycast.yaml")
+	debug   = flag.Bool("debug", false, "Enable debugging")
+	f       = flag.String("f", "/etc/awsnycast.yaml", "point configration file, default /etc/awsnycast.yaml")
+	oneshot = flag.Bool("oneshot", false, "Run route table manipulation exactly once, ignoring healthchecks, then exit")
 )
 
 func main() {
@@ -16,5 +17,5 @@ func main() {
 	d := new(daemon.Daemon)
 	d.Debug = *debug
 	d.ConfigFile = *f
-	os.Exit(d.Run())
+	os.Exit(d.Run(*oneshot))
 }

@@ -11,6 +11,7 @@ import (
 )
 
 type Daemon struct {
+	oneShot           bool
 	ConfigFile        string
 	Debug             bool
 	Config            *config.Config
@@ -99,7 +100,7 @@ func (d *Daemon) RunOneUpsertRoute(rtb *ec2.RouteTable, name string, upsertRoute
 	if upsertRoute.Instance == "SELF" {
 		destInstance = d.Instance
 	}
-	if upsertRoute.Healthcheck != "" {
+	if !d.oneShot && upsertRoute.Healthcheck != "" {
 		log.Printf("Checking healthcheck: %s", upsertRoute.Healthcheck)
 		if hc, ok := d.Config.Healthchecks[upsertRoute.Healthcheck]; ok {
 			if !hc.IsHealthy() {
@@ -128,7 +129,8 @@ func (d *Daemon) RunRouteTables() error {
 	return nil
 }
 
-func (d *Daemon) Run() int {
+func (d *Daemon) Run(oneShot bool) int {
+	d.oneShot = oneShot
 	if err := d.Setup(); err != nil {
 		log.Printf("Error setting up: %s", err.Error())
 		return 1
@@ -148,8 +150,10 @@ func (d *Daemon) Run() int {
 	d.quitChan = make(chan bool)
 	log.Printf(subnet)
 	log.Printf(instanceId)
-	d.runHealthChecks()
-	time.Sleep(time.Second * 3)
+	if !oneShot {
+		d.runHealthChecks()
+		time.Sleep(time.Second * 3)
+	}
 	err = d.RunRouteTables()
 	if err != nil {
 		log.Printf("Error: %v", err)
