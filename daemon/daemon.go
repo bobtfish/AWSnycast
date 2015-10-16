@@ -21,7 +21,7 @@ type Daemon struct {
 	Subnet            string
 	Instance          string
 	Region            string
-	quitChan          <-chan bool
+	quitChan          chan bool
 }
 
 func (d *Daemon) Setup() error {
@@ -149,7 +149,7 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 		return 1
 	}
 	d.Instance = instanceId
-	d.quitChan = make(chan bool)
+	d.quitChan = make(chan bool, 1)
 	log.Printf(subnet)
 	log.Printf(instanceId)
 	if !oneShot {
@@ -160,6 +160,9 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 	if err != nil {
 		log.Printf("Error: %v", err)
 		return 1
+	}
+	if oneShot {
+		d.quitChan <- true
 	}
 	<-d.quitChan
 	return 0
