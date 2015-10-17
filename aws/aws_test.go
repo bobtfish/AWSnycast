@@ -431,3 +431,17 @@ func TestRouteTableFilterTagMatch(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestGetCreateRouteInput(t *testing.T) {
+	rtb := ec2.RouteTable{RouteTableId: aws.String("rtb-1234")}
+	in := getCreateRouteInput(rtb, "0.0.0.0/0", "i-12345")
+	if *(in.RouteTableId) != "rtb-1234" {
+		t.Fail()
+	}
+	if *(in.DestinationCidrBlock) != "0.0.0.0/0" {
+		t.Fail()
+	}
+	if *(in.InstanceId) != "i-12345" {
+		t.Fail()
+	}
+}

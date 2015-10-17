@@ -14,6 +14,12 @@ import (
 	"strings"
 )
 
+type MyEC2Conn interface {
+	CreateRoute(*ec2.CreateRouteInput) (*ec2.CreateRouteOutput, error)
+	ReplaceRoute(*ec2.ReplaceRouteInput) (*ec2.ReplaceRouteOutput, error)
+	DescribeRouteTables(*ec2.DescribeRouteTablesInput) (*ec2.DescribeRouteTablesOutput, error)
+}
+
 type MetadataFetcher interface {
 	Available() bool
 	GetMetadata(string) (string, error)
@@ -40,7 +46,15 @@ type RouteTableFetcher interface {
 
 type RouteTableFetcherEC2 struct {
 	Region string
-	conn   *ec2.EC2
+	conn   MyEC2Conn
+}
+
+func getCreateRouteInput(rtb ec2.RouteTable, cidr string, instance string) ec2.CreateRouteInput {
+	return ec2.CreateRouteInput{
+		RouteTableId:         rtb.RouteTableId,
+		DestinationCidrBlock: aws.String(cidr),
+		InstanceId:           aws.String(instance),
+	}
 }
 
 func (r RouteTableFetcherEC2) CreateOrReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string, ifUnhealthy bool, noop bool) error {
@@ -51,11 +65,7 @@ func (r RouteTableFetcherEC2) CreateOrReplaceInstanceRoute(rtb ec2.RouteTable, c
 	} else {
 		return nil
 	}
-	opts := ec2.CreateRouteInput{
-		RouteTableId:         rtb.RouteTableId,
-		DestinationCidrBlock: aws.String(cidr),
-		InstanceId:           aws.String(instance),
-	}
+	opts := getCreateRouteInput(rtb, cidr, instance)
 
 	log.Printf("[INFO] Creating route for %s: %#v", *rtb.RouteTableId, opts)
 	if !noop {
@@ -101,7 +111,7 @@ func (r RouteTableFetcherEC2) ReplaceInstanceRoute(rtb ec2.RouteTable, cidr stri
 func (r RouteTableFetcherEC2) GetRouteTables() ([]*ec2.RouteTable, error) {
 	resp, err := r.conn.DescribeRouteTables(&ec2.DescribeRouteTablesInput{})
 	if err != nil {
-		log.Printf("Error on RouteTableStateRefresh: %s", err)
+		log.Printf("Error on DescribeRouteTables: %s", err)
 		return []*ec2.RouteTable{}, err
 	}
 	return resp.RouteTables, nil
