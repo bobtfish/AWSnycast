@@ -127,7 +127,7 @@ func sleepAndSend(t uint, send chan<- bool) {
 	}()
 }
 
-func (h *Healthcheck) Run() {
+func (h *Healthcheck) Run(debug bool) {
 	if h.isRunning {
 		return
 	}
@@ -142,9 +142,13 @@ func (h *Healthcheck) Run() {
 				log.Println("healthcheck is exiting")
 				break Loop
 			case <-run:
-				log.Println("healthcheck is running")
+				if debug {
+					log.Println("healthcheck is running")
+				}
 				h.PerformHealthcheck()
-				log.Println("healthcheck has run")
+				if debug {
+					log.Println("healthcheck has run")
+				}
 				sleepAndSend(h.Every, run) // Queue the next run up
 			}
 		}

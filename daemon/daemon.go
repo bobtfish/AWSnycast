@@ -86,11 +86,15 @@ func (d *Daemon) GetInstance() (string, error) {
 }
 
 func (d *Daemon) runHealthChecks() {
-	log.Printf("Starting healthchecks")
-	for _, v := range d.Config.Healthchecks {
-		v.Run()
+	if d.Debug {
+		log.Printf("Starting healthchecks")
 	}
-	log.Printf("Done starting healthchecks")
+	for _, v := range d.Config.Healthchecks {
+		v.Run(d.Debug)
+	}
+	if d.Debug {
+		log.Printf("Done starting healthchecks")
+	}
 }
 
 func (d *Daemon) RunOneRouteTable(rt []*ec2.RouteTable, name string, configRouteTables *config.RouteTable) error {

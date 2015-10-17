@@ -314,7 +314,7 @@ func TestHealthcheckRun(t *testing.T) {
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
 	h_ok.Default()
 	h_ok.Setup()
-	h_ok.Run()
+	h_ok.Run(false)
 	if !h_ok.IsRunning() {
 		t.Fail()
 	}
@@ -325,7 +325,7 @@ func TestHealthcheckStop(t *testing.T) {
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
 	h_ok.Default()
 	h_ok.Setup()
-	h_ok.Run()
+	h_ok.Run(false)
 	if !h_ok.IsRunning() {
 		t.Fail()
 	}
