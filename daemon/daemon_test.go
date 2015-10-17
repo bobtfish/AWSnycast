@@ -40,6 +40,7 @@ func getD(a bool) Daemon {
 	fakeR := FakeRouteTableFetcher{}
 	fakeM.Meta = make(map[string]string)
 	fakeM.Meta["placement/availability-zone"] = "us-west-1a"
+	fakeM.Meta["instance-id"] = "i-1234"
 	d.MetadataFetcher = fakeM
 	d.RouteTableFetcher = fakeR
 	return d
@@ -75,6 +76,17 @@ func TestSetupRegionFromAZ(t *testing.T) {
 		t.Fail()
 	}
 	if d.Region != "us-west-1" {
+		t.Fail()
+	}
+}
+
+func TestSetupInstance(t *testing.T) {
+	d := getD(true)
+	err := d.Setup()
+	if err != nil {
+		t.Fail()
+	}
+	if d.Instance != "i-1234" {
 		t.Fail()
 	}
 }

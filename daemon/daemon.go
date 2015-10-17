@@ -42,6 +42,11 @@ func (d *Daemon) Setup() error {
 		return errors.New(fmt.Sprintf("Error getting AZ: %s", err.Error()))
 	}
 	d.Region = az[:len(az)-1]
+	instanceId, err := d.GetInstance()
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error getting instance-id: %s", err.Error()))
+	}
+	d.Instance = instanceId
 	if d.RouteTableFetcher == nil {
 		rtf, err := aws.NewRouteTableFetcher(d.Region, d.Debug)
 		if err != nil {
@@ -143,15 +148,8 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 		return 1
 	}
 	d.Subnet = subnet
-	instanceId, err := d.GetInstance()
-	if err != nil {
-		log.Printf("Error getting metadata: %s", err.Error())
-		return 1
-	}
-	d.Instance = instanceId
 	d.quitChan = make(chan bool, 1)
 	log.Printf(subnet)
-	log.Printf(instanceId)
 	if !oneShot {
 		d.runHealthChecks()
 		time.Sleep(time.Second * 3)
