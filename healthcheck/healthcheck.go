@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -71,6 +72,7 @@ func (h *Healthcheck) PerformHealthcheck() {
 	maxIdx := uint(len(h.History) - 1)
 	h.History = append(h.History[:1], h.History[2:]...)
 	h.History = append(h.History, result)
+	log.Printf("History: %s", strings.Join(h.History, ", "))
 	if h.isHealthy {
 		for i := maxIdx; i > (maxIdx - h.Fall); i-- {
 			if h.History[i] {
