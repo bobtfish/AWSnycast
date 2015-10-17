@@ -68,6 +68,17 @@ func TestSetupAvailable(t *testing.T) {
 	}
 }
 
+func TestSetupRegionFromAZ(t *testing.T) {
+	d := getD(true)
+	err := d.Setup()
+	if err != nil {
+		t.Fail()
+	}
+	if d.Region != "us-west-1" {
+		t.Fail()
+	}
+}
+
 func TestSetupHealthChecks(t *testing.T) {
 	d := getD(true)
 	err := d.Setup()
