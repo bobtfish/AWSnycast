@@ -437,3 +437,72 @@ func TestUpsertRouteSpecGetInstanceOther(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestByTagRouteTableFindMissingKey(t *testing.T) {
+	c := make(map[string]string)
+	rts := RouteTableFindSpec{
+		Type:   "by_tag",
+		Config: c,
+	}
+	rtf, err := rts.GetFilter()
+	if rtf != nil {
+		t.Fail()
+	}
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "No key in config for by_tag route table finder" {
+		t.Fail()
+	}
+}
+
+func TestByTagRouteTableFindMissingValue(t *testing.T) {
+	c := make(map[string]string)
+	c["key"] = "Name"
+	rts := RouteTableFindSpec{
+		Type:   "by_tag",
+		Config: c,
+	}
+	rtf, err := rts.GetFilter()
+	if rtf != nil {
+		t.Fail()
+	}
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "No value in config for by_tag route table finder" {
+		t.Fail()
+	}
+}
+
+func TestByTagRouteTableFind(t *testing.T) {
+	c := make(map[string]string)
+	c["key"] = "Name"
+	c["value"] = "private b"
+	rts := RouteTableFindSpec{
+		Type:   "by_tag",
+		Config: c,
+	}
+	rtf, err := rts.GetFilter()
+	if rtf == nil {
+		t.Fail()
+	}
+	if err != nil {
+		t.Fail()
+	}
+}
+
+func TestRouteTableFindUnknownType(t *testing.T) {
+	c := make(map[string]string)
+	rts := RouteTableFindSpec{
+		Type:   "unknown",
+		Config: c,
+	}
+	rtf, err := rts.GetFilter()
+	if rtf != nil {
+		t.Fail()
+	}
+	if err == nil {
+		t.Fail()
+	}
+}
