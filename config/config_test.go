@@ -417,3 +417,23 @@ func TestRouteTableValidate(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestUpsertRouteSpecGetInstanceSELF(t *testing.T) {
+	urs := UpsertRoutesSpec{
+		Cidr:     "127.0.0.1",
+		Instance: "SELF",
+	}
+	if urs.GetInstance("i-other") != "i-other" {
+		t.Fail()
+	}
+}
+
+func TestUpsertRouteSpecGetInstanceOther(t *testing.T) {
+	urs := UpsertRoutesSpec{
+		Cidr:     "127.0.0.1",
+		Instance: "i-foo",
+	}
+	if urs.GetInstance("i-other") != "i-foo" {
+		t.Fail()
+	}
+}

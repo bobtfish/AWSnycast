@@ -112,10 +112,7 @@ func (d *Daemon) RunOneRouteTable(rt []*ec2.RouteTable, name string, configRoute
 }
 
 func (d *Daemon) RunOneUpsertRoute(rtb *ec2.RouteTable, name string, upsertRoute *config.UpsertRoutesSpec) error {
-	destInstance := upsertRoute.Instance
-	if upsertRoute.Instance == "SELF" {
-		destInstance = d.Instance
-	}
+	destInstance := upsertRoute.GetInstance(d.Instance)
 	if !d.oneShot && upsertRoute.Healthcheck != "" {
 		log.Printf("Checking healthcheck: %s", upsertRoute.Healthcheck)
 		if hc, ok := d.Config.Healthchecks[upsertRoute.Healthcheck]; ok {

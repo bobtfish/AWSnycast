@@ -48,6 +48,13 @@ type UpsertRoutesSpec struct {
 	IfUnhealthy bool   `yaml:"if_unhealthy"`
 }
 
+func (urs UpsertRoutesSpec) GetInstance(myId string) string {
+	if urs.Instance == "SELF" {
+		return myId
+	}
+	return urs.Instance
+}
+
 type RouteTable struct {
 	Find         RouteTableFindSpec  `yaml:"find"`
 	UpsertRoutes []*UpsertRoutesSpec `yaml:"upsert_routes"`
