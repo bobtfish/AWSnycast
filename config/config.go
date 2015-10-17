@@ -73,6 +73,8 @@ func (c *Config) Default() {
 		for _, v := range c.RouteTables {
 			v.Default()
 		}
+	} else {
+		c.RouteTables = make(map[string]*RouteTable)
 	}
 	for _, v := range c.Healthchecks {
 		v.Default()

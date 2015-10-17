@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/bobtfish/AWSnycast/config"
 	"testing"
 )
 
@@ -33,7 +34,9 @@ func (r FakeRouteTableFetcher) GetRouteTables() ([]*ec2.RouteTable, error) {
 func getD(a bool) Daemon {
 	d := Daemon{
 		ConfigFile: "../tests/awsnycast.yaml",
+		Config:     &config.Config{},
 	}
+	d.Config.Default()
 	fakeM := FakeMetadataFetcher{
 		FAvailable: a,
 	}
@@ -138,3 +141,34 @@ func TestGetSubnetIdMacOk(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestHealthCheckOneUpsertRouteOneShot(t *testing.T) {
+	d := getD(true)
+	d.oneShot = true
+	if !d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: "foo"}) {
+		t.Fail()
+	}
+}
+
+func TestHealthCheckOneUpsertRouteNoHealthcheck(t *testing.T) {
+	d := getD(true)
+	d.oneShot = false
+	if !d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: ""}) {
+		t.Fail()
+	}
+}
+
+/*
+func TestHealthCheckOneUpsertRouteHealthcheckFail(t *testing.T) {
+	d := getD(true)
+	if d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: "foo"}) {
+		t.Fail()
+	}
+}
+
+func TestHealthCheckOneUpsertRouteHealthcheckSuceed(t *testing.T) {
+	d := getD(true)
+	if !d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: "foo"}) {
+		t.Fail()
+	}
+} */

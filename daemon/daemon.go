@@ -111,22 +111,31 @@ func (d *Daemon) RunOneRouteTable(rt []*ec2.RouteTable, name string, configRoute
 	return nil
 }
 
-func (d *Daemon) RunOneUpsertRoute(rtb *ec2.RouteTable, name string, upsertRoute *config.UpsertRoutesSpec) error {
-	destInstance := upsertRoute.GetInstance(d.Instance)
+func (d *Daemon) HealthCheckOneUpsertRoute(name string, upsertRoute *config.UpsertRoutesSpec) bool {
 	if !d.oneShot && upsertRoute.Healthcheck != "" {
-		log.Printf("Checking healthcheck: %s", upsertRoute.Healthcheck)
+		if d.Config == nil || d.Config.Healthchecks == nil {
+			panic("No healthchecks, have you run Setup()?")
+		}
 		if hc, ok := d.Config.Healthchecks[upsertRoute.Healthcheck]; ok {
+			log.Printf("Got healthcheck %s", upsertRoute.Healthcheck)
 			if !hc.IsHealthy() {
 				log.Printf("Skipping upsert route %s, healthcheck %s isn't healthy yet", name, upsertRoute.Healthcheck)
-				return nil
+				return false
 			}
 		} else {
-			panic("moo")
+			panic(fmt.Sprintf("Could not find healthcheck %s", upsertRoute.Healthcheck))
 		}
-		log.Printf("Is healthy")
+		log.Printf("%s Is healthy", upsertRoute.Healthcheck)
+	}
+	return true
+}
+
+func (d *Daemon) RunOneUpsertRoute(rtb *ec2.RouteTable, name string, upsertRoute *config.UpsertRoutesSpec) error {
+	if !d.HealthCheckOneUpsertRoute(name, upsertRoute) {
+		return nil
 	}
 
-	return d.RouteTableFetcher.(aws.RouteTableFetcherEC2).CreateOrReplaceInstanceRoute(*rtb, upsertRoute.Cidr, destInstance, upsertRoute.IfUnhealthy, d.noop)
+	return d.RouteTableFetcher.(aws.RouteTableFetcherEC2).CreateOrReplaceInstanceRoute(*rtb, upsertRoute.Cidr, upsertRoute.GetInstance(d.Instance), upsertRoute.IfUnhealthy, d.noop)
 }
 
 func (d *Daemon) RunRouteTables() error {

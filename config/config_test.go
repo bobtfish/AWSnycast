@@ -139,7 +139,7 @@ func TestConfigValidateNoRouteTables(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
-	if err.Error() != "No route_tables key in config" {
+	if err.Error() != "No route_tables defined in config" {
 		t.Log(err.Error())
 		t.Fail()
 	}
@@ -177,7 +177,7 @@ func TestConfigValidateEmpty(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
-	if err.Error() != "No route_tables key in config" {
+	if err.Error() != "No route_tables defined in config" {
 		t.Log(err.Error())
 		t.Fail()
 	}
