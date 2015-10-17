@@ -30,6 +30,7 @@ func (d *Daemon) Setup() error {
 		return err
 	}
 	d.Config = config
+
 	if d.MetadataFetcher == nil {
 		m, err := aws.NewMetadataFetcher(d.Debug)
 		if err != nil {
@@ -37,16 +38,25 @@ func (d *Daemon) Setup() error {
 		}
 		d.MetadataFetcher = m
 	}
+
 	az, err := d.MetadataFetcher.GetMetadata("placement/availability-zone")
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error getting AZ: %s", err.Error()))
 	}
 	d.Region = az[:len(az)-1]
+
 	instanceId, err := d.GetInstance()
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error getting instance-id: %s", err.Error()))
 	}
 	d.Instance = instanceId
+
+	subnet, err := d.GetSubnetId()
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error getting metadata: %s", err.Error()))
+	}
+	d.Subnet = subnet
+
 	if d.RouteTableFetcher == nil {
 		rtf, err := aws.NewRouteTableFetcher(d.Region, d.Debug)
 		if err != nil {
@@ -142,19 +152,12 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 		log.Printf("Error setting up: %s", err.Error())
 		return 1
 	}
-	subnet, err := d.GetSubnetId()
-	if err != nil {
-		log.Printf("Error getting metadata: %s", err.Error())
-		return 1
-	}
-	d.Subnet = subnet
 	d.quitChan = make(chan bool, 1)
-	log.Printf(subnet)
 	if !oneShot {
 		d.runHealthChecks()
 		time.Sleep(time.Second * 3)
 	}
-	err = d.RunRouteTables()
+	err := d.RunRouteTables()
 	if err != nil {
 		log.Printf("Error: %v", err)
 		return 1

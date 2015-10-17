@@ -41,6 +41,8 @@ func getD(a bool) Daemon {
 	fakeM.Meta = make(map[string]string)
 	fakeM.Meta["placement/availability-zone"] = "us-west-1a"
 	fakeM.Meta["instance-id"] = "i-1234"
+	fakeM.Meta["mac"] = "06:1d:ea:6f:8c:6e"
+	fakeM.Meta["network/interfaces/macs/06:1d:ea:6f:8c:6e/subnet-id"] = "subnet-28b0e940"
 	d.MetadataFetcher = fakeM
 	d.RouteTableFetcher = fakeR
 	return d
@@ -110,6 +112,7 @@ func TestSetupHealthChecks(t *testing.T) {
 
 func TestGetSubnetIdMacFail(t *testing.T) {
 	d := getD(true)
+	delete(d.MetadataFetcher.(FakeMetadataFetcher).Meta, "mac")
 	_, err := d.GetSubnetId()
 	if err == nil {
 		t.Fail()
@@ -118,7 +121,7 @@ func TestGetSubnetIdMacFail(t *testing.T) {
 
 func TestGetSubnetIdMacFail2(t *testing.T) {
 	d := getD(true)
-	d.MetadataFetcher.(FakeMetadataFetcher).Meta["mac"] = "06:1d:ea:6f:8c:6e"
+	delete(d.MetadataFetcher.(FakeMetadataFetcher).Meta, "network/interfaces/macs/06:1d:ea:6f:8c:6e/subnet-id")
 	_, err := d.GetSubnetId()
 	if err == nil {
 		t.Fail()
@@ -127,8 +130,6 @@ func TestGetSubnetIdMacFail2(t *testing.T) {
 
 func TestGetSubnetIdMacOk(t *testing.T) {
 	d := getD(true)
-	d.MetadataFetcher.(FakeMetadataFetcher).Meta["mac"] = "06:1d:ea:6f:8c:6e"
-	d.MetadataFetcher.(FakeMetadataFetcher).Meta["network/interfaces/macs/06:1d:ea:6f:8c:6e/subnet-id"] = "subnet-28b0e940"
 	val, err := d.GetSubnetId()
 	if err != nil {
 		t.Fail()
