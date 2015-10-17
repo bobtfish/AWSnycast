@@ -209,13 +209,37 @@ func TestHealthcheckRise(t *testing.T) {
 		t.Fail()
 	}
 	h_ok.PerformHealthcheck() // 3
+	if !h_ok.IsHealthy() {
+		t.Fail()
+	}
 	h_ok.PerformHealthcheck()
+	if !h_ok.IsHealthy() {
+		t.Fail()
+	}
 	h_ok.PerformHealthcheck()
+	if !h_ok.IsHealthy() {
+		t.Fail()
+	}
 	h_ok.PerformHealthcheck()
+	if !h_ok.IsHealthy() {
+		t.Fail()
+	}
 	h_ok.PerformHealthcheck()
+	if !h_ok.IsHealthy() {
+		t.Fail()
+	}
 	h_ok.PerformHealthcheck()
+	if !h_ok.IsHealthy() {
+		t.Fail()
+	}
 	h_ok.PerformHealthcheck()
+	if !h_ok.IsHealthy() {
+		t.Fail()
+	}
 	h_ok.PerformHealthcheck() // 10
+	if !h_ok.IsHealthy() {
+		t.Fail()
+	}
 	for i, v := range h_ok.History {
 		if !v {
 			t.Log(fmt.Printf("Index %d was unhealthy", i))
@@ -246,13 +270,37 @@ func TestHealthcheckFall(t *testing.T) {
 		t.Fail()
 	}
 	h_ok.PerformHealthcheck() // 3
+	if h_ok.IsHealthy() {
+		t.Fail()
+	}
 	h_ok.PerformHealthcheck()
+	if h_ok.IsHealthy() {
+		t.Fail()
+	}
 	h_ok.PerformHealthcheck()
+	if h_ok.IsHealthy() {
+		t.Fail()
+	}
 	h_ok.PerformHealthcheck()
+	if h_ok.IsHealthy() {
+		t.Fail()
+	}
 	h_ok.PerformHealthcheck()
+	if h_ok.IsHealthy() {
+		t.Fail()
+	}
 	h_ok.PerformHealthcheck()
+	if h_ok.IsHealthy() {
+		t.Fail()
+	}
 	h_ok.PerformHealthcheck()
+	if h_ok.IsHealthy() {
+		t.Fail()
+	}
 	h_ok.PerformHealthcheck() // 10
+	if h_ok.IsHealthy() {
+		t.Fail()
+	}
 	for i, v := range h_ok.History {
 		if v {
 			t.Log(fmt.Printf("Index %d was healthy", i))
