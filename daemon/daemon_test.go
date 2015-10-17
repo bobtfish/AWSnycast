@@ -39,6 +39,7 @@ func getD(a bool) Daemon {
 	}
 	fakeR := FakeRouteTableFetcher{}
 	fakeM.Meta = make(map[string]string)
+	fakeM.Meta["placement/availability-zone"] = "us-west-1a"
 	d.MetadataFetcher = fakeM
 	d.RouteTableFetcher = fakeR
 	return d
