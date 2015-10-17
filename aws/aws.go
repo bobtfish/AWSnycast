@@ -69,7 +69,7 @@ func (r RouteTableFetcherEC2) CreateOrReplaceInstanceRoute(rtb ec2.RouteTable, c
 func (r RouteTableFetcherEC2) ReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string, ifUnhealthy bool, noop bool) error {
 	for _, route := range rtb.Routes {
 		if *(route.DestinationCidrBlock) == cidr {
-			if *(route.InstanceId) == instance {
+			if route.InstanceId != nil && *(route.InstanceId) == instance {
 				log.Printf("Skipping doing anything, %s is already routed via %s", cidr, instance)
 				return nil
 			}
