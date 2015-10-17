@@ -69,19 +69,11 @@ func (h *Healthcheck) PerformHealthcheck() {
 	}
 	result := h.healthchecker.Healthcheck()
 	maxIdx := uint(len(h.History) - 1)
-	h.History = append(h.History[:1], h.History[2:]...)
+	h.History = append(h.History[:0], h.History[1:]...)
 	h.History = append(h.History, result)
-	histstring := "History"
-	for _, v := range h.History {
-		if v {
-			histstring = histstring + " OK"
-		} else {
-			histstring = histstring + " FAIL"
-		}
-	}
-	log.Printf(histstring)
 	if h.isHealthy {
-		for i := maxIdx; i > (maxIdx - h.Fall); i-- {
+		downTo := maxIdx - h.Fall + 1
+		for i := maxIdx; i >= downTo; i-- {
 			if h.History[i] {
 				return
 			}
@@ -89,7 +81,8 @@ func (h *Healthcheck) PerformHealthcheck() {
 		log.Printf("Healthcheck %s to %s is unhealthy", h.Type, h.Destination)
 		h.isHealthy = false
 	} else {
-		for i := maxIdx; i > (maxIdx - h.Rise); i-- {
+		downTo := maxIdx - h.Rise + 1
+		for i := maxIdx; i >= downTo; i-- {
 			if !h.History[i] {
 				return
 			}
