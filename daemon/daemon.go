@@ -164,6 +164,14 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 	}
 	if oneShot {
 		d.quitChan <- true
+	} else {
+		go func() {
+			time.Sleep(time.Second * 300)
+			err := d.RunRouteTables()
+			if err != nil {
+				log.Printf("Error: %v", err)
+			}
+		}()
 	}
 	<-d.quitChan
 	return 0
