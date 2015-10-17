@@ -2,6 +2,7 @@ package healthcheck
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 )
 
@@ -207,6 +208,20 @@ func TestHealthcheckRise(t *testing.T) {
 		t.Log("Never became healthy")
 		t.Fail()
 	}
+	h_ok.PerformHealthcheck() // 3
+	h_ok.PerformHealthcheck()
+	h_ok.PerformHealthcheck()
+	h_ok.PerformHealthcheck()
+	h_ok.PerformHealthcheck()
+	h_ok.PerformHealthcheck()
+	h_ok.PerformHealthcheck()
+	h_ok.PerformHealthcheck() // 10
+	for i, v := range h_ok.History {
+		if !v {
+			t.Log(fmt.Printf("Index %d was unhealthy", i))
+			t.Fail()
+		}
+	}
 }
 
 func TestHealthcheckFall(t *testing.T) {
@@ -214,7 +229,7 @@ func TestHealthcheckFall(t *testing.T) {
 	h_ok := Healthcheck{Type: "test_fail", Destination: "127.0.0.1", Fall: 2}
 	h_ok.Default()
 	h_ok.Setup()
-	h_ok.History = []bool{true, true, true, true, true, true, true, true, true, true, true}
+	h_ok.History = []bool{true, true, true, true, true, true, true, true, true, true}
 	h_ok.isHealthy = true
 	if !h_ok.IsHealthy() {
 		t.Log("Started unhealthy")
@@ -222,13 +237,27 @@ func TestHealthcheckFall(t *testing.T) {
 	}
 	h_ok.PerformHealthcheck()
 	if !h_ok.IsHealthy() {
-		t.Log("Became unhealthy after 1")
+		t.Log("Became unhealthy after 1 (expected 2)")
 		t.Fail()
 	}
 	h_ok.PerformHealthcheck()
 	if h_ok.IsHealthy() {
 		t.Log("Never became unhealthy")
 		t.Fail()
+	}
+	h_ok.PerformHealthcheck() // 3
+	h_ok.PerformHealthcheck()
+	h_ok.PerformHealthcheck()
+	h_ok.PerformHealthcheck()
+	h_ok.PerformHealthcheck()
+	h_ok.PerformHealthcheck()
+	h_ok.PerformHealthcheck()
+	h_ok.PerformHealthcheck() // 10
+	for i, v := range h_ok.History {
+		if v {
+			t.Log(fmt.Printf("Index %d was healthy", i))
+			t.Fail()
+		}
 	}
 }
 
