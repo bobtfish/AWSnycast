@@ -22,6 +22,9 @@ type Daemon struct {
 	Instance          string
 	Region            string
 	quitChan          chan bool
+	loopQuitChan      chan bool
+	loopTimerChan     chan bool
+	FetchWait         time.Duration
 }
 
 func (d *Daemon) Setup() error {
@@ -37,7 +40,7 @@ func (d *Daemon) Setup() error {
 	if !d.MetadataFetcher.Available() {
 		return errors.New("No metadata service")
 	}
-
+	d.FetchWait = time.Second * 300
 	az, err := d.MetadataFetcher.GetMetadata("placement/availability-zone")
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error getting AZ: %s", err.Error()))
@@ -167,24 +170,43 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 	if !oneShot {
 		d.runHealthChecks()
 		defer d.stopHealthChecks()
-		time.Sleep(time.Second * 3)
 	}
 	err := d.RunRouteTables()
 	if err != nil {
 		log.Printf("Error: %v", err)
 		return 1
 	}
+	d.loopQuitChan = make(chan bool, 1)
+	d.loopTimerChan = make(chan bool, 1)
 	if oneShot {
 		d.quitChan <- true
 	} else {
-		go func() {
-			time.Sleep(time.Second * 300)
-			err := d.RunRouteTables()
-			if err != nil {
-				log.Printf("Error: %v", err)
-			}
-		}()
+		d.RunSleepLoop()
 	}
 	<-d.quitChan
+	d.loopQuitChan <- true
 	return 0
+}
+func (d *Daemon) RunSleepLoop() {
+	go func() {
+		for {
+			select {
+			case <-d.loopQuitChan:
+				return
+			case <-d.loopTimerChan:
+				err := d.RunRouteTables()
+				if err != nil {
+					log.Printf("Error: %v", err)
+				}
+				go func() {
+					time.Sleep(d.FetchWait)
+					d.loopTimerChan <- true
+				}()
+			}
+		}
+	}()
+	go func() {
+		time.Sleep(d.FetchWait)
+		d.loopTimerChan <- true
+	}()
 }
