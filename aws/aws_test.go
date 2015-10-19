@@ -549,16 +549,18 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteFails(t *testing.T) {
 	}
 }
 
-// FIXME
 func TestRouteTableFetcherEC2ReplaceInstanceRouteNotIfHealthy(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	err := rtf.ReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", true, false)
 	if err != nil {
 		t.Fail()
 	}
+	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput != nil {
+		t.Log("ReplaceRouteInput != nil")
+		t.Fail()
+	}
 }
 
-// FIXME
 func TestRouteTableFetcherEC2ReplaceInstanceRouteAlreadyThisInstance(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	err := rtf.ReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-605bd2aa", false, false)
@@ -571,11 +573,24 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteAlreadyThisInstance(t *testing.
 	}
 }
 
-// FIXME
 func TestCreateOrReplaceInstanceRoute(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	err := rtf.CreateOrReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", false, false)
 	if err != nil {
+		t.Fail()
+	}
+	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput == nil {
+		t.Log("ReplaceRouteInput == nil")
+		t.Fail()
+	}
+	r := rtf.conn.(*FakeEC2Conn).ReplaceRouteInput
+	if *(r.DestinationCidrBlock) != "0.0.0.0/0" {
+		t.Fail()
+	}
+	if *(r.RouteTableId) != *(rtb2.RouteTableId) {
+		t.Fail()
+	}
+	if *(r.InstanceId) != "i-1234" {
 		t.Fail()
 	}
 }
