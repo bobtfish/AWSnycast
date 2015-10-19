@@ -560,6 +560,10 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteAlreadyThisInstance(t *testing.
 	if err != nil {
 		t.Fail()
 	}
+	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput != nil {
+		t.Log("ReplaceRouteInput != nil")
+		t.Fail()
+	}
 }
 
 // FIXME
@@ -580,11 +584,31 @@ func TestCreateOrReplaceInstanceRouteCreateRoute(t *testing.T) {
 	}
 }
 
-// FIXME
 func TestGetRouteTables(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	_, err := rtf.GetRouteTables()
 	if err != nil {
+		t.Fail()
+	}
+	if rtf.conn.(*FakeEC2Conn).DescribeRouteTablesInput == nil {
+		t.Log("rtf.conn.(*FakeEC2Conn).DescribeRouteTablesInput was never set")
+		t.Fail()
+	}
+}
+
+func TestGetRouteTablesAWSFail(t *testing.T) {
+	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	rtf.conn.(*FakeEC2Conn).DescribeRouteTablesError = errors.New("Whoops, AWS blew up")
+	_, err := rtf.GetRouteTables()
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "Whoops, AWS blew up" {
+		t.Log(err)
+		t.Fail()
+	}
+	if rtf.conn.(*FakeEC2Conn).DescribeRouteTablesInput == nil {
+		t.Log("rtf.conn.(*FakeEC2Conn).DescribeRouteTablesInput was never called")
 		t.Fail()
 	}
 }
