@@ -619,11 +619,24 @@ func TestCreateOrReplaceInstanceRouteAWSFailOnCreate(t *testing.T) {
 	}
 }
 
-// FIXME
 func TestCreateOrReplaceInstanceRouteCreateRoute(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	err := rtf.CreateOrReplaceInstanceRoute(rtb1, "0.0.0.0/0", "i-1234", false, false)
 	if err != nil {
+		t.Fail()
+	}
+	if rtf.conn.(*FakeEC2Conn).CreateRouteInput == nil {
+		t.Log("rtf.conn.(*FakeEC2Conn).CreateRoute was never called")
+		t.Fail()
+	}
+	in := rtf.conn.(*FakeEC2Conn).CreateRouteInput
+	if *(in.RouteTableId) != *(rtb1.RouteTableId) {
+		t.Fail()
+	}
+	if *(in.DestinationCidrBlock) != "0.0.0.0/0" {
+		t.Fail()
+	}
+	if *(in.InstanceId) != "i-1234" {
 		t.Fail()
 	}
 }
@@ -657,10 +670,15 @@ func TestGetRouteTablesAWSFail(t *testing.T) {
 	}
 }
 
-// FIXME
 func TestNewRouteTableFetcher(t *testing.T) {
-	_, err := NewRouteTableFetcher("us-west-1", false)
+	rtf, err := NewRouteTableFetcher("us-west-1", false)
 	if err != nil {
+		t.Fail()
+	}
+	if rtf == nil {
+		t.Fail()
+	}
+	if rtf.(RouteTableFetcherEC2).conn == nil {
 		t.Fail()
 	}
 }
