@@ -415,7 +415,7 @@ func TestRunOneRouteTableNoRouteTablesInAWS(t *testing.T) {
 	}
 }
 
-func TestRunOneRouteTable(t *testing.T) {
+func TestRunOneRouteTableNoUpsertRoutes(t *testing.T) {
 	d := getD(true)
 	awsRt := make([]*ec2.RouteTable, 1)
 	awsRt[0] = &ec2.RouteTable{
@@ -440,6 +440,83 @@ func TestRunOneRouteTable(t *testing.T) {
 	}
 	err := d.RunOneRouteTable(awsRt, "public", rt)
 	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+}
+
+func TestRunOneRouteTable(t *testing.T) {
+	d := getD(true)
+	awsRt := make([]*ec2.RouteTable, 1)
+	awsRt[0] = &ec2.RouteTable{
+		Associations: []*ec2.RouteTableAssociation{},
+		RouteTableId: aws.String("rtb-9696cffe"),
+		Routes:       []*ec2.Route{},
+		Tags: []*ec2.Tag{
+			&ec2.Tag{
+				Key:   aws.String("Name"),
+				Value: aws.String("private a"),
+			},
+		},
+	}
+	c := make(map[string]string)
+	c["key"] = "Name"
+	c["value"] = "private a"
+	u := make([]*config.UpsertRoutesSpec, 1)
+	u[0] = &config.UpsertRoutesSpec{
+		Cidr:     "0.0.0.0/0",
+		Instance: "i-12345",
+	}
+	rt := &config.RouteTable{
+		Find: config.RouteTableFindSpec{
+			Type:   "by_tag",
+			Config: c,
+		},
+		UpsertRoutes: u,
+	}
+	err := d.RunOneRouteTable(awsRt, "public", rt)
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+}
+
+func TestRunOneRouteTableUpsertRouteFail(t *testing.T) {
+	d := getD(true)
+	rtf := d.RouteTableFetcher.(*FakeRouteTableFetcher)
+	rtf.CreateOrReplaceInstanceRouteError = errors.New("Test")
+	awsRt := make([]*ec2.RouteTable, 1)
+	awsRt[0] = &ec2.RouteTable{
+		Associations: []*ec2.RouteTableAssociation{},
+		RouteTableId: aws.String("rtb-9696cffe"),
+		Routes:       []*ec2.Route{},
+		Tags: []*ec2.Tag{
+			&ec2.Tag{
+				Key:   aws.String("Name"),
+				Value: aws.String("private a"),
+			},
+		},
+	}
+	c := make(map[string]string)
+	c["key"] = "Name"
+	c["value"] = "private a"
+	u := make([]*config.UpsertRoutesSpec, 1)
+	u[0] = &config.UpsertRoutesSpec{
+		Cidr:     "0.0.0.0/0",
+		Instance: "i-12345",
+	}
+	rt := &config.RouteTable{
+		Find: config.RouteTableFindSpec{
+			Type:   "by_tag",
+			Config: c,
+		},
+		UpsertRoutes: u,
+	}
+	err := d.RunOneRouteTable(awsRt, "public", rt)
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "Test" {
 		t.Log(err)
 		t.Fail()
 	}
