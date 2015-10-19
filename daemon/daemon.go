@@ -32,7 +32,13 @@ func (d *Daemon) Setup() error {
 	d.Config = config
 
 	if d.MetadataFetcher == nil {
-		m, err := aws.NewMetadataFetcher(d.Debug)
+		m := aws.NewMetadataFetcher(d.Debug)
+		if m.Available() {
+			log.Printf("Have metadata service")
+		} else {
+			log.Printf("No metadata service")
+			return errors.New("No metadata service")
+		}
 		if err != nil {
 			return err
 		}

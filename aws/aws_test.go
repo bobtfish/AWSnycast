@@ -213,6 +213,10 @@ var (
 	}
 )
 
+func TestMetaDataFetcher(t *testing.T) {
+	_ = NewMetadataFetcher(false)
+}
+
 type FakeRouteTableFetcher struct {
 	Error  error
 	Routes []*ec2.RouteTable

@@ -25,19 +25,12 @@ type MetadataFetcher interface {
 	GetMetadata(string) (string, error)
 }
 
-func NewMetadataFetcher(debug bool) (MetadataFetcher, error) {
+func NewMetadataFetcher(debug bool) MetadataFetcher {
 	c := ec2metadata.Config{}
 	if debug {
 		c.LogLevel = aws.LogLevel(aws.LogDebug)
 	}
-	m := ec2metadata.New(&c)
-	if m.Available() {
-		log.Printf("Have metadata service")
-		return m, nil
-	} else {
-		log.Printf("No metadata service")
-		return m, errors.New("No metadata service")
-	}
+	return ec2metadata.New(&c)
 }
 
 type RouteTableFetcher interface {
