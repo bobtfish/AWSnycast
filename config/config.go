@@ -87,16 +87,16 @@ func (c Config) Validate() error {
 	if len(c.RouteTables) == 0 {
 		return errors.New("No route_tables defined in config")
 	}
-	for k, v := range c.RouteTables {
-		if err := v.Validate(k); err != nil {
-			return err
-		}
-	}
 	if c.Healthchecks != nil {
 		for k, v := range c.Healthchecks {
 			if err := v.Validate(k); err != nil {
 				return err
 			}
+		}
+	}
+	for k, v := range c.RouteTables {
+		if err := v.Validate(k, c.Healthchecks); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -128,12 +128,17 @@ func (r *UpsertRoutesSpec) Default() {
 		r.Instance = "SELF"
 	}
 }
-func (r *UpsertRoutesSpec) Validate(name string) error {
+func (r *UpsertRoutesSpec) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck) error {
 	if r.Cidr == "" {
 		return errors.New(fmt.Sprintf("cidr is not defined in %s", name))
 	}
 	if _, _, err := net.ParseCIDR(r.Cidr); err != nil {
 		return errors.New(fmt.Sprintf("Could not parse %s in %s", err.Error(), name))
+	}
+	if r.Healthcheck != "" {
+		if _, ok := healthchecks[r.Healthcheck]; !ok {
+			return errors.New(fmt.Sprintf("Route table %s, upsert %s cannot find healthcheck '%s'", name, r.Cidr, r.Healthcheck))
+		}
 	}
 	return nil
 }
@@ -147,12 +152,12 @@ func (r *RouteTable) Default() {
 		v.Default()
 	}
 }
-func (r RouteTable) Validate(name string) error {
+func (r RouteTable) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck) error {
 	if r.UpsertRoutes == nil || len(r.UpsertRoutes) == 0 {
 		return errors.New(fmt.Sprintf("No upsert_routes key in route table '%s'", name))
 	}
 	for _, v := range r.UpsertRoutes {
-		if err := v.Validate(name); err != nil {
+		if err := v.Validate(name, healthchecks); err != nil {
 			return err
 		}
 	}

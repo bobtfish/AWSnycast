@@ -219,8 +219,9 @@ func TestConfigValidateNoHealthChecks(t *testing.T) {
 	c := Config{
 		RouteTables: c_disk.RouteTables,
 	}
+	c.Default()
 	err := c.Validate()
-	if err != nil {
+	if err == nil {
 		t.Fail()
 	}
 }
@@ -284,7 +285,8 @@ func TestUpsertRoutesSpecValidateBadInstance(t *testing.T) {
 		Instance: "vpc-1234",
 		Cidr:     "127.0.0.1",
 	}
-	err := r.Validate("foo")
+	h := make(map[string]*healthcheck.Healthcheck)
+	err := r.Validate("foo", h)
 	if err == nil {
 		t.Fail()
 	}
@@ -298,7 +300,8 @@ func TestUpsertRoutesSpecValidateMissingCidr(t *testing.T) {
 	r := UpsertRoutesSpec{
 		Instance: "SELF",
 	}
-	err := r.Validate("foo")
+	h := make(map[string]*healthcheck.Healthcheck)
+	err := r.Validate("foo", h)
 	if err == nil {
 		t.Fail()
 	}
@@ -313,7 +316,8 @@ func TestUpsertRoutesSpecValidateBadCidr1(t *testing.T) {
 		Cidr:     "300.0.0.0/16",
 		Instance: "SELF",
 	}
-	err := r.Validate("foo")
+	h := make(map[string]*healthcheck.Healthcheck)
+	err := r.Validate("foo", h)
 	if err == nil {
 		t.Fail()
 	}
@@ -328,7 +332,8 @@ func TestUpsertRoutesSpecValidateBadCidr2(t *testing.T) {
 		Cidr:     "3.0.0.0/160",
 		Instance: "SELF",
 	}
-	err := r.Validate("foo")
+	h := make(map[string]*healthcheck.Healthcheck)
+	err := r.Validate("foo", h)
 	if err == nil {
 		t.Fail()
 	}
@@ -343,7 +348,8 @@ func TestUpsertRoutesSpecValidateBadCidr3(t *testing.T) {
 		Cidr:     "foo",
 		Instance: "SELF",
 	}
-	err := r.Validate("bar")
+	h := make(map[string]*healthcheck.Healthcheck)
+	err := r.Validate("bar", h)
 	if err == nil {
 		t.Fail()
 	}
@@ -358,7 +364,8 @@ func TestUpsertRoutesSpecValidate(t *testing.T) {
 		Cidr:     "0.0.0.0/0",
 		Instance: "SELF",
 	}
-	err := r.Validate("foo")
+	h := make(map[string]*healthcheck.Healthcheck)
+	err := r.Validate("foo", h)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -461,7 +468,8 @@ func TestRouteTableDefault(t *testing.T) {
 
 func TestRouteTableValidateNullRoutes(t *testing.T) {
 	r := RouteTable{}
-	err := r.Validate("foo")
+	h := make(map[string]*healthcheck.Healthcheck)
+	err := r.Validate("foo", h)
 	if err == nil {
 		t.Fail()
 	}
@@ -475,7 +483,8 @@ func TestRouteTableValidateNoRoutes(t *testing.T) {
 	r := RouteTable{
 		UpsertRoutes: make([]*UpsertRoutesSpec, 0),
 	}
-	err := r.Validate("foo")
+	h := make(map[string]*healthcheck.Healthcheck)
+	err := r.Validate("foo", h)
 	if err == nil {
 		t.Fail()
 	}
@@ -494,7 +503,8 @@ func TestRouteTableValidate(t *testing.T) {
 		UpsertRoutes: routes,
 	}
 	r.Default()
-	err := r.Validate("foo")
+	h := make(map[string]*healthcheck.Healthcheck)
+	err := r.Validate("foo", h)
 	if err != nil {
 		t.Fail()
 	}
