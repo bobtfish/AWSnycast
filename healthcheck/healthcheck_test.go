@@ -159,6 +159,21 @@ func MyFakeHealthConstructorFail(h Healthcheck) (HealthChecker, error) {
 	return MyFakeHealthCheck{Healthy: false}, nil
 }
 
+func TestPerformHealthcheckNotSetup(t *testing.T) {
+	h := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 1}
+	defer func() {
+		// recover from panic if one occured. Set err to nil otherwise.
+		err := recover()
+		if err == nil {
+			t.Fail()
+		}
+		if err.(string) != "Setup() never called for healthcheck before Run" {
+			t.Fail()
+		}
+	}()
+	h.PerformHealthcheck()
+}
+
 func TestHealthcheckRunSimple(t *testing.T) {
 	registerHealthcheck("test_ok", MyFakeHealthConstructorOk)
 	registerHealthcheck("test_fail", MyFakeHealthConstructorFail)
@@ -314,7 +329,11 @@ func TestHealthcheckRun(t *testing.T) {
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
 	h_ok.Default()
 	h_ok.Setup()
-	h_ok.Run(false)
+	h_ok.Run(true)
+	if !h_ok.IsRunning() {
+		t.Fail()
+	}
+	h_ok.Run(true)
 	if !h_ok.IsRunning() {
 		t.Fail()
 	}
@@ -325,6 +344,13 @@ func TestHealthcheckStop(t *testing.T) {
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
 	h_ok.Default()
 	h_ok.Setup()
+	if h_ok.IsRunning() {
+		t.Fail()
+	}
+	h_ok.Stop()
+	if h_ok.IsRunning() {
+		t.Fail()
+	}
 	h_ok.Run(false)
 	if !h_ok.IsRunning() {
 		t.Fail()
