@@ -54,8 +54,7 @@ func getD(a bool) Daemon {
 func TestSetupUnavailable(t *testing.T) {
 	d := getD(false)
 	err := d.Setup()
-	if err != nil {
-		t.Log(err)
+	if err == nil {
 		t.Fail()
 	}
 	if d.MetadataFetcher.Available() {

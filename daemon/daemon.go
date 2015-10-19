@@ -32,17 +32,13 @@ func (d *Daemon) Setup() error {
 	d.Config = config
 
 	if d.MetadataFetcher == nil {
-		m := aws.NewMetadataFetcher(d.Debug)
-		if m.Available() {
-			log.Printf("Have metadata service")
-		} else {
-			log.Printf("No metadata service")
-			return errors.New("No metadata service")
-		}
-		if err != nil {
-			return err
-		}
-		d.MetadataFetcher = m
+		d.MetadataFetcher = aws.NewMetadataFetcher(d.Debug)
+	}
+	if d.MetadataFetcher.Available() {
+		log.Printf("Have metadata service")
+	} else {
+		log.Printf("No metadata service")
+		return errors.New("No metadata service")
 	}
 
 	az, err := d.MetadataFetcher.GetMetadata("placement/availability-zone")
