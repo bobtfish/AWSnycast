@@ -33,6 +33,7 @@ type Healthcheck struct {
 	isRunning     bool
 	quitChan      chan<- bool
 	hasQuitChan   <-chan bool
+	Config        map[string]string
 }
 
 func (h Healthcheck) GetHealthChecker() (HealthChecker, error) {
@@ -43,6 +44,9 @@ func (h Healthcheck) GetHealthChecker() (HealthChecker, error) {
 }
 
 func (h *Healthcheck) Default() {
+	if h.Config == nil {
+		h.Config = make(map[string]string)
+	}
 	if h.Rise == 0 {
 		h.Rise = 2
 	}

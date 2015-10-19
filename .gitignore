@@ -1,3 +1,5 @@
+*/coverage.out
+coverage.out
 *.swp
 tests/integration/variables.tf.json
 tests/integration/terraform.tfstate

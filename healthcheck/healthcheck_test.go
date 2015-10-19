@@ -17,6 +17,9 @@ func TestHealthcheckDefault(t *testing.T) {
 	if h.Fall != 3 {
 		t.Fail()
 	}
+	if h.Config == nil {
+		t.Fail()
+	}
 }
 
 func TestHealthcheckValidate(t *testing.T) {

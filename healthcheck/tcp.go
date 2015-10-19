@@ -1,6 +1,7 @@
 package healthcheck
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -44,9 +45,13 @@ func (h TcpHealthCheck) Healthcheck() bool {
 }
 
 func TcpConstructor(h Healthcheck) (HealthChecker, error) {
+	if _, ok := h.Config["port"]; !ok {
+		return TcpHealthCheck{}, errors.New("'port' not defined in tcp healthcheck config to " + h.Destination)
+	}
 	return TcpHealthCheck{
 		Destination: h.Destination,
 		Send:        "HEAD / HTTP/1.0\r\n\r\n",
 		Expect:      "200 OK",
+		Port:        h.Config["port"],
 	}, nil
 }
