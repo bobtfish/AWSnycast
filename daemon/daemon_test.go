@@ -98,6 +98,7 @@ func TestSetupInstance(t *testing.T) {
 
 func TestSetupHealthChecks(t *testing.T) {
 	d := getD(true)
+	d.Debug = true
 	err := d.Setup()
 	if err != nil {
 		t.Fail()
@@ -154,6 +155,13 @@ func TestHealthCheckOneUpsertRouteNoHealthcheck(t *testing.T) {
 	d := getD(true)
 	d.oneShot = false
 	if !d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: ""}) {
+		t.Fail()
+	}
+}
+
+func TestRunOneShot(t *testing.T) {
+	d := getD(true)
+	if d.Run(true, true) != 0 {
 		t.Fail()
 	}
 }
