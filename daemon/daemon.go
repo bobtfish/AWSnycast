@@ -101,9 +101,9 @@ func (d *Daemon) RunOneRouteTable(rt []*ec2.RouteTable, name string, configRoute
 	for _, rtb := range remaining {
 		log.Printf("Finder name %s found route table %v", name, rtb)
 		for _, upsertRoute := range configRouteTables.UpsertRoutes {
-			log.Printf("Trying to upsert route to %s", upsertRoute.Cidr)
+			//log.Printf("Trying to upsert route to %s", upsertRoute.Cidr)
 			if err := d.RunOneUpsertRoute(rtb, name, upsertRoute); err != nil {
-				log.Printf(err.Error())
+				return err
 			}
 		}
 	}

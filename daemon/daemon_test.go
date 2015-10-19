@@ -31,6 +31,52 @@ func (r FakeRouteTableFetcher) GetRouteTables() ([]*ec2.RouteTable, error) {
 	return []*ec2.RouteTable{}, nil
 }
 
+func TestSetupNoMetadataService(t *testing.T) {
+	fakeM := FakeMetadataFetcher{
+		FAvailable: false,
+	}
+	d := Daemon{
+		ConfigFile: "../tests/awsnycast.yaml",
+	}
+	if d.RouteTableFetcher != nil {
+		t.Fail()
+	}
+	d.MetadataFetcher = fakeM
+
+	err := d.Setup()
+	if err == nil {
+		t.Log(err)
+		t.Fail()
+	}
+	if err.Error() != "No metadata service" {
+		t.Fail()
+	}
+}
+
+func TestSetupNormal(t *testing.T) {
+	fakeM := FakeMetadataFetcher{
+		FAvailable: true,
+	}
+	fakeM.Meta = make(map[string]string)
+	fakeM.Meta["placement/availability-zone"] = "us-west-1a"
+	fakeM.Meta["instance-id"] = "i-1234"
+	fakeM.Meta["mac"] = "06:1d:ea:6f:8c:6e"
+	fakeM.Meta["network/interfaces/macs/06:1d:ea:6f:8c:6e/subnet-id"] = "subnet-28b0e940"
+	d := Daemon{
+		ConfigFile: "../tests/awsnycast.yaml",
+	}
+	if d.RouteTableFetcher != nil {
+		t.Fail()
+	}
+	d.MetadataFetcher = fakeM
+
+	err := d.Setup()
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+}
+
 func getD(a bool) Daemon {
 	d := Daemon{
 		ConfigFile: "../tests/awsnycast.yaml",
