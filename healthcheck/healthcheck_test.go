@@ -143,6 +143,21 @@ func TestHealthcheckGetHealthcheckNotExist(t *testing.T) {
 	}
 }
 
+func TestHealthcheckGetHealthcheckNotExistSetup(t *testing.T) {
+	h := Healthcheck{
+		Type:        "test_this_healthcheck_does_not_exist",
+		Destination: "127.0.0.1",
+	}
+	err := h.Setup()
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "Healthcheck type 'test_this_healthcheck_does_not_exist' not found in the healthcheck registry" {
+		t.Log(err.Error())
+		t.Fail()
+	}
+}
+
 type MyFakeHealthCheck struct {
 	Healthy bool
 }
