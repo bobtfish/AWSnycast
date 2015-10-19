@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/config"
 	"testing"
+	"time"
 )
 
 type FakeMetadataFetcher struct {
@@ -520,6 +521,18 @@ func TestRunOneRouteTableUpsertRouteFail(t *testing.T) {
 		t.Log(err)
 		t.Fail()
 	}
+}
+
+func TestRunSleepLoop(t *testing.T) {
+	d := getD(true)
+	d.Setup()
+	d.FetchWait = time.Nanosecond
+	d.loopQuitChan = make(chan bool, 10)
+	d.loopTimerChan = make(chan bool, 10)
+	d.RunSleepLoop()
+	time.Sleep(time.Millisecond)
+	d.loopQuitChan <- true
+	time.Sleep(time.Millisecond)
 }
 
 /*
