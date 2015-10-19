@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"testing"
@@ -446,8 +447,8 @@ func TestGetCreateRouteInput(t *testing.T) {
 	}
 }
 
-func NewFakeEC2Conn() FakeEC2Conn {
-	return FakeEC2Conn{
+func NewFakeEC2Conn() *FakeEC2Conn {
+	return &FakeEC2Conn{
 		DescribeRouteTablesOutput: &ec2.DescribeRouteTablesOutput{
 			RouteTables: make([]*ec2.RouteTable, 0),
 		},
@@ -466,15 +467,15 @@ type FakeEC2Conn struct {
 	DescribeRouteTablesError  error
 }
 
-func (f FakeEC2Conn) CreateRoute(i *ec2.CreateRouteInput) (*ec2.CreateRouteOutput, error) {
+func (f *FakeEC2Conn) CreateRoute(i *ec2.CreateRouteInput) (*ec2.CreateRouteOutput, error) {
 	f.CreateRouteInput = i
 	return f.CreateRouteOutput, f.CreateRouteError
 }
-func (f FakeEC2Conn) ReplaceRoute(i *ec2.ReplaceRouteInput) (*ec2.ReplaceRouteOutput, error) {
+func (f *FakeEC2Conn) ReplaceRoute(i *ec2.ReplaceRouteInput) (*ec2.ReplaceRouteOutput, error) {
 	f.ReplaceRouteInput = i
 	return f.ReplaceRouteOutput, f.ReplaceRouteError
 }
-func (f FakeEC2Conn) DescribeRouteTables(i *ec2.DescribeRouteTablesInput) (*ec2.DescribeRouteTablesOutput, error) {
+func (f *FakeEC2Conn) DescribeRouteTables(i *ec2.DescribeRouteTablesInput) (*ec2.DescribeRouteTablesOutput, error) {
 	f.DescribeRouteTablesInput = i
 	return f.DescribeRouteTablesOutput, f.DescribeRouteTablesError
 }
@@ -495,14 +496,34 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteNoop(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	err := rtf.ReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", false, true)
 	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	// Should *not* have actually tried to replace the route
+	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput != nil {
 		t.Fail()
 	}
 }
 
 func TestRouteTableFetcherEC2ReplaceInstanceRoute(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	fmt.Println("Foo")
 	err := rtf.ReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", false, false)
 	if err != nil {
+		t.Fail()
+	}
+	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput == nil {
+		t.Log("ReplaceRouteInput == nil")
+		t.Fail()
+	}
+	r := rtf.conn.(*FakeEC2Conn).ReplaceRouteInput
+	if *(r.DestinationCidrBlock) != "0.0.0.0/0" {
+		t.Fail()
+	}
+	if *(r.RouteTableId) != *(rtb2.RouteTableId) {
+		t.Fail()
+	}
+	if *(r.InstanceId) != "i-1234" {
 		t.Fail()
 	}
 }
