@@ -35,6 +35,7 @@ func NewMetadataFetcher(debug bool) MetadataFetcher {
 
 type RouteTableFetcher interface {
 	GetRouteTables() ([]*ec2.RouteTable, error)
+	CreateOrReplaceInstanceRoute(ec2.RouteTable, string, string, bool, bool) error
 }
 
 type RouteTableFetcherEC2 struct {

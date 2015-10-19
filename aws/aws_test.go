@@ -227,6 +227,10 @@ func (r FakeRouteTableFetcher) GetRouteTables() ([]*ec2.RouteTable, error) {
 	return r.Routes, r.Error
 }
 
+func (f FakeRouteTableFetcher) CreateOrReplaceInstanceRoute(ec2.RouteTable, string, string, bool, bool) error {
+	return nil
+}
+
 func TestFakeFetcher(t *testing.T) {
 	var f RouteTableFetcher
 	f = FakeRouteTableFetcher{
