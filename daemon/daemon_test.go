@@ -33,16 +33,27 @@ func NewFakeRouteTableFetcher() *FakeRouteTableFetcher {
 }
 
 type FakeRouteTableFetcher struct {
-	Tables []*ec2.RouteTable
-	Error  error
+	Tables                            []*ec2.RouteTable
+	Error                             error
+	RouteTable                        ec2.RouteTable
+	Cidr                              string
+	Instance                          string
+	IfUnhealthy                       bool
+	Noop                              bool
+	CreateOrReplaceInstanceRouteError error
 }
 
 func (f *FakeRouteTableFetcher) GetRouteTables() ([]*ec2.RouteTable, error) {
 	return f.Tables, f.Error
 }
 
-func (f *FakeRouteTableFetcher) CreateOrReplaceInstanceRoute(ec2.RouteTable, string, string, bool, bool) error {
-	return nil
+func (f *FakeRouteTableFetcher) CreateOrReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string, ifunhealthy bool, noop bool) error {
+	f.RouteTable = rtb
+	f.Cidr = cidr
+	f.Instance = instance
+	f.IfUnhealthy = ifunhealthy
+	f.Noop = noop
+	return f.CreateOrReplaceInstanceRouteError
 }
 
 func TestRunRouteTablesFailGetRouteTables(t *testing.T) {
