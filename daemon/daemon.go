@@ -92,15 +92,15 @@ func (d *Daemon) runHealthChecks() {
 	}
 }
 
-func (d *Daemon) RunOneRouteTable(rt []*ec2.RouteTable, name string, configRouteTables *config.RouteTable) error {
-	filter, err := configRouteTables.Find.GetFilter()
+func (d *Daemon) RunOneRouteTable(rt []*ec2.RouteTable, name string, configRouteTable *config.RouteTable) error {
+	filter, err := configRouteTable.Find.GetFilter()
 	if err != nil {
 		return err
 	}
 	remaining := aws.FilterRouteTables(filter, rt)
 	for _, rtb := range remaining {
 		log.Printf("Finder name %s found route table %v", name, rtb)
-		for _, upsertRoute := range configRouteTables.UpsertRoutes {
+		for _, upsertRoute := range configRouteTable.UpsertRoutes {
 			//log.Printf("Trying to upsert route to %s", upsertRoute.Cidr)
 			if err := d.RunOneUpsertRoute(rtb, name, upsertRoute); err != nil {
 				return err
