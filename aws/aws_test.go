@@ -1,7 +1,7 @@
 package aws
 
 import (
-	"fmt"
+	"errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"testing"
@@ -507,7 +507,6 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteNoop(t *testing.T) {
 
 func TestRouteTableFetcherEC2ReplaceInstanceRoute(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
-	fmt.Println("Foo")
 	err := rtf.ReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", false, false)
 	if err != nil {
 		t.Fail()
@@ -524,6 +523,23 @@ func TestRouteTableFetcherEC2ReplaceInstanceRoute(t *testing.T) {
 		t.Fail()
 	}
 	if *(r.InstanceId) != "i-1234" {
+		t.Fail()
+	}
+}
+
+func TestRouteTableFetcherEC2ReplaceInstanceRouteFails(t *testing.T) {
+	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	rtf.conn.(*FakeEC2Conn).ReplaceRouteError = errors.New("Whoops, AWS blew up")
+	err := rtf.ReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", false, false)
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "Whoops, AWS blew up" {
+		t.Log(err)
+		t.Fail()
+	}
+	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput == nil {
+		t.Log("ReplaceRouteInput == nil")
 		t.Fail()
 	}
 }
