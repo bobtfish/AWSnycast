@@ -31,6 +31,23 @@ func TestHealthcheckValidate(t *testing.T) {
 		t.Fail()
 	}
 }
+func TestHealthcheckPing(t *testing.T) {
+	h := Healthcheck{
+		Type:        "ping",
+		Destination: "127.0.0.1",
+	}
+	h.Default()
+	err := h.Validate("foo")
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	h.Setup()
+	res := h.healthchecker.Healthcheck()
+	if !res {
+		t.Fail()
+	}
+}
 
 func TestHealthcheckValidateFailNoDestination(t *testing.T) {
 	h := Healthcheck{
