@@ -446,21 +446,41 @@ func TestGetCreateRouteInput(t *testing.T) {
 	}
 }
 
-type FakeEC2Conn struct{}
-
-func (f FakeEC2Conn) CreateRoute(*ec2.CreateRouteInput) (*ec2.CreateRouteOutput, error) {
-	return &ec2.CreateRouteOutput{}, nil
-}
-func (f FakeEC2Conn) ReplaceRoute(*ec2.ReplaceRouteInput) (*ec2.ReplaceRouteOutput, error) {
-	return &ec2.ReplaceRouteOutput{}, nil
-}
-func (f FakeEC2Conn) DescribeRouteTables(*ec2.DescribeRouteTablesInput) (*ec2.DescribeRouteTablesOutput, error) {
-	return &ec2.DescribeRouteTablesOutput{}, nil
+func NewFakeEC2Conn() FakeEC2Conn {
+	return FakeEC2Conn{
+		DescribeRouteTablesOutput: &ec2.DescribeRouteTablesOutput{
+			RouteTables: make([]*ec2.RouteTable, 0),
+		},
+	}
 }
 
-// FIXME
+type FakeEC2Conn struct {
+	CreateRouteOutput         *ec2.CreateRouteOutput
+	CreateRouteError          error
+	CreateRouteInput          *ec2.CreateRouteInput
+	ReplaceRouteOutput        *ec2.ReplaceRouteOutput
+	ReplaceRouteError         error
+	ReplaceRouteInput         *ec2.ReplaceRouteInput
+	DescribeRouteTablesInput  *ec2.DescribeRouteTablesInput
+	DescribeRouteTablesOutput *ec2.DescribeRouteTablesOutput
+	DescribeRouteTablesError  error
+}
+
+func (f FakeEC2Conn) CreateRoute(i *ec2.CreateRouteInput) (*ec2.CreateRouteOutput, error) {
+	f.CreateRouteInput = i
+	return f.CreateRouteOutput, f.CreateRouteError
+}
+func (f FakeEC2Conn) ReplaceRoute(i *ec2.ReplaceRouteInput) (*ec2.ReplaceRouteOutput, error) {
+	f.ReplaceRouteInput = i
+	return f.ReplaceRouteOutput, f.ReplaceRouteError
+}
+func (f FakeEC2Conn) DescribeRouteTables(i *ec2.DescribeRouteTablesInput) (*ec2.DescribeRouteTablesOutput, error) {
+	f.DescribeRouteTablesInput = i
+	return f.DescribeRouteTablesOutput, f.DescribeRouteTablesError
+}
+
 func TestRouteTableFetcherEC2ReplaceInstanceRouteNoRoute(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: FakeEC2Conn{}}
+	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	err := rtf.ReplaceInstanceRoute(rtb1, "0.0.0.0/0", "i-1234", false, true)
 	if err == nil {
 		t.Fail()
@@ -471,18 +491,16 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteNoRoute(t *testing.T) {
 	}
 }
 
-// FIXME
 func TestRouteTableFetcherEC2ReplaceInstanceRouteNoop(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: FakeEC2Conn{}}
+	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	err := rtf.ReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", false, true)
 	if err != nil {
 		t.Fail()
 	}
 }
 
-// FIXME
 func TestRouteTableFetcherEC2ReplaceInstanceRoute(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: FakeEC2Conn{}}
+	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	err := rtf.ReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", false, false)
 	if err != nil {
 		t.Fail()
@@ -491,7 +509,7 @@ func TestRouteTableFetcherEC2ReplaceInstanceRoute(t *testing.T) {
 
 // FIXME
 func TestRouteTableFetcherEC2ReplaceInstanceRouteNotIfHealthy(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: FakeEC2Conn{}}
+	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	err := rtf.ReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", true, false)
 	if err != nil {
 		t.Fail()
@@ -500,7 +518,7 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteNotIfHealthy(t *testing.T) {
 
 // FIXME
 func TestRouteTableFetcherEC2ReplaceInstanceRouteAlreadyThisInstance(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: FakeEC2Conn{}}
+	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	err := rtf.ReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-605bd2aa", false, false)
 	if err != nil {
 		t.Fail()
@@ -509,7 +527,7 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteAlreadyThisInstance(t *testing.
 
 // FIXME
 func TestCreateOrReplaceInstanceRoute(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: FakeEC2Conn{}}
+	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	err := rtf.CreateOrReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", false, false)
 	if err != nil {
 		t.Fail()
@@ -518,7 +536,7 @@ func TestCreateOrReplaceInstanceRoute(t *testing.T) {
 
 // FIXME
 func TestCreateOrReplaceInstanceRouteCreateRoute(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: FakeEC2Conn{}}
+	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	err := rtf.CreateOrReplaceInstanceRoute(rtb1, "0.0.0.0/0", "i-1234", false, false)
 	if err != nil {
 		t.Fail()
@@ -527,7 +545,7 @@ func TestCreateOrReplaceInstanceRouteCreateRoute(t *testing.T) {
 
 // FIXME
 func TestGetRouteTables(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: FakeEC2Conn{}}
+	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	_, err := rtf.GetRouteTables()
 	if err != nil {
 		t.Fail()
