@@ -22,7 +22,7 @@ func (m FakeMetadataFetcher) GetMetadata(key string) (string, error) {
 	if ok {
 		return v, nil
 	}
-	return v, errors.New(fmt.Sprintf("Key %s unknown"))
+	return v, errors.New(fmt.Sprintf("Key %s unknown", key))
 }
 
 type FakeRouteTableFetcher struct{}
@@ -51,6 +51,19 @@ func getD(a bool) Daemon {
 	return d
 }
 
+func TestSetupBadConfigFile(t *testing.T) {
+	d := getD(false)
+	d.ConfigFile = "../tests/doesnotexist.yaml"
+	err := d.Setup()
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "open ../tests/doesnotexist.yaml: no such file or directory" {
+		t.Log(err)
+		t.Fail()
+	}
+}
+
 func TestSetupUnavailable(t *testing.T) {
 	d := getD(false)
 	err := d.Setup()
@@ -69,6 +82,45 @@ func TestSetupAvailable(t *testing.T) {
 		t.Fail()
 	}
 	if !d.MetadataFetcher.Available() {
+		t.Fail()
+	}
+}
+
+func TestSetupNoAZ(t *testing.T) {
+	d := getD(true)
+	delete(d.MetadataFetcher.(FakeMetadataFetcher).Meta, "placement/availability-zone")
+	err := d.Setup()
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "Error getting AZ: Key placement/availability-zone unknown" {
+		t.Log(err)
+		t.Fail()
+	}
+}
+
+func TestSetupNoInstanceId(t *testing.T) {
+	d := getD(true)
+	delete(d.MetadataFetcher.(FakeMetadataFetcher).Meta, "instance-id")
+	err := d.Setup()
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "Error getting instance-id: Key instance-id unknown" {
+		t.Log(err)
+		t.Fail()
+	}
+}
+
+func TestSetupNoSubnetId(t *testing.T) {
+	d := getD(true)
+	delete(d.MetadataFetcher.(FakeMetadataFetcher).Meta, "mac")
+	err := d.Setup()
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "Error getting metadata: Key mac unknown" {
+		t.Log(err)
 		t.Fail()
 	}
 }
@@ -142,12 +194,73 @@ func TestGetSubnetIdMacOk(t *testing.T) {
 	}
 }
 
+func TestHealthCheckOneUpsertRouteNilConfigPanic(t *testing.T) {
+	d := getD(true)
+	d.Config = nil
+	defer func() {
+		err := recover()
+		if err == nil {
+			t.Fail()
+		}
+		if err.(string) != "No healthchecks, have you run Setup()?" {
+			t.Fail()
+		}
+	}()
+	d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: "foo"})
+}
+
+func TestHealthCheckOneUpsertRouteNilConfigHealthchecksPanic(t *testing.T) {
+	d := getD(true)
+	d.Config.Healthchecks = nil
+	defer func() {
+		err := recover()
+		if err == nil {
+			t.Fail()
+		}
+		if err.(string) != "No healthchecks, have you run Setup()?" {
+			t.Fail()
+		}
+	}()
+	d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: "foo"})
+}
+
 func TestHealthCheckOneUpsertRouteOneShot(t *testing.T) {
 	d := getD(true)
 	d.oneShot = true
 	if !d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: "foo"}) {
 		t.Fail()
 	}
+}
+
+func TestHealthCheckOneUpsertRoute(t *testing.T) {
+	d := getD(true)
+	d.Setup()
+	if d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: "public"}) {
+		t.Fail()
+	}
+	d.Config.Healthchecks["public"].PerformHealthcheck() // Run the healthcheck twice to become healthy
+	if d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: "public"}) {
+		t.Fail()
+	}
+	d.Config.Healthchecks["public"].PerformHealthcheck()
+	if !d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: "public"}) {
+		t.Fail()
+	}
+}
+
+func TestHealthCheckOneUpsertRouteUnknown(t *testing.T) {
+	d := getD(true)
+	d.Setup()
+	defer func() {
+		err := recover()
+		if err == nil {
+			t.Fail()
+		}
+		if err.(string) != "Could not find healthcheck unknown" {
+			t.Fail()
+		}
+	}()
+	d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: "unknown"})
 }
 
 func TestHealthCheckOneUpsertRouteNoHealthcheck(t *testing.T) {

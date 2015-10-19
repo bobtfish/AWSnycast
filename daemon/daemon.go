@@ -34,10 +34,7 @@ func (d *Daemon) Setup() error {
 	if d.MetadataFetcher == nil {
 		d.MetadataFetcher = aws.NewMetadataFetcher(d.Debug)
 	}
-	if d.MetadataFetcher.Available() {
-		log.Printf("Have metadata service")
-	} else {
-		log.Printf("No metadata service")
+	if !d.MetadataFetcher.Available() {
 		return errors.New("No metadata service")
 	}
 
@@ -47,7 +44,7 @@ func (d *Daemon) Setup() error {
 	}
 	d.Region = az[:len(az)-1]
 
-	instanceId, err := d.GetInstance()
+	instanceId, err := d.MetadataFetcher.GetMetadata("instance-id")
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error getting instance-id: %s", err.Error()))
 	}
@@ -81,10 +78,6 @@ func (d *Daemon) GetSubnetId() (string, error) {
 		return "", err
 	}
 	return d.MetadataFetcher.GetMetadata(fmt.Sprintf("network/interfaces/macs/%s/subnet-id", mac))
-}
-
-func (d *Daemon) GetInstance() (string, error) {
-	return d.MetadataFetcher.GetMetadata("instance-id")
 }
 
 func (d *Daemon) runHealthChecks() {
