@@ -116,7 +116,7 @@ func (d *Daemon) HealthCheckOneUpsertRoute(name string, upsertRoute *config.Upse
 			panic("No healthchecks, have you run Setup()?")
 		}
 		if hc, ok := d.Config.Healthchecks[upsertRoute.Healthcheck]; ok {
-			log.Printf("Got healthcheck %s", upsertRoute.Healthcheck)
+			//log.Printf("Got healthcheck %s", upsertRoute.Healthcheck)
 			if !hc.IsHealthy() {
 				log.Printf("Skipping upsert route %s, healthcheck %s isn't healthy yet", name, upsertRoute.Healthcheck)
 				return false

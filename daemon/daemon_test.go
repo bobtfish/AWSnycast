@@ -25,10 +25,33 @@ func (m FakeMetadataFetcher) GetMetadata(key string) (string, error) {
 	return v, errors.New(fmt.Sprintf("Key %s unknown", key))
 }
 
-type FakeRouteTableFetcher struct{}
+func NewFakeRouteTableFetcher() *FakeRouteTableFetcher {
+	f := &FakeRouteTableFetcher{}
+	f.Tables = make([]*ec2.RouteTable, 0)
+	return f
+}
 
-func (r FakeRouteTableFetcher) GetRouteTables() ([]*ec2.RouteTable, error) {
-	return []*ec2.RouteTable{}, nil
+type FakeRouteTableFetcher struct {
+	Tables []*ec2.RouteTable
+	Error  error
+}
+
+func (f *FakeRouteTableFetcher) GetRouteTables() ([]*ec2.RouteTable, error) {
+	return f.Tables, f.Error
+}
+
+func TestRunRouteTablesFailGetRouteTables(t *testing.T) {
+	d := getD(true)
+	rtf := d.RouteTableFetcher.(*FakeRouteTableFetcher)
+	rtf.Error = errors.New("Route table get fail")
+	err := d.RunRouteTables()
+	if err == nil {
+		t.Fail()
+	} else {
+		if err.Error() != "Route table get fail" {
+			t.Fail()
+		}
+	}
 }
 
 func TestSetupNoMetadataService(t *testing.T) {
@@ -86,7 +109,7 @@ func getD(a bool) Daemon {
 	fakeM := FakeMetadataFetcher{
 		FAvailable: a,
 	}
-	fakeR := FakeRouteTableFetcher{}
+	fakeR := NewFakeRouteTableFetcher()
 	fakeM.Meta = make(map[string]string)
 	fakeM.Meta["placement/availability-zone"] = "us-west-1a"
 	fakeM.Meta["instance-id"] = "i-1234"
