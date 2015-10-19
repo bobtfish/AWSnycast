@@ -361,6 +361,21 @@ func TestRunOneShot(t *testing.T) {
 	}
 }
 
+func TestRunOneRouteTableGetFilterFail(t *testing.T) {
+	d := getD(true)
+	awsRt := make([]*ec2.RouteTable, 0)
+	rt := &config.RouteTable{}
+	err := d.RunOneRouteTable(awsRt, "public", rt)
+	if err == nil {
+		t.Fail()
+	} else {
+		if err.Error() != "Healthcheck type '' not found in the healthcheck registry" {
+			t.Log(err)
+			t.Fail()
+		}
+	}
+}
+
 /*
 func TestHealthCheckOneUpsertRouteHealthcheckFail(t *testing.T) {
 	d := getD(true)
