@@ -3,6 +3,7 @@ package daemon
 import (
 	"errors"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/config"
 	"testing"
@@ -373,6 +374,54 @@ func TestRunOneRouteTableGetFilterFail(t *testing.T) {
 			t.Log(err)
 			t.Fail()
 		}
+	}
+}
+
+func TestRunOneRouteTableNoRouteTablesInAWS(t *testing.T) {
+	d := getD(true)
+	awsRt := make([]*ec2.RouteTable, 0)
+	c := make(map[string]string)
+	c["key"] = "Name"
+	c["value"] = "private a"
+	rt := &config.RouteTable{
+		Find: config.RouteTableFindSpec{
+			Type:   "by_tag",
+			Config: c,
+		},
+	}
+	err := d.RunOneRouteTable(awsRt, "public", rt)
+	if err != nil {
+		t.Fail()
+	}
+}
+
+func TestRunOneRouteTable(t *testing.T) {
+	d := getD(true)
+	awsRt := make([]*ec2.RouteTable, 1)
+	awsRt[0] = &ec2.RouteTable{
+		Associations: []*ec2.RouteTableAssociation{},
+		RouteTableId: aws.String("rtb-9696cffe"),
+		Routes:       []*ec2.Route{},
+		Tags: []*ec2.Tag{
+			&ec2.Tag{
+				Key:   aws.String("Name"),
+				Value: aws.String("private a"),
+			},
+		},
+	}
+	c := make(map[string]string)
+	c["key"] = "Name"
+	c["value"] = "private a"
+	rt := &config.RouteTable{
+		Find: config.RouteTableFindSpec{
+			Type:   "by_tag",
+			Config: c,
+		},
+	}
+	err := d.RunOneRouteTable(awsRt, "public", rt)
+	if err != nil {
+		t.Log(err)
+		t.Fail()
 	}
 }
 
