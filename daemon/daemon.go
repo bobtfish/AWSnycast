@@ -92,6 +92,12 @@ func (d *Daemon) runHealthChecks() {
 	}
 }
 
+func (d *Daemon) stopHealthChecks() {
+	for _, v := range d.Config.Healthchecks {
+		v.Stop()
+	}
+}
+
 func (d *Daemon) RunOneRouteTable(rt []*ec2.RouteTable, name string, configRouteTable *config.RouteTable) error {
 	filter, err := configRouteTable.Find.GetFilter()
 	if err != nil {
@@ -160,6 +166,7 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 	d.quitChan = make(chan bool, 1)
 	if !oneShot {
 		d.runHealthChecks()
+		defer d.stopHealthChecks()
 		time.Sleep(time.Second * 3)
 	}
 	err := d.RunRouteTables()

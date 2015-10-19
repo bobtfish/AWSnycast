@@ -237,6 +237,11 @@ func TestSetupHealthChecks(t *testing.T) {
 		t.Log("HealthChecks did not start running")
 		t.Fail()
 	}
+	d.stopHealthChecks()
+	if d.Config.Healthchecks["public"].IsRunning() {
+		t.Log("HealthChecks still running")
+		t.Fail()
+	}
 }
 
 func TestGetSubnetIdMacFail(t *testing.T) {
