@@ -92,9 +92,11 @@ func (c Config) Validate() error {
 			return err
 		}
 	}
-	for k, v := range c.Healthchecks {
-		if err := v.Validate(k); err != nil {
-			return err
+	if c.Healthchecks != nil {
+		for k, v := range c.Healthchecks {
+			if err := v.Validate(k); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

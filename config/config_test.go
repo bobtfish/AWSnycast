@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/bobtfish/AWSnycast/healthcheck"
 	"testing"
 )
 
@@ -134,13 +135,92 @@ func TestConfigDefault(t *testing.T) {
 
 func TestConfigValidateNoRouteTables(t *testing.T) {
 	c := Config{}
-	c.Default()
+	err := c.Validate()
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "No route_tables key in config" {
+		t.Log(err.Error())
+		t.Fail()
+	}
+}
+
+func TestConfigValidateEmptyRouteTables(t *testing.T) {
+	r := make(map[string]*RouteTable)
+	c := Config{
+		RouteTables: r,
+	}
 	err := c.Validate()
 	if err == nil {
 		t.Fail()
 	}
 	if err.Error() != "No route_tables defined in config" {
 		t.Log(err.Error())
+		t.Fail()
+	}
+}
+
+func TestConfigValidateBadRouteTables(t *testing.T) {
+	r := make(map[string]*RouteTable)
+	r["foo"] = &RouteTable{}
+	c := Config{
+		RouteTables: r,
+	}
+	err := c.Validate()
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "No upsert_routes key in route table 'foo'" {
+		t.Log(err.Error())
+		t.Fail()
+	}
+}
+
+func TestConfigValidateBadRouteTableUpserts(t *testing.T) {
+	r := make(map[string]*RouteTable)
+	urs := make([]*UpsertRoutesSpec, 1)
+	urs[0] = &UpsertRoutesSpec{}
+	r["foo"] = &RouteTable{
+		UpsertRoutes: urs,
+	}
+	c := Config{
+		RouteTables: r,
+	}
+	err := c.Validate()
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "cidr is not defined in foo" {
+		t.Log(err.Error())
+		t.Fail()
+	}
+}
+
+func TestConfigValidateBadHealthChecks(t *testing.T) {
+	c_disk, _ := New("../tests/awsnycast.yaml")
+	h := make(map[string]*healthcheck.Healthcheck)
+	h["foo"] = &healthcheck.Healthcheck{}
+	c := Config{
+		RouteTables:  c_disk.RouteTables,
+		Healthchecks: h,
+	}
+	err := c.Validate()
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "Healthcheck foo has no destination set" {
+		t.Log(err.Error())
+		t.Fail()
+	}
+}
+
+func TestConfigValidateNoHealthChecks(t *testing.T) {
+	c_disk, _ := New("../tests/awsnycast.yaml")
+	c := Config{
+		RouteTables: c_disk.RouteTables,
+	}
+	err := c.Validate()
+	if err != nil {
 		t.Fail()
 	}
 }
@@ -172,22 +252,6 @@ func TestConfigValidate(t *testing.T) {
 
 func TestConfigValidateEmpty(t *testing.T) {
 	c := Config{}
-	c.Default()
-	err := c.Validate()
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "No route_tables defined in config" {
-		t.Log(err.Error())
-		t.Fail()
-	}
-}
-
-func TestConfigValidateEmptyRouteTables(t *testing.T) {
-	r := make(map[string]*RouteTable)
-	c := Config{
-		RouteTables: r,
-	}
 	c.Default()
 	err := c.Validate()
 	if err == nil {
@@ -335,6 +399,24 @@ func TestRouteTableFindSpecValidateNoType(t *testing.T) {
 		t.Fail()
 	}
 	if err.Error() != "Route find spec foo needs a type key" {
+		t.Log(err.Error())
+		t.Fail()
+	}
+}
+
+func TestRouteTableFindSpecValidateUnknownType(t *testing.T) {
+	c := make(map[string]string)
+	c["key"] = "Name"
+	c["value"] = "private a"
+	r := RouteTableFindSpec{
+		Type:   "doesnotexist",
+		Config: c,
+	}
+	err := r.Validate("foo")
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "Route find spec foo type 'doesnotexist' not known" {
 		t.Log(err.Error())
 		t.Fail()
 	}
