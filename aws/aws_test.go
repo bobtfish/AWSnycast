@@ -215,6 +215,7 @@ var (
 
 func TestMetaDataFetcher(t *testing.T) {
 	_ = NewMetadataFetcher(false)
+	_ = NewMetadataFetcher(true)
 }
 
 type FakeRouteTableFetcher struct {
@@ -575,6 +576,30 @@ func TestCreateOrReplaceInstanceRoute(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	err := rtf.CreateOrReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", false, false)
 	if err != nil {
+		t.Fail()
+	}
+}
+
+func TestCreateOrReplaceInstanceRouteAWSFailOnReplace(t *testing.T) {
+	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	rtf.conn.(*FakeEC2Conn).ReplaceRouteError = errors.New("Whoops, AWS blew up")
+	err := rtf.CreateOrReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", false, false)
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "Whoops, AWS blew up" {
+		t.Fail()
+	}
+}
+
+func TestCreateOrReplaceInstanceRouteAWSFailOnCreate(t *testing.T) {
+	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	rtf.conn.(*FakeEC2Conn).CreateRouteError = errors.New("Whoops, AWS blew up")
+	err := rtf.CreateOrReplaceInstanceRoute(rtb1, "0.0.0.0/0", "i-1234", false, false)
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "Whoops, AWS blew up" {
 		t.Fail()
 	}
 }
