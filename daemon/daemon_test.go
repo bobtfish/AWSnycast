@@ -62,6 +62,10 @@ func TestSetupBadConfigFile(t *testing.T) {
 		t.Log(err)
 		t.Fail()
 	}
+	success := d.Run(true, false)
+	if success != 1 {
+		t.Fail()
+	}
 }
 
 func TestSetupUnavailable(t *testing.T) {
@@ -248,6 +252,16 @@ func TestHealthCheckOneUpsertRoute(t *testing.T) {
 	}
 }
 
+func TestRunOneUpsertRouteFailingHealthcheck(t *testing.T) {
+	d := getD(true)
+	d.Setup()
+	if d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: "public"}) {
+		t.Fail()
+	}
+	if d.RunOneUpsertRoute(&ec2.RouteTable{}, "a", d.Config.RouteTables["a"].UpsertRoutes[0]) != nil {
+		t.Fail()
+	}
+}
 func TestHealthCheckOneUpsertRouteUnknown(t *testing.T) {
 	d := getD(true)
 	d.Setup()
