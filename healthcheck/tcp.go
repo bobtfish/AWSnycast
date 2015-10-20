@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -33,15 +34,23 @@ func (h TcpHealthCheck) Healthcheck() bool {
 	c.SetDeadline(time.Now().Add(time.Second * 10))
 
 	fmt.Fprintf(c, h.Send)
-
 	// Read 1 byte from the TCP connection.
 	//
-	b := make([]byte, 1)
-	if _, err := c.Read(b); err != nil {
+	b := make([]byte, 1024)
+	n, err := c.Read(b)
+	if err != nil {
 		log.Println(err)
 		return false
 	}
-	return true
+	answer := string(b[:n])
+	if h.Expect == "" {
+		return true
+	} else {
+		if strings.Contains(answer, h.Expect) {
+			return true
+		}
+	}
+	return false
 }
 
 func TcpConstructor(h Healthcheck) (HealthChecker, error) {

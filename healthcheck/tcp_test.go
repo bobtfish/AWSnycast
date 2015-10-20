@@ -1,6 +1,9 @@
 package healthcheck
 
 import (
+	"fmt"
+	"log"
+	"net"
 	"testing"
 )
 
@@ -12,7 +15,7 @@ func TestHealthcheckTcpNoPort(t *testing.T) {
 		Config:      c,
 	}
 	h.Default()
-	// FIXME h.Validate("foo")
+	h.Validate("foo")
 	err := h.Setup()
 	if err == nil {
 		t.Fail()
@@ -24,28 +27,63 @@ func TestHealthcheckTcpNoPort(t *testing.T) {
 	}
 }
 
-/*
 func TestHealthcheckTcp(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	port := ln.Addr().(*net.TCPAddr).Port
+	defer ln.Close()
+	go func() {
+		for {
+			conn, err := ln.Accept()
+			if err != nil {
+				t.Fatal(fmt.Printf("Error accepting: ", err.Error()))
+			}
+			go func(conn net.Conn) {
+				buf := make([]byte, 1024)
+				n, err := conn.Read(buf)
+				if err != nil {
+					t.Log(fmt.Printf("Error reading: %s", err.Error()))
+					t.Fail()
+				}
+				if string(buf[:n]) != "HEAD / HTTP/1.0\r\n\r\n" {
+					t.Log(string(buf[:n]))
+					t.Fail()
+				}
+				conn.Write([]byte("200 OK"))
+				conn.Close()
+			}(conn)
+		}
+	}()
 	c := make(map[string]string)
-	c["port"] = "80"
+	c["port"] = fmt.Sprintf("%d", port)
 	h := Healthcheck{
 		Type:        "tcp",
 		Destination: "127.0.0.1",
 		Config:      c,
 	}
 	h.Default()
-	err := h.Validate("foo")
+	err = h.Validate("foo")
 	if err != nil {
 		t.Log(err)
 		t.Fail()
 	}
-	err := h.Setup()
-	res := h.healthchecker.Healthcheck()
-	if !res {
+	err = h.Setup()
+	if err != nil {
+		t.Log("Setup failed: %s", err.Error())
 		t.Fail()
+	} else {
+		log.Printf("%+v", h)
+		res := h.healthchecker.Healthcheck()
+		if !res {
+			t.Log("h.healthchecker.Healthcheck() returned false")
+			t.Fail()
+		}
 	}
 }
 
+/*
 func TestHealthcheckTcpFail(t *testing.T) {
 	h := Healthcheck{
 		Type:        "tcp",

@@ -22,6 +22,22 @@ func TestHealthcheckDefault(t *testing.T) {
 	}
 }
 
+func TestHealthcheckValidateNoType(t *testing.T) {
+	h := Healthcheck{
+		Destination: "127.0.0.1",
+	}
+	h.Default()
+	err := h.Validate("foo")
+	if err == nil {
+		t.Fail()
+	} else {
+		if err.Error() != "No healthcheck type set" {
+			t.Log(err)
+			t.Fail()
+		}
+	}
+}
+
 func TestHealthcheckValidate(t *testing.T) {
 	h := Healthcheck{
 		Type:        "ping",

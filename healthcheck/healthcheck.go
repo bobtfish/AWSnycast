@@ -103,7 +103,10 @@ func (h Healthcheck) Validate(name string) error {
 	if net.ParseIP(h.Destination) == nil {
 		return errors.New(fmt.Sprintf("Healthcheck %s destination '%s' does not parse as an IP address", name, h.Destination))
 	}
-	if h.Type != "ping" {
+	if h.Type == "" {
+		return errors.New("No healthcheck type set")
+	}
+	if _, found := healthCheckTypes[h.Type]; !found {
 		return errors.New(fmt.Sprintf("Unknown healthcheck type '%s' in %s", h.Type, name))
 	}
 	if h.Rise == 0 {
