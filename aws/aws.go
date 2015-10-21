@@ -11,7 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/awslabs/aws-sdk-go/aws/credentials/ec2rolecreds"
 	"log"
+	"net/http"
 	"strings"
+	"time"
 )
 
 type MyEC2Conn interface {
@@ -115,7 +117,13 @@ func NewRouteTableFetcher(region string, debug bool) (RouteTableFetcher, error) 
 	r := RouteTableFetcherEC2{}
 	providers := []credentials.Provider{
 		&credentials.EnvProvider{},
-		&ec2rolecreds.EC2RoleProvider{},
+		&ec2rolecreds.EC2RoleProvider{
+			Client: ec2metadata.New(&ec2metadata.Config{
+				HTTPClient: &http.Client{
+					Timeout: 2 * time.Second,
+				},
+			}),
+		},
 	}
 	cred := credentials.NewChainCredentials(providers)
 	_, credErr := cred.Get()
@@ -129,7 +137,6 @@ func NewRouteTableFetcher(region string, debug bool) (RouteTableFetcher, error) 
 	}
 	iamconn := iam.New(awsConfig)
 	_, err := iamconn.GetUser(nil)
-
 	if awsErr, ok := err.(awserr.Error); ok {
 		if awsErr.Code() == "SignatureDoesNotMatch" {
 			return r, fmt.Errorf("Failed authenticating with AWS: please verify credentials")

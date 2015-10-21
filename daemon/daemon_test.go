@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/config"
+	"os"
 	"testing"
 	"time"
 )
@@ -93,8 +94,13 @@ func TestSetupNoMetadataService(t *testing.T) {
 	}
 }
 
-/*
 func TestSetupNormal(t *testing.T) {
+	if os.Setenv("AWS_ACCESS_KEY_ID", "AKIAJRYDH3TP2D3WKRNQ") != nil {
+		t.Fail()
+	}
+	if os.Setenv("AWS_SECRET_ACCESS_KEY", "8Dbur5oqKACVDzpE/CA6g+XXAmyxmYEShVG7w4XF") != nil {
+		t.Fail()
+	}
 	fakeM := FakeMetadataFetcher{
 		FAvailable: true,
 	}
@@ -110,14 +116,13 @@ func TestSetupNormal(t *testing.T) {
 		t.Fail()
 	}
 	d.MetadataFetcher = fakeM
-
 	err := d.Setup()
 	if err != nil {
 		t.Log(err)
 		t.Fail()
 	}
 }
-*/
+
 func getD(a bool) Daemon {
 	d := Daemon{
 		ConfigFile: "../tests/awsnycast.yaml",
