@@ -327,23 +327,26 @@ func TestHealthCheckOneUpsertRouteOneShot(t *testing.T) {
 		t.Fail()
 	}
 }
-/*
+
 func TestHealthCheckOneUpsertRoute(t *testing.T) {
 	d := getD(true)
 	d.Setup()
-	if d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: "public"}) {
+	if d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: "local"}) {
+		t.Log("Healthcheck was healthy at start")
 		t.Fail()
 	}
-	d.Config.Healthchecks["public"].PerformHealthcheck() // Run the healthcheck twice to become healthy
-	if d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: "public"}) {
+	d.Config.Healthchecks["local"].PerformHealthcheck() // Run the healthcheck twice to become healthy
+	if d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: "local"}) {
+		t.Log("Healthcheck was healthy after 1")
 		t.Fail()
 	}
-	d.Config.Healthchecks["public"].PerformHealthcheck()
-	if !d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: "public"}) {
+	d.Config.Healthchecks["local"].PerformHealthcheck()
+	if !d.HealthCheckOneUpsertRoute("foo", &config.UpsertRoutesSpec{Healthcheck: "local"}) {
+		t.Log("Healthcheck not healthy after 2")
 		t.Fail()
 	}
 }
-*/
+
 func TestRunOneUpsertRouteFailingHealthcheck(t *testing.T) {
 	d := getD(true)
 	d.Setup()

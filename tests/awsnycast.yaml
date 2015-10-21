@@ -6,6 +6,12 @@ healthchecks:
         rise: 2
         fall: 10
         every: 1
+    local:
+        type: ping
+        destination: 127.0.0.1
+        rise: 2
+        fall: 10
+        every: 1
 routetables:
     a:
         find:
