@@ -33,7 +33,6 @@ func TestHealthcheckTcp(t *testing.T) {
 		t.Fatal(err)
 	}
 	port := ln.Addr().(*net.TCPAddr).Port
-	defer ln.Close()
 	go func() {
 		for {
 			conn, err := ln.Accept()
@@ -81,6 +80,7 @@ func TestHealthcheckTcp(t *testing.T) {
 			t.Fail()
 		}
 	}
+	ln.Close()
 }
 
 /*
