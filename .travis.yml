@@ -5,5 +5,5 @@ go:
   - 1.5
 
 env:
-  - AWS_ACCESS_KEY_ID=AKIAJRYDH3TP2D3WKRNQ AWS_SECRET_ACCESS_KEY=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
+  - PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/home/travis/.gimme/versions/go1.4.linux.amd64/bin:/home/travis/gopath/bin AWS_ACCESS_KEY_ID=AKIAJRYDH3TP2D3WKRNQ AWS_SECRET_ACCESS_KEY=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
 
