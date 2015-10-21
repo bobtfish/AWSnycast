@@ -33,11 +33,18 @@ func TestHealthcheckTcp(t *testing.T) {
 		t.Fatal(err)
 	}
 	port := ln.Addr().(*net.TCPAddr).Port
+	t.Log(fmt.Sprintf("%+v", ln))
+	ready := make(chan bool, 1)
+	quit := false
 	go func() {
 		for {
+			ready <- true
 			conn, err := ln.Accept()
 			if err != nil {
-				t.Fatal(fmt.Printf("Error accepting: ", err.Error()))
+				if quit {
+					return
+				}
+				t.Fatal(fmt.Printf("Error accepting: %s", err.Error()))
 			}
 			go func(conn net.Conn) {
 				buf := make([]byte, 1024)
@@ -55,6 +62,8 @@ func TestHealthcheckTcp(t *testing.T) {
 			}(conn)
 		}
 	}()
+	<-ready
+	t.Log("Ready to accept connections")
 	c := make(map[string]string)
 	c["port"] = fmt.Sprintf("%d", port)
 	h := Healthcheck{
@@ -80,6 +89,7 @@ func TestHealthcheckTcp(t *testing.T) {
 			t.Fail()
 		}
 	}
+	quit = true
 	ln.Close()
 }
 
