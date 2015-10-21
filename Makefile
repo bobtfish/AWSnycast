@@ -1,6 +1,6 @@
 .PHONY: coverage get test
 
-all: AWSnycast
+all: get test AWSnycast
 
 AWSnycast: *.go */*.go
 	go build .
