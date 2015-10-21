@@ -9,6 +9,8 @@ import (
 
 func TestHealthcheckTcpNoPort(t *testing.T) {
 	c := make(map[string]string)
+	c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
+	c["expect"] = "200 OK"
 	h := Healthcheck{
 		Type:        "tcp",
 		Destination: "127.0.0.1",
@@ -66,6 +68,8 @@ func TestHealthcheckTcp(t *testing.T) {
 	t.Log("Ready to accept connections")
 	c := make(map[string]string)
 	c["port"] = fmt.Sprintf("%d", port)
+	c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
+	c["expect"] = "200 OK"
 	h := Healthcheck{
 		Type:        "tcp",
 		Destination: "127.0.0.1",
@@ -99,7 +103,6 @@ func TestHealthcheckTcpFail(t *testing.T) {
 		t.Fatal(err)
 	}
 	port := ln.Addr().(*net.TCPAddr).Port
-	t.Log(fmt.Sprintf("%+v", ln))
 	ready := make(chan bool, 1)
 	quit := false
 	go func() {
@@ -131,6 +134,8 @@ func TestHealthcheckTcpFail(t *testing.T) {
 	<-ready
 	c := make(map[string]string)
 	c["port"] = fmt.Sprintf("%d", port)
+	c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
+	c["expect"] = "200 OK"
 	h := Healthcheck{
 		Type:        "tcp",
 		Destination: "127.0.0.1",
@@ -168,6 +173,8 @@ func TestHealthcheckTcpClosed(t *testing.T) {
 	ln.Close() // Close the port again before running healthcheck
 	c := make(map[string]string)
 	c["port"] = fmt.Sprintf("%d", port)
+	c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
+	c["expect"] = "200 OK"
 	h := Healthcheck{
 		Type:        "tcp",
 		Destination: "127.0.0.1",
@@ -219,6 +226,8 @@ func TestHealthcheckTcpFailClientClose(t *testing.T) {
 	<-ready
 	c := make(map[string]string)
 	c["port"] = fmt.Sprintf("%d", port)
+	c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
+	c["expect"] = "200 OK"
 	h := Healthcheck{
 		Type:        "tcp",
 		Destination: "127.0.0.1",
