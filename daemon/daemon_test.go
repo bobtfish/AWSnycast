@@ -93,6 +93,7 @@ func TestSetupNoMetadataService(t *testing.T) {
 	}
 }
 
+/*
 func TestSetupNormal(t *testing.T) {
 	fakeM := FakeMetadataFetcher{
 		FAvailable: true,
@@ -116,7 +117,7 @@ func TestSetupNormal(t *testing.T) {
 		t.Fail()
 	}
 }
-
+*/
 func getD(a bool) Daemon {
 	d := Daemon{
 		ConfigFile: "../tests/awsnycast.yaml",
@@ -326,7 +327,7 @@ func TestHealthCheckOneUpsertRouteOneShot(t *testing.T) {
 		t.Fail()
 	}
 }
-
+/*
 func TestHealthCheckOneUpsertRoute(t *testing.T) {
 	d := getD(true)
 	d.Setup()
@@ -342,7 +343,7 @@ func TestHealthCheckOneUpsertRoute(t *testing.T) {
 		t.Fail()
 	}
 }
-
+*/
 func TestRunOneUpsertRouteFailingHealthcheck(t *testing.T) {
 	d := getD(true)
 	d.Setup()
