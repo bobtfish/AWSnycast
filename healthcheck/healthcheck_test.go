@@ -371,6 +371,7 @@ func TestHealthcheckRun(t *testing.T) {
 	if !h_ok.IsRunning() {
 		t.Fail()
 	}
+	h_ok.Stop()
 }
 
 func TestHealthcheckStop(t *testing.T) {
