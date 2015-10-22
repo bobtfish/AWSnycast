@@ -49,13 +49,13 @@ type Config struct {
 	RouteTables  map[string]*RouteTable              `yaml:"routetables"`
 }
 
-func (c *Config) Default() {
+func (c *Config) Default(instance string) {
 	if c.Healthchecks == nil {
 		c.Healthchecks = make(map[string]*healthcheck.Healthcheck)
 	}
 	if c.RouteTables != nil {
 		for _, v := range c.RouteTables {
-			v.Default()
+			v.Default(instance)
 		}
 	} else {
 		c.RouteTables = make(map[string]*RouteTable)
@@ -104,13 +104,13 @@ func (r *RouteTableFindSpec) Validate(name string) error {
 	return nil
 }
 
-func (r *RouteTable) Default() {
+func (r *RouteTable) Default(instance string) {
 	r.Find.Default()
 	if r.ManageRoutes == nil {
 		r.ManageRoutes = make([]*aws.ManageRoutesSpec, 0)
 	}
 	for _, v := range r.ManageRoutes {
-		v.Default()
+		v.Default(instance)
 	}
 }
 func (r RouteTable) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck) error {
@@ -125,7 +125,7 @@ func (r RouteTable) Validate(name string, healthchecks map[string]*healthcheck.H
 	return nil
 }
 
-func New(filename string) (*Config, error) {
+func New(filename string, instance string) (*Config, error) {
 	c := new(Config)
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -133,7 +133,7 @@ func New(filename string) (*Config, error) {
 	}
 	err = yaml.Unmarshal(data, &c)
 	if err == nil {
-		c.Default()
+		c.Default(instance)
 	}
 	return c, err
 }

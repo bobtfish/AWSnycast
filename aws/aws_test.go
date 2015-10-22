@@ -228,12 +228,8 @@ func (r FakeRouteTableFetcher) GetRouteTables() ([]*ec2.RouteTable, error) {
 	return r.Routes, r.Error
 }
 
-func (f FakeRouteTableFetcher) CreateOrReplaceInstanceRoute(ec2.RouteTable, string, string, bool, bool) error {
-	return nil
-}
-
 func (r FakeRouteTableFetcher) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageRoutesSpec, noop bool) error {
-	return r.CreateOrReplaceInstanceRoute(rtb, rs.Cidr, rs.Instance, rs.IfUnhealthy, noop)
+	return nil
 }
 
 func TestFakeFetcher(t *testing.T) {
@@ -582,9 +578,14 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteAlreadyThisInstance(t *testing.
 	}
 }
 
-func TestCreateOrReplaceInstanceRoute(t *testing.T) {
+func TestManageInstanceRoute(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
-	err := rtf.CreateOrReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", false, false)
+	s := ManageRoutesSpec{
+		Cidr:        "0.0.0.0/0",
+		Instance:    "i-1234",
+		IfUnhealthy: false,
+	}
+	err := rtf.ManageInstanceRoute(rtb2, s, false)
 	if err != nil {
 		t.Fail()
 	}
@@ -604,10 +605,15 @@ func TestCreateOrReplaceInstanceRoute(t *testing.T) {
 	}
 }
 
-func TestCreateOrReplaceInstanceRouteAWSFailOnReplace(t *testing.T) {
+func TestManageInstanceRouteAWSFailOnReplace(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	rtf.conn.(*FakeEC2Conn).ReplaceRouteError = errors.New("Whoops, AWS blew up")
-	err := rtf.CreateOrReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", false, false)
+	s := ManageRoutesSpec{
+		Cidr:        "0.0.0.0/0",
+		Instance:    "i-1234",
+		IfUnhealthy: false,
+	}
+	err := rtf.ManageInstanceRoute(rtb2, s, false)
 	if err == nil {
 		t.Fail()
 	}
@@ -616,10 +622,15 @@ func TestCreateOrReplaceInstanceRouteAWSFailOnReplace(t *testing.T) {
 	}
 }
 
-func TestCreateOrReplaceInstanceRouteAWSFailOnCreate(t *testing.T) {
+func TestManageInstanceRouteAWSFailOnCreate(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	rtf.conn.(*FakeEC2Conn).CreateRouteError = errors.New("Whoops, AWS blew up")
-	err := rtf.CreateOrReplaceInstanceRoute(rtb1, "0.0.0.0/0", "i-1234", false, false)
+	s := ManageRoutesSpec{
+		Cidr:        "0.0.0.0/0",
+		Instance:    "i-1234",
+		IfUnhealthy: false,
+	}
+	err := rtf.ManageInstanceRoute(rtb1, s, false)
 	if err == nil {
 		t.Fail()
 	}
@@ -628,9 +639,14 @@ func TestCreateOrReplaceInstanceRouteAWSFailOnCreate(t *testing.T) {
 	}
 }
 
-func TestCreateOrReplaceInstanceRouteCreateRoute(t *testing.T) {
+func TestManageInstanceRouteCreateRoute(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
-	err := rtf.CreateOrReplaceInstanceRoute(rtb1, "0.0.0.0/0", "i-1234", false, false)
+	s := ManageRoutesSpec{
+		Cidr:        "0.0.0.0/0",
+		Instance:    "i-1234",
+		IfUnhealthy: false,
+	}
+	err := rtf.ManageInstanceRoute(rtb1, s, false)
 	if err != nil {
 		t.Fail()
 	}
@@ -696,7 +712,7 @@ func TestManageRoutesSpecDefault(t *testing.T) {
 	u := &ManageRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
-	u.Default()
+	u.Default("i-1234")
 	if u.Cidr != "127.0.0.1/32" {
 		t.Log("Not canonicalized in ManageRoutesSpecDefault")
 		t.Fail()
@@ -798,22 +814,24 @@ func TestManageRoutesSpecValidate(t *testing.T) {
 	}
 }
 
-func TestManageRouteSpecGetInstanceSELF(t *testing.T) {
+func TestManageRouteSpecDefaultInstanceSELF(t *testing.T) {
 	urs := ManageRoutesSpec{
 		Cidr:     "127.0.0.1",
 		Instance: "SELF",
 	}
-	if urs.GetInstance("i-other") != "i-other" {
+	urs.Default("i-other")
+	if urs.Instance != "i-other" {
 		t.Fail()
 	}
 }
 
-func TestManageRouteSpecGetInstanceOther(t *testing.T) {
+func TestManageRouteSpecDefaultInstanceOther(t *testing.T) {
 	urs := ManageRoutesSpec{
 		Cidr:     "127.0.0.1",
 		Instance: "i-foo",
 	}
-	if urs.GetInstance("i-other") != "i-foo" {
+	urs.Default("i-other")
+	if urs.Instance != "i-foo" {
 		t.Fail()
 	}
 }

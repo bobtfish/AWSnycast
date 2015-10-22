@@ -132,7 +132,7 @@ func getD(a bool) Daemon {
 		ConfigFile: "../tests/awsnycast.yaml",
 		Config:     &config.Config{},
 	}
-	d.Config.Default()
+	d.Config.Default("i-1234")
 	fakeM := FakeMetadataFetcher{
 		FAvailable: a,
 	}
@@ -148,7 +148,7 @@ func getD(a bool) Daemon {
 }
 
 func TestSetupBadConfigFile(t *testing.T) {
-	d := getD(false)
+	d := getD(true)
 	d.ConfigFile = "../tests/doesnotexist.yaml"
 	err := d.Setup()
 	if err == nil {

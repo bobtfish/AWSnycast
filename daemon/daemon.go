@@ -28,12 +28,6 @@ type Daemon struct {
 }
 
 func (d *Daemon) Setup() error {
-	config, err := config.New(d.ConfigFile)
-	if err != nil {
-		return err
-	}
-	d.Config = config
-
 	if d.MetadataFetcher == nil {
 		d.MetadataFetcher = aws.NewMetadataFetcher(d.Debug)
 	}
@@ -58,6 +52,12 @@ func (d *Daemon) Setup() error {
 		return errors.New(fmt.Sprintf("Error getting metadata: %s", err.Error()))
 	}
 	d.Subnet = subnet
+
+	config, err := config.New(d.ConfigFile, instanceId)
+	if err != nil {
+		return err
+	}
+	d.Config = config
 
 	if d.RouteTableFetcher == nil {
 		rtf, err := aws.NewRouteTableFetcher(d.Region, d.Debug)
@@ -143,7 +143,7 @@ func (d *Daemon) RunOneUpsertRoute(rtb *ec2.RouteTable, name string, upsertRoute
 		return nil
 	}
 
-	return d.RouteTableFetcher.CreateOrReplaceInstanceRoute(*rtb, upsertRoute.Cidr, upsertRoute.GetInstance(d.Instance), upsertRoute.IfUnhealthy, d.noop)
+	return d.RouteTableFetcher.ManageInstanceRoute(*rtb, *upsertRoute, d.noop)
 }
 
 func (d *Daemon) RunRouteTables() error {

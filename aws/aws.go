@@ -44,12 +44,15 @@ type ManageRoutesSpec struct {
 	IfUnhealthy bool   `yaml:"if_unhealthy"`
 }
 
-func (r *ManageRoutesSpec) Default() {
+func (r *ManageRoutesSpec) Default(instance string) {
 	if !strings.Contains(r.Cidr, "/") {
 		r.Cidr = fmt.Sprintf("%s/32", r.Cidr)
 	}
 	if r.Instance == "" {
 		r.Instance = "SELF"
+	}
+	if r.Instance == "SELF" {
+		r.Instance = instance
 	}
 }
 func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck) error {
@@ -67,16 +70,8 @@ func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*health
 	return nil
 }
 
-func (urs ManageRoutesSpec) GetInstance(myId string) string {
-	if urs.Instance == "SELF" {
-		return myId
-	}
-	return urs.Instance
-}
-
 type RouteTableFetcher interface {
 	GetRouteTables() ([]*ec2.RouteTable, error)
-	CreateOrReplaceInstanceRoute(ec2.RouteTable, string, string, bool, bool) error
 	ManageInstanceRoute(ec2.RouteTable, ManageRoutesSpec, bool) error
 }
 
@@ -94,18 +89,14 @@ func getCreateRouteInput(rtb ec2.RouteTable, cidr string, instance string) ec2.C
 }
 
 func (r RouteTableFetcherEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageRoutesSpec, noop bool) error {
-	return r.CreateOrReplaceInstanceRoute(rtb, rs.Cidr, rs.Instance, rs.IfUnhealthy, noop)
-}
-
-func (r RouteTableFetcherEC2) CreateOrReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string, ifUnhealthy bool, noop bool) error {
-	if err := r.ReplaceInstanceRoute(rtb, cidr, instance, ifUnhealthy, noop); err != nil {
+	if err := r.ReplaceInstanceRoute(rtb, rs.Cidr, rs.Instance, rs.IfUnhealthy, noop); err != nil {
 		if err.Error() != "Never found CIDR in route table to replace" {
 			return err
 		}
 	} else {
 		return nil
 	}
-	opts := getCreateRouteInput(rtb, cidr, instance)
+	opts := getCreateRouteInput(rtb, rs.Cidr, rs.Instance)
 
 	log.Printf("[INFO] Creating route for %s: %#v", *rtb.RouteTableId, opts)
 	if !noop {

@@ -8,7 +8,7 @@ import (
 )
 
 func TestLoadConfig(t *testing.T) {
-	c, err := New("../tests/awsnycast.yaml")
+	c, err := New("../tests/awsnycast.yaml", "i-1234")
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -19,14 +19,14 @@ func TestLoadConfig(t *testing.T) {
 }
 
 func TestLoadConfigFails(t *testing.T) {
-	_, err := New("../tests/doesnotexist.yaml")
+	_, err := New("../tests/doesnotexist.yaml", "i-1234")
 	if err == nil {
 		t.Fail()
 	}
 }
 
 func TestLoadConfigHealthchecks(t *testing.T) {
-	c, _ := New("../tests/awsnycast.yaml")
+	c, _ := New("../tests/awsnycast.yaml", "i-1234")
 	if c.Healthchecks == nil {
 		t.Log("c.Healthchecks == nil")
 		t.Fail()
@@ -90,7 +90,7 @@ func TestLoadConfigHealthchecks(t *testing.T) {
 	}
 	for _, route := range routes {
 		if route.Cidr == "0.0.0.0/0" || route.Cidr == "192.168.1.1/32" {
-			if route.Instance != "SELF" {
+			if route.Instance != "i-1234" {
 				t.Log("route.Instance not SELF")
 				t.Fail()
 			}
@@ -125,7 +125,7 @@ func TestConfigDefault(t *testing.T) {
 	c := Config{
 		RouteTables: r,
 	}
-	c.Default()
+	c.Default("i-1234")
 	if c.Healthchecks == nil {
 		t.Fail()
 	}
@@ -198,7 +198,7 @@ func TestConfigValidateBadRouteTableUpserts(t *testing.T) {
 }
 
 func TestConfigValidateBadHealthChecks(t *testing.T) {
-	c_disk, _ := New("../tests/awsnycast.yaml")
+	c_disk, _ := New("../tests/awsnycast.yaml", "i-1234")
 	h := make(map[string]*healthcheck.Healthcheck)
 	h["foo"] = &healthcheck.Healthcheck{}
 	c := Config{
@@ -216,11 +216,11 @@ func TestConfigValidateBadHealthChecks(t *testing.T) {
 }
 
 func TestConfigValidateNoHealthChecks(t *testing.T) {
-	c_disk, _ := New("../tests/awsnycast.yaml")
+	c_disk, _ := New("../tests/awsnycast.yaml", "i-124")
 	c := Config{
 		RouteTables: c_disk.RouteTables,
 	}
-	c.Default()
+	c.Default("i-1234")
 	err := c.Validate()
 	if err == nil {
 		t.Fail()
@@ -239,7 +239,7 @@ func TestConfigValidate(t *testing.T) {
 	c := Config{
 		RouteTables: r,
 	}
-	c.Default()
+	c.Default("i-1234")
 	err := c.Validate()
 	if err != nil {
 		t.Log(err)
@@ -254,7 +254,7 @@ func TestConfigValidate(t *testing.T) {
 
 func TestConfigValidateEmpty(t *testing.T) {
 	c := Config{}
-	c.Default()
+	c.Default("i-1234")
 	err := c.Validate()
 	if err == nil {
 		t.Fail()
@@ -338,7 +338,7 @@ func TestRouteTableFindSpecValidateNoConfig(t *testing.T) {
 
 func TestRouteTableDefaultEmpty(t *testing.T) {
 	r := RouteTable{}
-	r.Default()
+	r.Default("i-1234")
 }
 
 func TestRouteTableDefault(t *testing.T) {
@@ -349,7 +349,7 @@ func TestRouteTableDefault(t *testing.T) {
 	r := RouteTable{
 		ManageRoutes: routes,
 	}
-	r.Default()
+	r.Default("i-1234")
 	if len(r.ManageRoutes) != 1 {
 		t.Fail()
 	}
@@ -395,7 +395,7 @@ func TestRouteTableValidate(t *testing.T) {
 	r := RouteTable{
 		ManageRoutes: routes,
 	}
-	r.Default()
+	r.Default("i-1234")
 	h := make(map[string]*healthcheck.Healthcheck)
 	err := r.Validate("foo", h)
 	if err != nil {
