@@ -10,7 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/awslabs/aws-sdk-go/aws/credentials/ec2rolecreds"
+	"github.com/bobtfish/AWSnycast/healthcheck"
 	"log"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -35,9 +37,47 @@ func NewMetadataFetcher(debug bool) MetadataFetcher {
 	return ec2metadata.New(&c)
 }
 
+type ManageRoutesSpec struct {
+	Cidr        string `yaml:"cidr"`
+	Instance    string `yaml:"instance"`
+	Healthcheck string `yaml:"healthcheck"`
+	IfUnhealthy bool   `yaml:"if_unhealthy"`
+}
+
+func (r *ManageRoutesSpec) Default() {
+	if !strings.Contains(r.Cidr, "/") {
+		r.Cidr = fmt.Sprintf("%s/32", r.Cidr)
+	}
+	if r.Instance == "" {
+		r.Instance = "SELF"
+	}
+}
+func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck) error {
+	if r.Cidr == "" {
+		return errors.New(fmt.Sprintf("cidr is not defined in %s", name))
+	}
+	if _, _, err := net.ParseCIDR(r.Cidr); err != nil {
+		return errors.New(fmt.Sprintf("Could not parse %s in %s", err.Error(), name))
+	}
+	if r.Healthcheck != "" {
+		if _, ok := healthchecks[r.Healthcheck]; !ok {
+			return errors.New(fmt.Sprintf("Route table %s, upsert %s cannot find healthcheck '%s'", name, r.Cidr, r.Healthcheck))
+		}
+	}
+	return nil
+}
+
+func (urs ManageRoutesSpec) GetInstance(myId string) string {
+	if urs.Instance == "SELF" {
+		return myId
+	}
+	return urs.Instance
+}
+
 type RouteTableFetcher interface {
 	GetRouteTables() ([]*ec2.RouteTable, error)
 	CreateOrReplaceInstanceRoute(ec2.RouteTable, string, string, bool, bool) error
+	ManageInstanceRoute(ec2.RouteTable, ManageRoutesSpec, bool) error
 }
 
 type RouteTableFetcherEC2 struct {
@@ -51,6 +91,10 @@ func getCreateRouteInput(rtb ec2.RouteTable, cidr string, instance string) ec2.C
 		DestinationCidrBlock: aws.String(cidr),
 		InstanceId:           aws.String(instance),
 	}
+}
+
+func (r RouteTableFetcherEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageRoutesSpec, noop bool) error {
+	return r.CreateOrReplaceInstanceRoute(rtb, rs.Cidr, rs.Instance, rs.IfUnhealthy, noop)
 }
 
 func (r RouteTableFetcherEC2) CreateOrReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string, ifUnhealthy bool, noop bool) error {

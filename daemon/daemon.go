@@ -119,7 +119,7 @@ func (d *Daemon) RunOneRouteTable(rt []*ec2.RouteTable, name string, configRoute
 	return nil
 }
 
-func (d *Daemon) HealthCheckOneUpsertRoute(name string, upsertRoute *config.ManageRoutesSpec) bool {
+func (d *Daemon) HealthCheckOneUpsertRoute(name string, upsertRoute *aws.ManageRoutesSpec) bool {
 	if !d.oneShot && upsertRoute.Healthcheck != "" {
 		if d.Config == nil || d.Config.Healthchecks == nil {
 			panic("No healthchecks, have you run Setup()?")
@@ -138,7 +138,7 @@ func (d *Daemon) HealthCheckOneUpsertRoute(name string, upsertRoute *config.Mana
 	return true
 }
 
-func (d *Daemon) RunOneUpsertRoute(rtb *ec2.RouteTable, name string, upsertRoute *config.ManageRoutesSpec) error {
+func (d *Daemon) RunOneUpsertRoute(rtb *ec2.RouteTable, name string, upsertRoute *aws.ManageRoutesSpec) error {
 	if !d.HealthCheckOneUpsertRoute(name, upsertRoute) {
 		return nil
 	}

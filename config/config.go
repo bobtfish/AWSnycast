@@ -7,8 +7,6 @@ import (
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"net"
-	"strings"
 )
 
 type RouteTableFindSpec struct {
@@ -41,23 +39,9 @@ func (spec RouteTableFindSpec) GetFilter() (aws.RouteTableFilter, error) {
 	return nil, errors.New(fmt.Sprintf("Healthcheck type '%s' not found in the healthcheck registry", spec.Type))
 }
 
-type ManageRoutesSpec struct {
-	Cidr        string `yaml:"cidr"`
-	Instance    string `yaml:"instance"`
-	Healthcheck string `yaml:"healthcheck"`
-	IfUnhealthy bool   `yaml:"if_unhealthy"`
-}
-
-func (urs ManageRoutesSpec) GetInstance(myId string) string {
-	if urs.Instance == "SELF" {
-		return myId
-	}
-	return urs.Instance
-}
-
 type RouteTable struct {
-	Find         RouteTableFindSpec  `yaml:"find"`
-	ManageRoutes []*ManageRoutesSpec `yaml:"manage_routes"`
+	Find         RouteTableFindSpec      `yaml:"find"`
+	ManageRoutes []*aws.ManageRoutesSpec `yaml:"manage_routes"`
 }
 
 type Config struct {
@@ -120,33 +104,10 @@ func (r *RouteTableFindSpec) Validate(name string) error {
 	return nil
 }
 
-func (r *ManageRoutesSpec) Default() {
-	if !strings.Contains(r.Cidr, "/") {
-		r.Cidr = fmt.Sprintf("%s/32", r.Cidr)
-	}
-	if r.Instance == "" {
-		r.Instance = "SELF"
-	}
-}
-func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck) error {
-	if r.Cidr == "" {
-		return errors.New(fmt.Sprintf("cidr is not defined in %s", name))
-	}
-	if _, _, err := net.ParseCIDR(r.Cidr); err != nil {
-		return errors.New(fmt.Sprintf("Could not parse %s in %s", err.Error(), name))
-	}
-	if r.Healthcheck != "" {
-		if _, ok := healthchecks[r.Healthcheck]; !ok {
-			return errors.New(fmt.Sprintf("Route table %s, upsert %s cannot find healthcheck '%s'", name, r.Cidr, r.Healthcheck))
-		}
-	}
-	return nil
-}
-
 func (r *RouteTable) Default() {
 	r.Find.Default()
 	if r.ManageRoutes == nil {
-		r.ManageRoutes = make([]*ManageRoutesSpec, 0)
+		r.ManageRoutes = make([]*aws.ManageRoutesSpec, 0)
 	}
 	for _, v := range r.ManageRoutes {
 		v.Default()

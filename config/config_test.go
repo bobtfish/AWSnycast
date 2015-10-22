@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"testing"
 )
@@ -119,7 +120,7 @@ func TestLoadConfigHealthchecks(t *testing.T) {
 func TestConfigDefault(t *testing.T) {
 	r := make(map[string]*RouteTable)
 	r["a"] = &RouteTable{
-		ManageRoutes: []*ManageRoutesSpec{&ManageRoutesSpec{Cidr: "127.0.0.1"}},
+		ManageRoutes: []*aws.ManageRoutesSpec{&aws.ManageRoutesSpec{Cidr: "127.0.0.1"}},
 	}
 	c := Config{
 		RouteTables: r,
@@ -178,8 +179,8 @@ func TestConfigValidateBadRouteTables(t *testing.T) {
 
 func TestConfigValidateBadRouteTableUpserts(t *testing.T) {
 	r := make(map[string]*RouteTable)
-	urs := make([]*ManageRoutesSpec, 1)
-	urs[0] = &ManageRoutesSpec{}
+	urs := make([]*aws.ManageRoutesSpec, 1)
+	urs[0] = &aws.ManageRoutesSpec{}
 	r["foo"] = &RouteTable{
 		ManageRoutes: urs,
 	}
@@ -227,8 +228,8 @@ func TestConfigValidateNoHealthChecks(t *testing.T) {
 }
 
 func TestConfigValidate(t *testing.T) {
-	u := make([]*ManageRoutesSpec, 1)
-	u[0] = &ManageRoutesSpec{
+	u := make([]*aws.ManageRoutesSpec, 1)
+	u[0] = &aws.ManageRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
 	r := make(map[string]*RouteTable)
@@ -260,114 +261,6 @@ func TestConfigValidateEmpty(t *testing.T) {
 	}
 	if err.Error() != "No route_tables defined in config" {
 		t.Log(err.Error())
-		t.Fail()
-	}
-}
-
-// FIXME - need tests for each part of config failing, and check errors.
-
-func TestManageRoutesSpecDefault(t *testing.T) {
-	u := &ManageRoutesSpec{
-		Cidr: "127.0.0.1",
-	}
-	u.Default()
-	if u.Cidr != "127.0.0.1/32" {
-		t.Log("Not canonicalized in ManageRoutesSpecDefault")
-		t.Fail()
-	}
-	if u.Instance != "SELF" {
-		t.Log("Instance not defaulted to SELF")
-	}
-}
-
-func TestManageRoutesSpecValidateBadInstance(t *testing.T) {
-	r := &ManageRoutesSpec{
-		Instance: "vpc-1234",
-		Cidr:     "127.0.0.1",
-	}
-	h := make(map[string]*healthcheck.Healthcheck)
-	err := r.Validate("foo", h)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Could not parse invalid CIDR address: 127.0.0.1 in foo" {
-		t.Log(err.Error())
-		t.Fail()
-	}
-}
-
-func TestManageRoutesSpecValidateMissingCidr(t *testing.T) {
-	r := ManageRoutesSpec{
-		Instance: "SELF",
-	}
-	h := make(map[string]*healthcheck.Healthcheck)
-	err := r.Validate("foo", h)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "cidr is not defined in foo" {
-		t.Log(err.Error())
-		t.Fail()
-	}
-}
-
-func TestManageRoutesSpecValidateBadCidr1(t *testing.T) {
-	r := ManageRoutesSpec{
-		Cidr:     "300.0.0.0/16",
-		Instance: "SELF",
-	}
-	h := make(map[string]*healthcheck.Healthcheck)
-	err := r.Validate("foo", h)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Could not parse invalid CIDR address: 300.0.0.0/16 in foo" {
-		t.Log(err.Error())
-		t.Fail()
-	}
-}
-
-func TestManageRoutesSpecValidateBadCidr2(t *testing.T) {
-	r := ManageRoutesSpec{
-		Cidr:     "3.0.0.0/160",
-		Instance: "SELF",
-	}
-	h := make(map[string]*healthcheck.Healthcheck)
-	err := r.Validate("foo", h)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Could not parse invalid CIDR address: 3.0.0.0/160 in foo" {
-		t.Log(err.Error())
-		t.Fail()
-	}
-}
-
-func TestManageRoutesSpecValidateBadCidr3(t *testing.T) {
-	r := ManageRoutesSpec{
-		Cidr:     "foo",
-		Instance: "SELF",
-	}
-	h := make(map[string]*healthcheck.Healthcheck)
-	err := r.Validate("bar", h)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Could not parse invalid CIDR address: foo in bar" {
-		t.Log(err.Error())
-		t.Fail()
-	}
-}
-
-func TestManageRoutesSpecValidate(t *testing.T) {
-	r := ManageRoutesSpec{
-		Cidr:     "0.0.0.0/0",
-		Instance: "SELF",
-	}
-	h := make(map[string]*healthcheck.Healthcheck)
-	err := r.Validate("foo", h)
-	if err != nil {
-		t.Log(err)
 		t.Fail()
 	}
 }
@@ -449,8 +342,8 @@ func TestRouteTableDefaultEmpty(t *testing.T) {
 }
 
 func TestRouteTableDefault(t *testing.T) {
-	routes := make([]*ManageRoutesSpec, 1)
-	routes[0] = &ManageRoutesSpec{
+	routes := make([]*aws.ManageRoutesSpec, 1)
+	routes[0] = &aws.ManageRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
 	r := RouteTable{
@@ -481,7 +374,7 @@ func TestRouteTableValidateNullRoutes(t *testing.T) {
 
 func TestRouteTableValidateNoRoutes(t *testing.T) {
 	r := RouteTable{
-		ManageRoutes: make([]*ManageRoutesSpec, 0),
+		ManageRoutes: make([]*aws.ManageRoutesSpec, 0),
 	}
 	h := make(map[string]*healthcheck.Healthcheck)
 	err := r.Validate("foo", h)
@@ -495,8 +388,8 @@ func TestRouteTableValidateNoRoutes(t *testing.T) {
 }
 
 func TestRouteTableValidate(t *testing.T) {
-	routes := make([]*ManageRoutesSpec, 1)
-	routes[0] = &ManageRoutesSpec{
+	routes := make([]*aws.ManageRoutesSpec, 1)
+	routes[0] = &aws.ManageRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
 	r := RouteTable{
@@ -506,26 +399,6 @@ func TestRouteTableValidate(t *testing.T) {
 	h := make(map[string]*healthcheck.Healthcheck)
 	err := r.Validate("foo", h)
 	if err != nil {
-		t.Fail()
-	}
-}
-
-func TestUpsertRouteSpecGetInstanceSELF(t *testing.T) {
-	urs := ManageRoutesSpec{
-		Cidr:     "127.0.0.1",
-		Instance: "SELF",
-	}
-	if urs.GetInstance("i-other") != "i-other" {
-		t.Fail()
-	}
-}
-
-func TestUpsertRouteSpecGetInstanceOther(t *testing.T) {
-	urs := ManageRoutesSpec{
-		Cidr:     "127.0.0.1",
-		Instance: "i-foo",
-	}
-	if urs.GetInstance("i-other") != "i-foo" {
 		t.Fail()
 	}
 }
