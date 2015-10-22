@@ -472,6 +472,9 @@ type FakeEC2Conn struct {
 	ReplaceRouteOutput        *ec2.ReplaceRouteOutput
 	ReplaceRouteError         error
 	ReplaceRouteInput         *ec2.ReplaceRouteInput
+	DeleteRouteInput          *ec2.DeleteRouteInput
+	DeleteRouteOutput         *ec2.DeleteRouteOutput
+	DeleteRouteError          error
 	DescribeRouteTablesInput  *ec2.DescribeRouteTablesInput
 	DescribeRouteTablesOutput *ec2.DescribeRouteTablesOutput
 	DescribeRouteTablesError  error
@@ -484,6 +487,10 @@ func (f *FakeEC2Conn) CreateRoute(i *ec2.CreateRouteInput) (*ec2.CreateRouteOutp
 func (f *FakeEC2Conn) ReplaceRoute(i *ec2.ReplaceRouteInput) (*ec2.ReplaceRouteOutput, error) {
 	f.ReplaceRouteInput = i
 	return f.ReplaceRouteOutput, f.ReplaceRouteError
+}
+func (f *FakeEC2Conn) DeleteRoute(i *ec2.DeleteRouteInput) (*ec2.DeleteRouteOutput, error) {
+	f.DeleteRouteInput = i
+	return f.DeleteRouteOutput, f.DeleteRouteError
 }
 func (f *FakeEC2Conn) DescribeRouteTables(i *ec2.DescribeRouteTablesInput) (*ec2.DescribeRouteTablesOutput, error) {
 	f.DescribeRouteTablesInput = i

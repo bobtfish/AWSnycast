@@ -22,6 +22,7 @@ type MyEC2Conn interface {
 	CreateRoute(*ec2.CreateRouteInput) (*ec2.CreateRouteOutput, error)
 	ReplaceRoute(*ec2.ReplaceRouteInput) (*ec2.ReplaceRouteOutput, error)
 	DescribeRouteTables(*ec2.DescribeRouteTablesInput) (*ec2.DescribeRouteTablesOutput, error)
+	DeleteRoute(*ec2.DeleteRouteInput) (*ec2.DeleteRouteOutput, error)
 }
 
 type MetadataFetcher interface {
