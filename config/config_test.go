@@ -82,7 +82,7 @@ func TestLoadConfigHealthchecks(t *testing.T) {
 		t.Log("Config value not present")
 		t.Fail()
 	}
-	routes := a.UpsertRoutes
+	routes := a.ManageRoutes
 	if len(routes) != 2 {
 		t.Log("Route len not 2")
 		t.Fail()
@@ -119,7 +119,7 @@ func TestLoadConfigHealthchecks(t *testing.T) {
 func TestConfigDefault(t *testing.T) {
 	r := make(map[string]*RouteTable)
 	r["a"] = &RouteTable{
-		UpsertRoutes: []*UpsertRoutesSpec{&UpsertRoutesSpec{Cidr: "127.0.0.1"}},
+		ManageRoutes: []*ManageRoutesSpec{&ManageRoutesSpec{Cidr: "127.0.0.1"}},
 	}
 	c := Config{
 		RouteTables: r,
@@ -128,7 +128,7 @@ func TestConfigDefault(t *testing.T) {
 	if c.Healthchecks == nil {
 		t.Fail()
 	}
-	if c.RouteTables["a"].UpsertRoutes[0].Cidr != "127.0.0.1/32" {
+	if c.RouteTables["a"].ManageRoutes[0].Cidr != "127.0.0.1/32" {
 		t.Fail()
 	}
 }
@@ -170,7 +170,7 @@ func TestConfigValidateBadRouteTables(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
-	if err.Error() != "No upsert_routes key in route table 'foo'" {
+	if err.Error() != "No manage_routes key in route table 'foo'" {
 		t.Log(err.Error())
 		t.Fail()
 	}
@@ -178,10 +178,10 @@ func TestConfigValidateBadRouteTables(t *testing.T) {
 
 func TestConfigValidateBadRouteTableUpserts(t *testing.T) {
 	r := make(map[string]*RouteTable)
-	urs := make([]*UpsertRoutesSpec, 1)
-	urs[0] = &UpsertRoutesSpec{}
+	urs := make([]*ManageRoutesSpec, 1)
+	urs[0] = &ManageRoutesSpec{}
 	r["foo"] = &RouteTable{
-		UpsertRoutes: urs,
+		ManageRoutes: urs,
 	}
 	c := Config{
 		RouteTables: r,
@@ -227,13 +227,13 @@ func TestConfigValidateNoHealthChecks(t *testing.T) {
 }
 
 func TestConfigValidate(t *testing.T) {
-	u := make([]*UpsertRoutesSpec, 1)
-	u[0] = &UpsertRoutesSpec{
+	u := make([]*ManageRoutesSpec, 1)
+	u[0] = &ManageRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
 	r := make(map[string]*RouteTable)
 	r["a"] = &RouteTable{
-		UpsertRoutes: u,
+		ManageRoutes: u,
 	}
 	c := Config{
 		RouteTables: r,
@@ -245,7 +245,7 @@ func TestConfigValidate(t *testing.T) {
 		t.Fail()
 	}
 	rt := c.RouteTables["a"]
-	ur := rt.UpsertRoutes[0]
+	ur := rt.ManageRoutes[0]
 	if ur.Cidr != "127.0.0.1/32" {
 		t.Fail()
 	}
@@ -266,13 +266,13 @@ func TestConfigValidateEmpty(t *testing.T) {
 
 // FIXME - need tests for each part of config failing, and check errors.
 
-func TestUpsertRoutesSpecDefault(t *testing.T) {
-	u := &UpsertRoutesSpec{
+func TestManageRoutesSpecDefault(t *testing.T) {
+	u := &ManageRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
 	u.Default()
 	if u.Cidr != "127.0.0.1/32" {
-		t.Log("Not canonicalized in UpsertRoutesSpecDefault")
+		t.Log("Not canonicalized in ManageRoutesSpecDefault")
 		t.Fail()
 	}
 	if u.Instance != "SELF" {
@@ -280,8 +280,8 @@ func TestUpsertRoutesSpecDefault(t *testing.T) {
 	}
 }
 
-func TestUpsertRoutesSpecValidateBadInstance(t *testing.T) {
-	r := &UpsertRoutesSpec{
+func TestManageRoutesSpecValidateBadInstance(t *testing.T) {
+	r := &ManageRoutesSpec{
 		Instance: "vpc-1234",
 		Cidr:     "127.0.0.1",
 	}
@@ -296,8 +296,8 @@ func TestUpsertRoutesSpecValidateBadInstance(t *testing.T) {
 	}
 }
 
-func TestUpsertRoutesSpecValidateMissingCidr(t *testing.T) {
-	r := UpsertRoutesSpec{
+func TestManageRoutesSpecValidateMissingCidr(t *testing.T) {
+	r := ManageRoutesSpec{
 		Instance: "SELF",
 	}
 	h := make(map[string]*healthcheck.Healthcheck)
@@ -311,8 +311,8 @@ func TestUpsertRoutesSpecValidateMissingCidr(t *testing.T) {
 	}
 }
 
-func TestUpsertRoutesSpecValidateBadCidr1(t *testing.T) {
-	r := UpsertRoutesSpec{
+func TestManageRoutesSpecValidateBadCidr1(t *testing.T) {
+	r := ManageRoutesSpec{
 		Cidr:     "300.0.0.0/16",
 		Instance: "SELF",
 	}
@@ -327,8 +327,8 @@ func TestUpsertRoutesSpecValidateBadCidr1(t *testing.T) {
 	}
 }
 
-func TestUpsertRoutesSpecValidateBadCidr2(t *testing.T) {
-	r := UpsertRoutesSpec{
+func TestManageRoutesSpecValidateBadCidr2(t *testing.T) {
+	r := ManageRoutesSpec{
 		Cidr:     "3.0.0.0/160",
 		Instance: "SELF",
 	}
@@ -343,8 +343,8 @@ func TestUpsertRoutesSpecValidateBadCidr2(t *testing.T) {
 	}
 }
 
-func TestUpsertRoutesSpecValidateBadCidr3(t *testing.T) {
-	r := UpsertRoutesSpec{
+func TestManageRoutesSpecValidateBadCidr3(t *testing.T) {
+	r := ManageRoutesSpec{
 		Cidr:     "foo",
 		Instance: "SELF",
 	}
@@ -359,8 +359,8 @@ func TestUpsertRoutesSpecValidateBadCidr3(t *testing.T) {
 	}
 }
 
-func TestUpsertRoutesSpecValidate(t *testing.T) {
-	r := UpsertRoutesSpec{
+func TestManageRoutesSpecValidate(t *testing.T) {
+	r := ManageRoutesSpec{
 		Cidr:     "0.0.0.0/0",
 		Instance: "SELF",
 	}
@@ -449,18 +449,18 @@ func TestRouteTableDefaultEmpty(t *testing.T) {
 }
 
 func TestRouteTableDefault(t *testing.T) {
-	routes := make([]*UpsertRoutesSpec, 1)
-	routes[0] = &UpsertRoutesSpec{
+	routes := make([]*ManageRoutesSpec, 1)
+	routes[0] = &ManageRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
 	r := RouteTable{
-		UpsertRoutes: routes,
+		ManageRoutes: routes,
 	}
 	r.Default()
-	if len(r.UpsertRoutes) != 1 {
+	if len(r.ManageRoutes) != 1 {
 		t.Fail()
 	}
-	routeSpec := r.UpsertRoutes[0]
+	routeSpec := r.ManageRoutes[0]
 	if routeSpec.Cidr != "127.0.0.1/32" {
 		t.Fail()
 	}
@@ -473,7 +473,7 @@ func TestRouteTableValidateNullRoutes(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
-	if err.Error() != "No upsert_routes key in route table 'foo'" {
+	if err.Error() != "No manage_routes key in route table 'foo'" {
 		t.Log(err.Error())
 		t.Fail()
 	}
@@ -481,26 +481,26 @@ func TestRouteTableValidateNullRoutes(t *testing.T) {
 
 func TestRouteTableValidateNoRoutes(t *testing.T) {
 	r := RouteTable{
-		UpsertRoutes: make([]*UpsertRoutesSpec, 0),
+		ManageRoutes: make([]*ManageRoutesSpec, 0),
 	}
 	h := make(map[string]*healthcheck.Healthcheck)
 	err := r.Validate("foo", h)
 	if err == nil {
 		t.Fail()
 	}
-	if err.Error() != "No upsert_routes key in route table 'foo'" {
+	if err.Error() != "No manage_routes key in route table 'foo'" {
 		t.Log(err.Error())
 		t.Fail()
 	}
 }
 
 func TestRouteTableValidate(t *testing.T) {
-	routes := make([]*UpsertRoutesSpec, 1)
-	routes[0] = &UpsertRoutesSpec{
+	routes := make([]*ManageRoutesSpec, 1)
+	routes[0] = &ManageRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
 	r := RouteTable{
-		UpsertRoutes: routes,
+		ManageRoutes: routes,
 	}
 	r.Default()
 	h := make(map[string]*healthcheck.Healthcheck)
@@ -511,7 +511,7 @@ func TestRouteTableValidate(t *testing.T) {
 }
 
 func TestUpsertRouteSpecGetInstanceSELF(t *testing.T) {
-	urs := UpsertRoutesSpec{
+	urs := ManageRoutesSpec{
 		Cidr:     "127.0.0.1",
 		Instance: "SELF",
 	}
@@ -521,7 +521,7 @@ func TestUpsertRouteSpecGetInstanceSELF(t *testing.T) {
 }
 
 func TestUpsertRouteSpecGetInstanceOther(t *testing.T) {
-	urs := UpsertRoutesSpec{
+	urs := ManageRoutesSpec{
 		Cidr:     "127.0.0.1",
 		Instance: "i-foo",
 	}

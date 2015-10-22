@@ -65,7 +65,7 @@ Which routes to advertise into which route tables is configured with a YAML conf
                     config:
                         key: Name
                         value: private a
-                upsert_routes:
+                manage_routes:
                   - cidr: 0.0.0.0/0     # NAT box, so manage the default route
                     instance: SELF
                     healthcheck: public
@@ -87,7 +87,7 @@ Which routes to advertise into which route tables is configured with a YAML conf
                     config:
                         key: Name
                         value: private b
-                upsert_routes:
+                manage_routes:
                   - cidr: 0.0.0.0/0
                     if_unhealthy: true # Note this is what causes routes only to be taken over if failed
                     instance: SELF

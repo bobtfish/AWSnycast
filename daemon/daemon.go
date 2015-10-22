@@ -109,7 +109,7 @@ func (d *Daemon) RunOneRouteTable(rt []*ec2.RouteTable, name string, configRoute
 	remaining := aws.FilterRouteTables(filter, rt)
 	for _, rtb := range remaining {
 		log.Printf("Finder name %s found route table %v", name, rtb)
-		for _, upsertRoute := range configRouteTable.UpsertRoutes {
+		for _, upsertRoute := range configRouteTable.ManageRoutes {
 			//log.Printf("Trying to upsert route to %s", upsertRoute.Cidr)
 			if err := d.RunOneUpsertRoute(rtb, name, upsertRoute); err != nil {
 				return err
@@ -119,7 +119,7 @@ func (d *Daemon) RunOneRouteTable(rt []*ec2.RouteTable, name string, configRoute
 	return nil
 }
 
-func (d *Daemon) HealthCheckOneUpsertRoute(name string, upsertRoute *config.UpsertRoutesSpec) bool {
+func (d *Daemon) HealthCheckOneUpsertRoute(name string, upsertRoute *config.ManageRoutesSpec) bool {
 	if !d.oneShot && upsertRoute.Healthcheck != "" {
 		if d.Config == nil || d.Config.Healthchecks == nil {
 			panic("No healthchecks, have you run Setup()?")
@@ -138,7 +138,7 @@ func (d *Daemon) HealthCheckOneUpsertRoute(name string, upsertRoute *config.Upse
 	return true
 }
 
-func (d *Daemon) RunOneUpsertRoute(rtb *ec2.RouteTable, name string, upsertRoute *config.UpsertRoutesSpec) error {
+func (d *Daemon) RunOneUpsertRoute(rtb *ec2.RouteTable, name string, upsertRoute *config.ManageRoutesSpec) error {
 	if !d.HealthCheckOneUpsertRoute(name, upsertRoute) {
 		return nil
 	}

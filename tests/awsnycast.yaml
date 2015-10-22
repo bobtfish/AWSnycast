@@ -19,7 +19,7 @@ routetables:
             config:
                 key: Name
                 value: private a
-        upsert_routes:
+        manage_routes:
            - cidr: 0.0.0.0/0
              instance: SELF
              healthcheck: public
@@ -32,7 +32,7 @@ routetables:
             config:
                 key: Name
                 value: private b
-        upsert_routes:
+        manage_routes:
           - cidr: 0.0.0.0/0
             if_unhealthy: true
             instance: SELF

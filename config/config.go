@@ -41,14 +41,14 @@ func (spec RouteTableFindSpec) GetFilter() (aws.RouteTableFilter, error) {
 	return nil, errors.New(fmt.Sprintf("Healthcheck type '%s' not found in the healthcheck registry", spec.Type))
 }
 
-type UpsertRoutesSpec struct {
+type ManageRoutesSpec struct {
 	Cidr        string `yaml:"cidr"`
 	Instance    string `yaml:"instance"`
 	Healthcheck string `yaml:"healthcheck"`
 	IfUnhealthy bool   `yaml:"if_unhealthy"`
 }
 
-func (urs UpsertRoutesSpec) GetInstance(myId string) string {
+func (urs ManageRoutesSpec) GetInstance(myId string) string {
 	if urs.Instance == "SELF" {
 		return myId
 	}
@@ -57,7 +57,7 @@ func (urs UpsertRoutesSpec) GetInstance(myId string) string {
 
 type RouteTable struct {
 	Find         RouteTableFindSpec  `yaml:"find"`
-	UpsertRoutes []*UpsertRoutesSpec `yaml:"upsert_routes"`
+	ManageRoutes []*ManageRoutesSpec `yaml:"manage_routes"`
 }
 
 type Config struct {
@@ -120,7 +120,7 @@ func (r *RouteTableFindSpec) Validate(name string) error {
 	return nil
 }
 
-func (r *UpsertRoutesSpec) Default() {
+func (r *ManageRoutesSpec) Default() {
 	if !strings.Contains(r.Cidr, "/") {
 		r.Cidr = fmt.Sprintf("%s/32", r.Cidr)
 	}
@@ -128,7 +128,7 @@ func (r *UpsertRoutesSpec) Default() {
 		r.Instance = "SELF"
 	}
 }
-func (r *UpsertRoutesSpec) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck) error {
+func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck) error {
 	if r.Cidr == "" {
 		return errors.New(fmt.Sprintf("cidr is not defined in %s", name))
 	}
@@ -145,18 +145,18 @@ func (r *UpsertRoutesSpec) Validate(name string, healthchecks map[string]*health
 
 func (r *RouteTable) Default() {
 	r.Find.Default()
-	if r.UpsertRoutes == nil {
-		r.UpsertRoutes = make([]*UpsertRoutesSpec, 0)
+	if r.ManageRoutes == nil {
+		r.ManageRoutes = make([]*ManageRoutesSpec, 0)
 	}
-	for _, v := range r.UpsertRoutes {
+	for _, v := range r.ManageRoutes {
 		v.Default()
 	}
 }
 func (r RouteTable) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck) error {
-	if r.UpsertRoutes == nil || len(r.UpsertRoutes) == 0 {
-		return errors.New(fmt.Sprintf("No upsert_routes key in route table '%s'", name))
+	if r.ManageRoutes == nil || len(r.ManageRoutes) == 0 {
+		return errors.New(fmt.Sprintf("No manage_routes key in route table '%s'", name))
 	}
-	for _, v := range r.UpsertRoutes {
+	for _, v := range r.ManageRoutes {
 		if err := v.Validate(name, healthchecks); err != nil {
 			return err
 		}
