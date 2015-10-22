@@ -35,7 +35,6 @@ func TestHealthcheckTcp(t *testing.T) {
 		t.Fatal(err)
 	}
 	port := ln.Addr().(*net.TCPAddr).Port
-	t.Log(fmt.Sprintf("%+v", ln))
 	ready := make(chan bool, 1)
 	quit := false
 	go func() {
@@ -65,7 +64,6 @@ func TestHealthcheckTcp(t *testing.T) {
 		}
 	}()
 	<-ready
-	t.Log("Ready to accept connections")
 	c := make(map[string]string)
 	c["port"] = fmt.Sprintf("%d", port)
 	c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
@@ -207,7 +205,6 @@ func TestHealthcheckTcpFailClientClose(t *testing.T) {
 		t.Fatal(err)
 	}
 	port := ln.Addr().(*net.TCPAddr).Port
-	t.Log(fmt.Sprintf("%+v", ln))
 	ready := make(chan bool, 1)
 	quit := false
 	go func() {
