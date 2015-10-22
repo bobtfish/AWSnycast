@@ -33,9 +33,8 @@ func (h TcpHealthCheck) Healthcheck() bool {
 	defer c.Close()
 	c.SetDeadline(time.Now().Add(time.Second * 10))
 
-	_, err = fmt.Fprintf(c, h.Send)
-	if err != nil {
-		log.Println("TCP send: %s", err.Error())
+	if h.Send != "" {
+		fmt.Fprintf(c, h.Send)
 	}
 
 	if h.Expect == "" {
@@ -61,11 +60,13 @@ func TcpConstructor(h Healthcheck) (HealthChecker, error) {
 	}
 	hc := TcpHealthCheck{
 		Destination: h.Destination,
-		Send:        "HEAD / HTTP/1.0\r\n\r\n",
 		Port:        h.Config["port"],
 	}
 	if v, ok := h.Config["expect"]; ok {
 		hc.Expect = v
+	}
+	if v, ok := h.Config["send"]; ok {
+		hc.Send = v
 	}
 	return hc, nil
 }
