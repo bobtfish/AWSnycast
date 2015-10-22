@@ -36,30 +36,27 @@ func NewFakeRouteTableFetcher() *FakeRouteTableFetcher {
 }
 
 type FakeRouteTableFetcher struct {
-	Tables                            []*ec2.RouteTable
-	Error                             error
-	RouteTable                        ec2.RouteTable
-	Cidr                              string
-	Instance                          string
-	IfUnhealthy                       bool
-	Noop                              bool
-	CreateOrReplaceInstanceRouteError error
+	Tables                   []*ec2.RouteTable
+	Error                    error
+	RouteTable               ec2.RouteTable
+	Cidr                     string
+	Instance                 string
+	IfUnhealthy              bool
+	Noop                     bool
+	ManageInstanceRouteError error
 }
 
 func (f *FakeRouteTableFetcher) GetRouteTables() ([]*ec2.RouteTable, error) {
 	return f.Tables, f.Error
 }
 
-func (f *FakeRouteTableFetcher) CreateOrReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string, ifunhealthy bool, noop bool) error {
+func (f *FakeRouteTableFetcher) ManageInstanceRoute(rtb ec2.RouteTable, rs aws.ManageRoutesSpec, noop bool) error {
 	f.RouteTable = rtb
-	f.Cidr = cidr
-	f.Instance = instance
-	f.IfUnhealthy = ifunhealthy
+	f.Cidr = rs.Cidr
+	f.Instance = rs.Instance
+	f.IfUnhealthy = rs.IfUnhealthy
 	f.Noop = noop
-	return f.CreateOrReplaceInstanceRouteError
-}
-func (r *FakeRouteTableFetcher) ManageInstanceRoute(rtb ec2.RouteTable, rs aws.ManageRoutesSpec, noop bool) error {
-	return r.CreateOrReplaceInstanceRoute(rtb, rs.Cidr, rs.Instance, rs.IfUnhealthy, noop)
+	return f.ManageInstanceRouteError
 }
 
 func TestRunRouteTablesFailGetRouteTables(t *testing.T) {
@@ -498,7 +495,7 @@ func TestRunOneRouteTable(t *testing.T) {
 func TestRunOneRouteTableUpsertRouteFail(t *testing.T) {
 	d := getD(true)
 	rtf := d.RouteTableFetcher.(*FakeRouteTableFetcher)
-	rtf.CreateOrReplaceInstanceRouteError = errors.New("Test")
+	rtf.ManageInstanceRouteError = errors.New("Test")
 	awsRt := make([]*ec2.RouteTable, 1)
 	awsRt[0] = &ec2.RouteTable{
 		Associations: []*ec2.RouteTableAssociation{},
