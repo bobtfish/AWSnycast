@@ -132,7 +132,7 @@ func myHealthCheckConstructorFail(h Healthcheck) (HealthChecker, error) {
 }
 
 func TestHealthcheckRegisterNew(t *testing.T) {
-	registerHealthcheck("testconstructorfail", myHealthCheckConstructorFail)
+	RegisterHealthcheck("testconstructorfail", myHealthCheckConstructorFail)
 	h := Healthcheck{
 		Type:        "testconstructorfail",
 		Destination: "127.0.0.1",
@@ -209,8 +209,8 @@ func TestPerformHealthcheckNotSetup(t *testing.T) {
 }
 
 func TestHealthcheckRunSimple(t *testing.T) {
-	registerHealthcheck("test_ok", MyFakeHealthConstructorOk)
-	registerHealthcheck("test_fail", MyFakeHealthConstructorFail)
+	RegisterHealthcheck("test_ok", MyFakeHealthConstructorOk)
+	RegisterHealthcheck("test_fail", MyFakeHealthConstructorFail)
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 1}
 	ok, err := h_ok.GetHealthChecker()
 	if err != nil {
@@ -239,7 +239,7 @@ func TestHealthcheckRunSimple(t *testing.T) {
 }
 
 func TestHealthcheckRise(t *testing.T) {
-	registerHealthcheck("test_ok", MyFakeHealthConstructorOk)
+	RegisterHealthcheck("test_ok", MyFakeHealthConstructorOk)
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
 	h_ok.Default()
 	h_ok.Setup()
@@ -298,7 +298,7 @@ func TestHealthcheckRise(t *testing.T) {
 }
 
 func TestHealthcheckFall(t *testing.T) {
-	registerHealthcheck("test_fail", MyFakeHealthConstructorFail)
+	RegisterHealthcheck("test_fail", MyFakeHealthConstructorFail)
 	h_ok := Healthcheck{Type: "test_fail", Destination: "127.0.0.1", Fall: 2}
 	h_ok.Default()
 	h_ok.Setup()
@@ -359,7 +359,7 @@ func TestHealthcheckFall(t *testing.T) {
 }
 
 func TestHealthcheckRun(t *testing.T) {
-	registerHealthcheck("test_ok", MyFakeHealthConstructorOk)
+	RegisterHealthcheck("test_ok", MyFakeHealthConstructorOk)
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
 	h_ok.Default()
 	h_ok.Setup()
@@ -375,7 +375,7 @@ func TestHealthcheckRun(t *testing.T) {
 }
 
 func TestHealthcheckStop(t *testing.T) {
-	registerHealthcheck("test_ok", MyFakeHealthConstructorOk)
+	RegisterHealthcheck("test_ok", MyFakeHealthConstructorOk)
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
 	h_ok.Default()
 	h_ok.Setup()

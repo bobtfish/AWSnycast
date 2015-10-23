@@ -10,7 +10,7 @@ import (
 
 var healthCheckTypes map[string]func(Healthcheck) (HealthChecker, error)
 
-func registerHealthcheck(name string, f func(Healthcheck) (HealthChecker, error)) {
+func RegisterHealthcheck(name string, f func(Healthcheck) (HealthChecker, error)) {
 	if healthCheckTypes == nil {
 		healthCheckTypes = make(map[string]func(Healthcheck) (HealthChecker, error))
 	}

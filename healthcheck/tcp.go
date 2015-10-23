@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	registerHealthcheck("tcp", TcpConstructor)
+	RegisterHealthcheck("tcp", TcpConstructor)
 }
 
 type TcpHealthCheck struct {

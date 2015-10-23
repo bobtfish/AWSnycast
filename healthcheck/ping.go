@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	registerHealthcheck("ping", PingConstructor)
+	RegisterHealthcheck("ping", PingConstructor)
 }
 
 type PingHealthCheck struct {
