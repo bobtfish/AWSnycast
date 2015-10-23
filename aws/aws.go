@@ -42,7 +42,8 @@ type ManageRoutesSpec struct {
 	Cidr            string `yaml:"cidr"`
 	Instance        string `yaml:"instance"`
 	HealthcheckName string `yaml:"healthcheck"`
-	IfUnhealthy     bool   `yaml:"if_unhealthy"`
+	healthcheck     *healthcheck.Healthcheck
+	IfUnhealthy     bool `yaml:"if_unhealthy"`
 }
 
 func (r *ManageRoutesSpec) Default(instance string) {
@@ -64,9 +65,11 @@ func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*health
 		return errors.New(fmt.Sprintf("Could not parse %s in %s", err.Error(), name))
 	}
 	if r.HealthcheckName != "" {
-		if _, ok := healthchecks[r.HealthcheckName]; !ok {
+		hc, ok := healthchecks[r.HealthcheckName]
+		if !ok {
 			return errors.New(fmt.Sprintf("Route table %s, upsert %s cannot find healthcheck '%s'", name, r.Cidr, r.HealthcheckName))
 		}
+		r.healthcheck = hc
 	}
 	return nil
 }
