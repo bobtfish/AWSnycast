@@ -980,3 +980,24 @@ func TestManageInstanceRouteDeleteInstanceRouteThisInstanceUnhealthy(t *testing.
 		t.Fail()
 	}
 }
+
+func TestManageInstanceRouteDeleteInstanceRouteThisInstanceUnhealthyAWSFail(t *testing.T) {
+	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	rtf.conn.(*FakeEC2Conn).DeleteRouteError = errors.New("Whoops, AWS blew up")
+	s := ManageRoutesSpec{
+		Cidr:            "0.0.0.0/0",
+		Instance:        "i-605bd2aa",
+		IfUnhealthy:     false,
+		HealthcheckName: "localhealthcheck",
+		healthcheck:     &FakeHealthCheck{isHealthy: false},
+	}
+	err := rtf.ManageInstanceRoute(rtb2, s, false)
+	if err == nil {
+		t.Fail()
+	} else {
+		if err.Error() != "Whoops, AWS blew up" {
+			t.Log(err)
+			t.Fail()
+		}
+	}
+}
