@@ -511,7 +511,11 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteNoRoute(t *testing.T) {
 
 func TestRouteTableFetcherEC2ReplaceInstanceRouteNoop(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
-	err := rtf.ReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", false, true)
+	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")
+	if route == nil {
+		t.Fail()
+	}
+	err := rtf.ReplaceInstanceRouteReal(rtb2.RouteTableId, route, "0.0.0.0/0", "i-1234", false, true)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -524,7 +528,11 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteNoop(t *testing.T) {
 
 func TestRouteTableFetcherEC2ReplaceInstanceRoute(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
-	err := rtf.ReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", false, false)
+	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")
+	if route == nil {
+		t.Fail()
+	}
+	err := rtf.ReplaceInstanceRouteReal(rtb2.RouteTableId, route, "0.0.0.0/0", "i-1234", false, false)
 	if err != nil {
 		t.Fail()
 	}
@@ -547,7 +555,11 @@ func TestRouteTableFetcherEC2ReplaceInstanceRoute(t *testing.T) {
 func TestRouteTableFetcherEC2ReplaceInstanceRouteFails(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	rtf.conn.(*FakeEC2Conn).ReplaceRouteError = errors.New("Whoops, AWS blew up")
-	err := rtf.ReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", false, false)
+	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")
+	if route == nil {
+		t.Fail()
+	}
+	err := rtf.ReplaceInstanceRouteReal(rtb2.RouteTableId, route, "0.0.0.0/0", "i-1234", false, false)
 	if err == nil {
 		t.Fail()
 	}
@@ -563,7 +575,11 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteFails(t *testing.T) {
 
 func TestRouteTableFetcherEC2ReplaceInstanceRouteNotIfHealthy(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
-	err := rtf.ReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-1234", true, false)
+	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")
+	if route == nil {
+		t.Fail()
+	}
+	err := rtf.ReplaceInstanceRouteReal(rtb2.RouteTableId, route, "0.0.0.0/0", "i-1234", true, false)
 	if err != nil {
 		t.Fail()
 	}
@@ -575,7 +591,11 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteNotIfHealthy(t *testing.T) {
 
 func TestRouteTableFetcherEC2ReplaceInstanceRouteAlreadyThisInstance(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
-	err := rtf.ReplaceInstanceRoute(rtb2, "0.0.0.0/0", "i-605bd2aa", false, false)
+	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")
+	if route == nil {
+		t.Fail()
+	}
+	err := rtf.ReplaceInstanceRouteReal(rtb2.RouteTableId, route, "0.0.0.0/0", "i-605bd2aa", false, false)
 	if err != nil {
 		t.Fail()
 	}
