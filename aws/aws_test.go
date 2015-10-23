@@ -841,6 +841,44 @@ func TestManageRoutesSpecValidate(t *testing.T) {
 	}
 }
 
+func TestManageRoutesSpecValidateMissingHealthcheck(t *testing.T) {
+	r := ManageRoutesSpec{
+		Cidr:            "0.0.0.0/0",
+		Instance:        "SELF",
+		HealthcheckName: "test",
+	}
+	h := make(map[string]*healthcheck.Healthcheck)
+	err := r.Validate("foo", h)
+	if err == nil {
+		t.Fail()
+	} else {
+		if err.Error() != "Route table foo, upsert 0.0.0.0/0 cannot find healthcheck 'test'" {
+			t.Log(err)
+			t.Fail()
+		}
+	}
+}
+
+func TestManageRoutesSpecValidateWithHealthcheck(t *testing.T) {
+	r := ManageRoutesSpec{
+		Cidr:            "0.0.0.0/0",
+		Instance:        "SELF",
+		HealthcheckName: "test",
+	}
+	h := make(map[string]*healthcheck.Healthcheck)
+	h["test"] = &healthcheck.Healthcheck{}
+	err := r.Validate("foo", h)
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	} else {
+		if h["test"] != r.healthcheck {
+			t.Log("r.healthcheck not set")
+			t.Fail()
+		}
+	}
+}
+
 func TestManageRouteSpecDefaultInstanceSELF(t *testing.T) {
 	urs := ManageRoutesSpec{
 		Cidr:     "127.0.0.1",
