@@ -41,6 +41,7 @@ func NewMetadataFetcher(debug bool) MetadataFetcher {
 type ManageRoutesSpec struct {
 	Cidr            string `yaml:"cidr"`
 	Instance        string `yaml:"instance"`
+	InstanceIsSelf  bool   `yaml:"-"`
 	HealthcheckName string `yaml:"healthcheck"`
 	healthcheck     *healthcheck.Healthcheck
 	IfUnhealthy     bool `yaml:"if_unhealthy"`
@@ -54,9 +55,11 @@ func (r *ManageRoutesSpec) Default(instance string) {
 		r.Instance = "SELF"
 	}
 	if r.Instance == "SELF" {
+		r.InstanceIsSelf = true
 		r.Instance = instance
 	}
 }
+
 func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck) error {
 	if r.Cidr == "" {
 		return errors.New(fmt.Sprintf("cidr is not defined in %s", name))
@@ -64,13 +67,13 @@ func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*health
 	if _, _, err := net.ParseCIDR(r.Cidr); err != nil {
 		return errors.New(fmt.Sprintf("Could not parse %s in %s", err.Error(), name))
 	}
-	if r.HealthcheckName != "" {
-		hc, ok := healthchecks[r.HealthcheckName]
-		if !ok {
-			return errors.New(fmt.Sprintf("Route table %s, upsert %s cannot find healthcheck '%s'", name, r.Cidr, r.HealthcheckName))
-		}
-		r.healthcheck = hc
-	}
+	/*if r.HealthcheckName != "" {
+				hc, ok := healthchecks[r.HealthcheckName]
+				if !ok {
+					return errors.New(fmt.Sprintf("Route table %s, upsert %s cannot find healthcheck '%s'", name, r.Cidr, r.HealthcheckName))
+				}
+				r.healthcheck = hc
+	}*/
 	return nil
 }
 
@@ -93,11 +96,15 @@ func getCreateRouteInput(rtb ec2.RouteTable, cidr string, instance string) ec2.C
 }
 
 func (r RouteTableFetcherEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageRoutesSpec, noop bool) error {
-	if err := r.ReplaceInstanceRoute(rtb, rs.Cidr, rs.Instance, rs.IfUnhealthy, noop); err != nil {
-		if err.Error() != "Never found CIDR in route table to replace" {
+	/*if rs.HealthcheckName != "" {
+		if rs.InstanceIsSelf {
+		}
+	}*/
+	route := findRouteFromRouteTable(rtb, rs.Cidr)
+	if route != nil {
+		if err := r.ReplaceInstanceRoute(rtb, rs.Cidr, rs.Instance, rs.IfUnhealthy, noop); err != nil {
 			return err
 		}
-	} else {
 		return nil
 	}
 	opts := getCreateRouteInput(rtb, rs.Cidr, rs.Instance)
@@ -111,36 +118,47 @@ func (r RouteTableFetcherEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageR
 	return nil
 }
 
-func (r RouteTableFetcherEC2) ReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string, ifUnhealthy bool, noop bool) error {
+func findRouteFromRouteTable(rtb ec2.RouteTable, cidr string) *ec2.Route {
 	for _, route := range rtb.Routes {
 		if *(route.DestinationCidrBlock) == cidr {
-			if route.InstanceId != nil && *(route.InstanceId) == instance {
-				log.Printf("Skipping doing anything, %s is already routed via %s", cidr, instance)
-				return nil
-			}
-			params := &ec2.ReplaceRouteInput{
-				DestinationCidrBlock: aws.String(cidr),
-				RouteTableId:         rtb.RouteTableId,
-				InstanceId:           aws.String(instance),
-			}
-			if ifUnhealthy && *(route.State) == "active" {
-				log.Printf("Not replacing route, as current route is active/healthy")
-				return nil
-			}
-			if !noop {
-				resp, err := r.conn.ReplaceRoute(params)
-				if err != nil {
-					// Print the error, cast err to awserr.Error to get the Code and
-					// Message from an error.
-					fmt.Println(err.Error())
-					return err
-				}
-				fmt.Println(resp)
-			}
-			return nil
+			return route
 		}
 	}
-	return errors.New("Never found CIDR in route table to replace")
+	return nil
+}
+
+func (r RouteTableFetcherEC2) ReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string, ifUnhealthy bool, noop bool) error {
+	route := findRouteFromRouteTable(rtb, cidr)
+	if route == nil {
+		return errors.New("Never found CIDR in route table to replace")
+	}
+	return r.ReplaceInstanceRouteReal(rtb.RouteTableId, route, cidr, instance, ifUnhealthy, noop)
+}
+func (r RouteTableFetcherEC2) ReplaceInstanceRouteReal(routeTableId *string, route *ec2.Route, cidr string, instance string, ifUnhealthy bool, noop bool) error {
+	if route.InstanceId != nil && *(route.InstanceId) == instance {
+		log.Printf("Skipping doing anything, %s is already routed via %s", cidr, instance)
+		return nil
+	}
+	params := &ec2.ReplaceRouteInput{
+		DestinationCidrBlock: aws.String(cidr),
+		RouteTableId:         routeTableId,
+		InstanceId:           aws.String(instance),
+	}
+	if ifUnhealthy && *(route.State) == "active" {
+		log.Printf("Not replacing route, as current route is active/healthy")
+		return nil
+	}
+	if !noop {
+		resp, err := r.conn.ReplaceRoute(params)
+		if err != nil {
+			// Print the error, cast err to awserr.Error to get the Code and
+			// Message from an error.
+			fmt.Println(err.Error())
+			return err
+		}
+		fmt.Println(resp)
+	}
+	return nil
 }
 
 func (r RouteTableFetcherEC2) GetRouteTables() ([]*ec2.RouteTable, error) {
