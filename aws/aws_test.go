@@ -934,3 +934,52 @@ func TestManageInstanceRouteCreateRouteGoodHealthcheck(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestRouteTableFetcherEC2DeleteInstanceRouteThisInstanceUnhealthy(t *testing.T) {
+	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")
+	if route == nil {
+		t.Fail()
+	}
+	err := rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, "0.0.0.0/0", "i-605bd2aa", false, false)
+	if err != nil {
+		t.Fail()
+	}
+	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput != nil {
+		t.Log("ReplaceRouteInput != nil")
+		t.Fail()
+	}
+}
+
+func TestManageInstanceRouteDeleteInstanceRouteThisInstanceUnhealthy(t *testing.T) {
+	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	s := ManageRoutesSpec{
+		Cidr:            "0.0.0.0/0",
+		Instance:        "i-605bd2aa",
+		IfUnhealthy:     false,
+		HealthcheckName: "localhealthcheck",
+		healthcheck:     &FakeHealthCheck{isHealthy: false},
+	}
+	err := rtf.ManageInstanceRoute(rtb2, s, false)
+	if err != nil {
+		t.Fail()
+	}
+	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput != nil {
+		t.Log("ReplaceRouteInput was called")
+		t.Fail()
+	}
+	if rtf.conn.(*FakeEC2Conn).DeleteRouteInput == nil {
+		t.Log("DeleteRouteInput was never called")
+		t.Fail()
+	}
+	/*r := rtf.conn.(*FakeEC2Conn).DeleteRouteInput
+	if *(r.DestinationCidrBlock) != "0.0.0.0/0" {
+		t.Fail()
+	}
+	if *(r.RouteTableId) != *(rtb2.RouteTableId) {
+		t.Fail()
+	}
+	if *(r.InstanceId) != "i-1234" {
+		t.Fail()
+	}*/
+}
