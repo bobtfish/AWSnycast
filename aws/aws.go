@@ -67,13 +67,13 @@ func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*health
 	if _, _, err := net.ParseCIDR(r.Cidr); err != nil {
 		return errors.New(fmt.Sprintf("Could not parse %s in %s", err.Error(), name))
 	}
-	/*if r.HealthcheckName != "" {
-				hc, ok := healthchecks[r.HealthcheckName]
-				if !ok {
-					return errors.New(fmt.Sprintf("Route table %s, upsert %s cannot find healthcheck '%s'", name, r.Cidr, r.HealthcheckName))
-				}
-				r.healthcheck = hc
-	}*/
+	if r.HealthcheckName != "" {
+		hc, ok := healthchecks[r.HealthcheckName]
+		if !ok {
+			return errors.New(fmt.Sprintf("Route table %s, upsert %s cannot find healthcheck '%s'", name, r.Cidr, r.HealthcheckName))
+		}
+		r.healthcheck = hc
+	}
 	return nil
 }
 
