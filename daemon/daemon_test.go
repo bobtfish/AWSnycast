@@ -488,6 +488,24 @@ func TestRunSleepLoop(t *testing.T) {
 	time.Sleep(time.Millisecond)
 }
 
+func TestRunOneReal(t *testing.T) {
+	d := getD(true)
+	d.FetchWait = time.Nanosecond
+	hasFinishedRunLoop := make(chan bool, 1)
+	go func() {
+		if d.Run(false, true) != 0 {
+			t.Fail()
+		}
+		hasFinishedRunLoop <- true
+	}()
+	time.Sleep(time.Millisecond)
+	d.quitChan <- true
+	finished := <-hasFinishedRunLoop
+	if finished != true {
+		t.Fail()
+	}
+}
+
 /*
 func TestHealthCheckOneUpsertRouteHealthcheckFail(t *testing.T) {
 	d := getD(true)
