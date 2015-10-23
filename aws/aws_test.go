@@ -497,18 +497,6 @@ func (f *FakeEC2Conn) DescribeRouteTables(i *ec2.DescribeRouteTablesInput) (*ec2
 	return f.DescribeRouteTablesOutput, f.DescribeRouteTablesError
 }
 
-func TestRouteTableFetcherEC2ReplaceInstanceRouteNoRoute(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
-	err := rtf.ReplaceInstanceRoute(rtb1, "0.0.0.0/0", "i-1234", false, true)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Never found CIDR in route table to replace" {
-		t.Log(err.Error())
-		t.Fail()
-	}
-}
-
 func TestRouteTableFetcherEC2ReplaceInstanceRouteNoop(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")

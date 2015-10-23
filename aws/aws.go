@@ -102,7 +102,7 @@ func (r RouteTableFetcherEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageR
 	}*/
 	route := findRouteFromRouteTable(rtb, rs.Cidr)
 	if route != nil {
-		if err := r.ReplaceInstanceRoute(rtb, rs.Cidr, rs.Instance, rs.IfUnhealthy, noop); err != nil {
+		if err := r.ReplaceInstanceRouteReal(rtb.RouteTableId, route, rs.Cidr, rs.Instance, rs.IfUnhealthy, noop); err != nil {
 			return err
 		}
 		return nil
@@ -127,13 +127,6 @@ func findRouteFromRouteTable(rtb ec2.RouteTable, cidr string) *ec2.Route {
 	return nil
 }
 
-func (r RouteTableFetcherEC2) ReplaceInstanceRoute(rtb ec2.RouteTable, cidr string, instance string, ifUnhealthy bool, noop bool) error {
-	route := findRouteFromRouteTable(rtb, cidr)
-	if route == nil {
-		return errors.New("Never found CIDR in route table to replace")
-	}
-	return r.ReplaceInstanceRouteReal(rtb.RouteTableId, route, cidr, instance, ifUnhealthy, noop)
-}
 func (r RouteTableFetcherEC2) ReplaceInstanceRouteReal(routeTableId *string, route *ec2.Route, cidr string, instance string, ifUnhealthy bool, noop bool) error {
 	if route.InstanceId != nil && *(route.InstanceId) == instance {
 		log.Printf("Skipping doing anything, %s is already routed via %s", cidr, instance)
