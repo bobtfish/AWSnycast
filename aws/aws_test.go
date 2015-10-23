@@ -957,14 +957,11 @@ func TestManageInstanceRouteDeleteInstanceRouteThisInstanceUnhealthy(t *testing.
 		t.Log("DeleteRouteInput was never called")
 		t.Fail()
 	}
-	/*r := rtf.conn.(*FakeEC2Conn).DeleteRouteInput
+	r := rtf.conn.(*FakeEC2Conn).DeleteRouteInput
 	if *(r.DestinationCidrBlock) != "0.0.0.0/0" {
 		t.Fail()
 	}
 	if *(r.RouteTableId) != *(rtb2.RouteTableId) {
 		t.Fail()
 	}
-	if *(r.InstanceId) != "i-1234" {
-		t.Fail()
-	}*/
 }

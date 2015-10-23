@@ -141,21 +141,19 @@ func findRouteFromRouteTable(rtb ec2.RouteTable, cidr string) *ec2.Route {
 }
 
 func (r RouteTableFetcherEC2) DeleteInstanceRoute(routeTableId *string, route *ec2.Route, cidr string, instance string, noop bool) error {
-	params := &ec2.DeleteRouteInput{}
-	/*		DestinationCidrBlock: aws.String(cidr),
-			RouteTableId:         routeTableId,
-			InstanceId:           aws.String(instance),
-		}*/
-	if !noop {
-		resp, err := r.conn.DeleteRoute(params)
-		if err != nil {
-			// Print the error, cast err to awserr.Error to get the Code and
-			// Message from an error.
-			fmt.Println(err.Error())
-			return err
-		}
-		fmt.Println(resp)
+	params := &ec2.DeleteRouteInput{
+		DestinationCidrBlock: aws.String(cidr),
+		RouteTableId:         routeTableId,
+		DryRun:               aws.Bool(noop),
 	}
+	resp, err := r.conn.DeleteRoute(params)
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return err
+	}
+	fmt.Println(resp)
 	return nil
 }
 
