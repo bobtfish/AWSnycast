@@ -134,6 +134,7 @@ func New(filename string, instance string) (*Config, error) {
 	err = yaml.Unmarshal(data, &c)
 	if err == nil {
 		c.Default(instance)
+		err = c.Validate()
 	}
 	return c, err
 }

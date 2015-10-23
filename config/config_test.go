@@ -22,7 +22,24 @@ func TestLoadConfigFails(t *testing.T) {
 	_, err := New("../tests/doesnotexist.yaml", "i-1234")
 	if err == nil {
 		t.Fail()
+	} else {
+		if err.Error() != "open ../tests/doesnotexist.yaml: no such file or directory" {
+			t.Log(err)
+			t.Fail()
+		}
 	}
+}
+
+func TestLoadConfigFailsValidation(t *testing.T) {
+	_, err := New("../tests/invalid.yaml", "i-1234")
+	if err == nil {
+		t.Fail()
+	} else {
+                if err.Error() != "Route table a, upsert 0.0.0.0/0 cannot find healthcheck 'public'" {
+                        t.Log(err)
+                        t.Fail()
+                }
+        }
 }
 
 func TestLoadConfigHealthchecks(t *testing.T) {
