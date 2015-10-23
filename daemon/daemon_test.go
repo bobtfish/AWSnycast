@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/config"
+	"github.com/bobtfish/AWSnycast/healthcheck"
 	"os"
 	"testing"
 	"time"
@@ -91,6 +92,28 @@ func TestSetupNoMetadataService(t *testing.T) {
 		t.Fail()
 	}
 	if err.Error() != "No metadata service" {
+		t.Fail()
+	}
+}
+
+func myHealthCheckConstructorFail(h healthcheck.Healthcheck) (healthcheck.HealthChecker, error) {
+	return nil, errors.New("Test")
+}
+
+func TestConfigBadHealthcheck(t *testing.T) {
+	healthcheck.RegisterHealthcheck("testconstructorfail", myHealthCheckConstructorFail)
+	c := &config.Config{}
+	c.Default("i-1234")
+	c.Healthchecks["one"] = &healthcheck.Healthcheck{
+		Type:        "testconstructorfail",
+		Destination: "127.0.0.1",
+	}
+	err := setupHealthchecks(c)
+	if err == nil {
+		t.Fail()
+	}
+	if err.Error() != "Test" {
+		t.Log(err.Error())
 		t.Fail()
 	}
 }

@@ -62,7 +62,11 @@ func (d *Daemon) Setup() error {
 	if d.RouteTableFetcher == nil {
 		d.RouteTableFetcher = aws.NewRouteTableFetcher(d.Region, d.Debug)
 	}
-	for _, v := range d.Config.Healthchecks {
+	return setupHealthchecks(d.Config)
+}
+
+func setupHealthchecks(c *config.Config) error {
+	for _, v := range c.Healthchecks {
 		err := v.Setup()
 		if err != nil {
 			return err
