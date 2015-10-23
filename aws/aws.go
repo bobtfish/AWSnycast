@@ -183,7 +183,7 @@ func (r RouteTableFetcherEC2) GetRouteTables() ([]*ec2.RouteTable, error) {
 	return resp.RouteTables, nil
 }
 
-func NewRouteTableFetcher(region string, debug bool) (RouteTableFetcher, error) {
+func NewRouteTableFetcher(region string, debug bool) RouteTableFetcher {
 	r := RouteTableFetcherEC2{}
 	providers := []credentials.Provider{
 		&credentials.EnvProvider{},
@@ -198,7 +198,7 @@ func NewRouteTableFetcher(region string, debug bool) (RouteTableFetcher, error) 
 	cred := credentials.NewChainCredentials(providers)
 	_, credErr := cred.Get()
 	if credErr != nil {
-		return r, credErr
+		panic(credErr)
 	}
 	awsConfig := &aws.Config{
 		Credentials: cred,
@@ -206,7 +206,7 @@ func NewRouteTableFetcher(region string, debug bool) (RouteTableFetcher, error) 
 		MaxRetries:  aws.Int(3),
 	}
 	r.conn = ec2.New(awsConfig)
-	return r, nil
+	return r
 }
 
 type RouteTableFilter interface {

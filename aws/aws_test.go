@@ -727,10 +727,7 @@ func TestGetRouteTablesAWSFail(t *testing.T) {
 }
 
 func TestNewRouteTableFetcher(t *testing.T) {
-	rtf, err := NewRouteTableFetcher("us-west-1", false)
-	if err != nil {
-		t.Fail()
-	}
+	rtf := NewRouteTableFetcher("us-west-1", false)
 	if rtf == nil {
 		t.Fail()
 	}

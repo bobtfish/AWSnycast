@@ -60,11 +60,7 @@ func (d *Daemon) Setup() error {
 	d.Config = config
 
 	if d.RouteTableFetcher == nil {
-		rtf, err := aws.NewRouteTableFetcher(d.Region, d.Debug)
-		if err != nil {
-			return err
-		}
-		d.RouteTableFetcher = rtf
+		d.RouteTableFetcher = aws.NewRouteTableFetcher(d.Region, d.Debug)
 	}
 	for _, v := range d.Config.Healthchecks {
 		err := v.Setup()
@@ -111,39 +107,12 @@ func (d *Daemon) RunOneRouteTable(rt []*ec2.RouteTable, name string, configRoute
 		log.Printf("Finder name %s found route table %v", name, rtb)
 		for _, upsertRoute := range configRouteTable.ManageRoutes {
 			//log.Printf("Trying to upsert route to %s", upsertRoute.Cidr)
-			if err := d.RunOneUpsertRoute(rtb, name, upsertRoute); err != nil {
+			if err := d.RouteTableFetcher.ManageInstanceRoute(*rtb, *upsertRoute, d.noop); err != nil {
 				return err
 			}
 		}
 	}
 	return nil
-}
-
-func (d *Daemon) HealthCheckOneUpsertRoute(name string, upsertRoute *aws.ManageRoutesSpec) bool {
-	if !d.oneShot && upsertRoute.HealthcheckName != "" {
-		if d.Config == nil || d.Config.Healthchecks == nil {
-			panic("No healthchecks, have you run Setup()?")
-		}
-		if hc, ok := d.Config.Healthchecks[upsertRoute.HealthcheckName]; ok {
-			//log.Printf("Got healthcheck %s", upsertRoute.Healthcheck)
-			if !hc.IsHealthy() {
-				log.Printf("Skipping upsert route %s, healthcheck %s isn't healthy yet", name, upsertRoute.HealthcheckName)
-				return false
-			}
-		} else {
-			panic(fmt.Sprintf("Could not find healthcheck %s", upsertRoute.HealthcheckName))
-		}
-		log.Printf("%s Is healthy", upsertRoute.HealthcheckName)
-	}
-	return true
-}
-
-func (d *Daemon) RunOneUpsertRoute(rtb *ec2.RouteTable, name string, upsertRoute *aws.ManageRoutesSpec) error {
-	if !d.HealthCheckOneUpsertRoute(name, upsertRoute) {
-		return nil
-	}
-
-	return d.RouteTableFetcher.ManageInstanceRoute(*rtb, *upsertRoute, d.noop)
 }
 
 func (d *Daemon) RunRouteTables() error {
