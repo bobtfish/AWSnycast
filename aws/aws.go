@@ -4,11 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/awslabs/aws-sdk-go/aws/credentials/ec2rolecreds"
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"log"
@@ -107,6 +105,10 @@ func (r RouteTableFetcherEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageR
 		}
 		return nil
 	}
+	if rs.HealthcheckName != "" && !rs.healthcheck.IsHealthy() {
+		return nil
+	}
+
 	opts := getCreateRouteInput(rtb, rs.Cidr, rs.Instance)
 
 	log.Printf("[INFO] Creating route for %s: %#v", *rtb.RouteTableId, opts)
@@ -184,13 +186,6 @@ func NewRouteTableFetcher(region string, debug bool) (RouteTableFetcher, error) 
 		Credentials: cred,
 		Region:      aws.String(region),
 		MaxRetries:  aws.Int(3),
-	}
-	iamconn := iam.New(awsConfig)
-	_, err := iamconn.GetUser(nil)
-	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() == "SignatureDoesNotMatch" {
-			return r, fmt.Errorf("Failed authenticating with AWS: please verify credentials")
-		}
 	}
 	r.conn = ec2.New(awsConfig)
 	return r, nil
