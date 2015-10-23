@@ -135,10 +135,6 @@ func findRouteFromRouteTable(rtb ec2.RouteTable, cidr string) *ec2.Route {
 }
 
 func (r RouteTableFetcherEC2) ReplaceInstanceRoute(routeTableId *string, route *ec2.Route, cidr string, instance string, ifUnhealthy bool, noop bool) error {
-	if route.InstanceId != nil && *(route.InstanceId) == instance {
-		log.Printf("Skipping doing anything, %s is already routed via %s", cidr, instance)
-		return nil
-	}
 	params := &ec2.ReplaceRouteInput{
 		DestinationCidrBlock: aws.String(cidr),
 		RouteTableId:         routeTableId,

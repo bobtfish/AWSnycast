@@ -577,13 +577,14 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteNotIfHealthy(t *testing.T) {
 	}
 }
 
-func TestRouteTableFetcherEC2ReplaceInstanceRouteAlreadyThisInstance(t *testing.T) {
+func TestRouteTableFetcherEC2ManageInstanceRouteAlreadyThisInstance(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
-	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")
-	if route == nil {
-		t.Fail()
+	s := ManageRoutesSpec{
+		Cidr:        "0.0.0.0/0",
+		Instance:    "i-605bd2aa",
+		IfUnhealthy: false,
 	}
-	err := rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, "0.0.0.0/0", "i-605bd2aa", false, false)
+	err := rtf.ManageInstanceRoute(rtb2, s, false)
 	if err != nil {
 		t.Fail()
 	}
