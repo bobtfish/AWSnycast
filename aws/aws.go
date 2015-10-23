@@ -101,6 +101,12 @@ func (r RouteTableFetcherEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageR
 	route := findRouteFromRouteTable(rtb, rs.Cidr)
 	if route != nil {
 		if route.InstanceId != nil && *(route.InstanceId) == rs.Instance {
+			if rs.HealthcheckName != "" && !rs.healthcheck.IsHealthy() {
+				if err := r.DeleteInstanceRoute(rtb.RouteTableId, route, rs.Cidr, rs.Instance, noop); err != nil {
+					return err
+				}
+				return nil
+			}
 			log.Printf("Skipping doing anything, %s is already routed via %s", rs.Cidr, rs.Instance)
 			return nil
 		}
@@ -130,6 +136,25 @@ func findRouteFromRouteTable(rtb ec2.RouteTable, cidr string) *ec2.Route {
 		if *(route.DestinationCidrBlock) == cidr {
 			return route
 		}
+	}
+	return nil
+}
+
+func (r RouteTableFetcherEC2) DeleteInstanceRoute(routeTableId *string, route *ec2.Route, cidr string, instance string, noop bool) error {
+	params := &ec2.DeleteRouteInput{}
+	/*		DestinationCidrBlock: aws.String(cidr),
+			RouteTableId:         routeTableId,
+			InstanceId:           aws.String(instance),
+		}*/
+	if !noop {
+		resp, err := r.conn.DeleteRoute(params)
+		if err != nil {
+			// Print the error, cast err to awserr.Error to get the Code and
+			// Message from an error.
+			fmt.Println(err.Error())
+			return err
+		}
+		fmt.Println(resp)
 	}
 	return nil
 }

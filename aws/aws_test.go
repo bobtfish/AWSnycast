@@ -936,22 +936,6 @@ func TestManageInstanceRouteCreateRouteGoodHealthcheck(t *testing.T) {
 	}
 }
 
-func TestRouteTableFetcherEC2DeleteInstanceRouteThisInstanceUnhealthy(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
-	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")
-	if route == nil {
-		t.Fail()
-	}
-	err := rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, "0.0.0.0/0", "i-605bd2aa", false, false)
-	if err != nil {
-		t.Fail()
-	}
-	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput != nil {
-		t.Log("ReplaceRouteInput != nil")
-		t.Fail()
-	}
-}
-
 func TestManageInstanceRouteDeleteInstanceRouteThisInstanceUnhealthy(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	s := ManageRoutesSpec{
