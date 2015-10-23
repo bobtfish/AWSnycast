@@ -445,7 +445,7 @@ func TestRouteTableFilterTagMatch(t *testing.T) {
 
 func TestGetCreateRouteInput(t *testing.T) {
 	rtb := ec2.RouteTable{RouteTableId: aws.String("rtb-1234")}
-	in := getCreateRouteInput(rtb, "0.0.0.0/0", "i-12345")
+	in := getCreateRouteInput(rtb, "0.0.0.0/0", "i-12345", false)
 	if *(in.RouteTableId) != "rtb-1234" {
 		t.Fail()
 	}
@@ -453,6 +453,17 @@ func TestGetCreateRouteInput(t *testing.T) {
 		t.Fail()
 	}
 	if *(in.InstanceId) != "i-12345" {
+		t.Fail()
+	}
+	if *(in.DryRun) != false {
+		t.Fail()
+	}
+}
+
+func TestGetCreateRouteInputDryRun(t *testing.T) {
+	rtb := ec2.RouteTable{RouteTableId: aws.String("rtb-1234")}
+	in := getCreateRouteInput(rtb, "0.0.0.0/0", "i-12345", true)
+	if *(in.DryRun) != true {
 		t.Fail()
 	}
 }
@@ -508,8 +519,12 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteNoop(t *testing.T) {
 		t.Log(err)
 		t.Fail()
 	}
-	// Should *not* have actually tried to replace the route
-	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput != nil {
+	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput == nil {
+		t.Fail()
+	}
+	// Should *not* have actually tried to replace the route - dry run mode
+	r := rtf.conn.(*FakeEC2Conn).ReplaceRouteInput
+	if *(r.DryRun) != true {
 		t.Fail()
 	}
 }

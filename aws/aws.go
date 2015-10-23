@@ -85,19 +85,16 @@ type RouteTableFetcherEC2 struct {
 	conn   MyEC2Conn
 }
 
-func getCreateRouteInput(rtb ec2.RouteTable, cidr string, instance string) ec2.CreateRouteInput {
+func getCreateRouteInput(rtb ec2.RouteTable, cidr string, instance string, noop bool) ec2.CreateRouteInput {
 	return ec2.CreateRouteInput{
 		RouteTableId:         rtb.RouteTableId,
 		DestinationCidrBlock: aws.String(cidr),
 		InstanceId:           aws.String(instance),
+		DryRun:               aws.Bool(noop),
 	}
 }
 
 func (r RouteTableFetcherEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageRoutesSpec, noop bool) error {
-	/*if rs.HealthcheckName != "" {
-		if rs.InstanceIsSelf {
-		}
-	}*/
 	route := findRouteFromRouteTable(rtb, rs.Cidr)
 	if route != nil {
 		if route.InstanceId != nil && *(route.InstanceId) == rs.Instance {
@@ -120,13 +117,11 @@ func (r RouteTableFetcherEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageR
 		return nil
 	}
 
-	opts := getCreateRouteInput(rtb, rs.Cidr, rs.Instance)
+	opts := getCreateRouteInput(rtb, rs.Cidr, rs.Instance, noop)
 
 	log.Printf("[INFO] Creating route for %s: %#v", *rtb.RouteTableId, opts)
-	if !noop {
-		if _, err := r.conn.CreateRoute(&opts); err != nil {
-			return err
-		}
+	if _, err := r.conn.CreateRoute(&opts); err != nil {
+		return err
 	}
 	return nil
 }
@@ -162,21 +157,20 @@ func (r RouteTableFetcherEC2) ReplaceInstanceRoute(routeTableId *string, route *
 		DestinationCidrBlock: aws.String(cidr),
 		RouteTableId:         routeTableId,
 		InstanceId:           aws.String(instance),
+		DryRun:               aws.Bool(noop),
 	}
 	if ifUnhealthy && *(route.State) == "active" {
 		log.Printf("Not replacing route, as current route is active/healthy")
 		return nil
 	}
-	if !noop {
-		resp, err := r.conn.ReplaceRoute(params)
-		if err != nil {
-			// Print the error, cast err to awserr.Error to get the Code and
-			// Message from an error.
-			fmt.Println(err.Error())
-			return err
-		}
-		fmt.Println(resp)
+	resp, err := r.conn.ReplaceRoute(params)
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return err
 	}
+	fmt.Println(resp)
 	return nil
 }
 
