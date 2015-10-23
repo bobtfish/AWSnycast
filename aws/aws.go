@@ -39,10 +39,10 @@ func NewMetadataFetcher(debug bool) MetadataFetcher {
 }
 
 type ManageRoutesSpec struct {
-	Cidr        string `yaml:"cidr"`
-	Instance    string `yaml:"instance"`
-	Healthcheck string `yaml:"healthcheck"`
-	IfUnhealthy bool   `yaml:"if_unhealthy"`
+	Cidr            string `yaml:"cidr"`
+	Instance        string `yaml:"instance"`
+	HealthcheckName string `yaml:"healthcheck"`
+	IfUnhealthy     bool   `yaml:"if_unhealthy"`
 }
 
 func (r *ManageRoutesSpec) Default(instance string) {
@@ -63,9 +63,9 @@ func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*health
 	if _, _, err := net.ParseCIDR(r.Cidr); err != nil {
 		return errors.New(fmt.Sprintf("Could not parse %s in %s", err.Error(), name))
 	}
-	if r.Healthcheck != "" {
-		if _, ok := healthchecks[r.Healthcheck]; !ok {
-			return errors.New(fmt.Sprintf("Route table %s, upsert %s cannot find healthcheck '%s'", name, r.Cidr, r.Healthcheck))
+	if r.HealthcheckName != "" {
+		if _, ok := healthchecks[r.HealthcheckName]; !ok {
+			return errors.New(fmt.Sprintf("Route table %s, upsert %s cannot find healthcheck '%s'", name, r.Cidr, r.HealthcheckName))
 		}
 	}
 	return nil

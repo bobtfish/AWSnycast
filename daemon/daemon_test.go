@@ -308,7 +308,7 @@ func TestHealthCheckOneUpsertRouteNilConfigPanic(t *testing.T) {
 			t.Fail()
 		}
 	}()
-	d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{Healthcheck: "foo"})
+	d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{HealthcheckName: "foo"})
 }
 
 func TestHealthCheckOneUpsertRouteNilConfigHealthchecksPanic(t *testing.T) {
@@ -323,13 +323,13 @@ func TestHealthCheckOneUpsertRouteNilConfigHealthchecksPanic(t *testing.T) {
 			t.Fail()
 		}
 	}()
-	d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{Healthcheck: "foo"})
+	d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{HealthcheckName: "foo"})
 }
 
 func TestHealthCheckOneUpsertRouteOneShot(t *testing.T) {
 	d := getD(true)
 	d.oneShot = true
-	if !d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{Healthcheck: "foo"}) {
+	if !d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{HealthcheckName: "foo"}) {
 		t.Fail()
 	}
 }
@@ -337,17 +337,17 @@ func TestHealthCheckOneUpsertRouteOneShot(t *testing.T) {
 func TestHealthCheckOneUpsertRoute(t *testing.T) {
 	d := getD(true)
 	d.Setup()
-	if d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{Healthcheck: "local"}) {
+	if d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{HealthcheckName: "local"}) {
 		t.Log("Healthcheck was healthy at start")
 		t.Fail()
 	}
 	d.Config.Healthchecks["local"].PerformHealthcheck() // Run the healthcheck twice to become healthy
-	if d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{Healthcheck: "local"}) {
+	if d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{HealthcheckName: "local"}) {
 		t.Log("Healthcheck was healthy after 1")
 		t.Fail()
 	}
 	d.Config.Healthchecks["local"].PerformHealthcheck()
-	if !d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{Healthcheck: "local"}) {
+	if !d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{HealthcheckName: "local"}) {
 		t.Log("Healthcheck not healthy after 2")
 		t.Fail()
 	}
@@ -356,7 +356,7 @@ func TestHealthCheckOneUpsertRoute(t *testing.T) {
 func TestRunOneUpsertRouteFailingHealthcheck(t *testing.T) {
 	d := getD(true)
 	d.Setup()
-	if d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{Healthcheck: "public"}) {
+	if d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{HealthcheckName: "public"}) {
 		t.Fail()
 	}
 	if d.RunOneUpsertRoute(&ec2.RouteTable{}, "a", d.Config.RouteTables["a"].ManageRoutes[0]) != nil {
@@ -375,13 +375,13 @@ func TestHealthCheckOneUpsertRouteUnknown(t *testing.T) {
 			t.Fail()
 		}
 	}()
-	d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{Healthcheck: "unknown"})
+	d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{HealthcheckName: "unknown"})
 }
 
 func TestHealthCheckOneUpsertRouteNoHealthcheck(t *testing.T) {
 	d := getD(true)
 	d.oneShot = false
-	if !d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{Healthcheck: ""}) {
+	if !d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{HealthcheckName: ""}) {
 		t.Fail()
 	}
 }
@@ -548,14 +548,14 @@ func TestRunSleepLoop(t *testing.T) {
 /*
 func TestHealthCheckOneUpsertRouteHealthcheckFail(t *testing.T) {
 	d := getD(true)
-	if d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{Healthcheck: "foo"}) {
+	if d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{HealthcheckName: "foo"}) {
 		t.Fail()
 	}
 }
 
 func TestHealthCheckOneUpsertRouteHealthcheckSuceed(t *testing.T) {
 	d := getD(true)
-	if !d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{Healthcheck: "foo"}) {
+	if !d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{HealthcheckName: "foo"}) {
 		t.Fail()
 	}
 } */

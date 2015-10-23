@@ -120,20 +120,20 @@ func (d *Daemon) RunOneRouteTable(rt []*ec2.RouteTable, name string, configRoute
 }
 
 func (d *Daemon) HealthCheckOneUpsertRoute(name string, upsertRoute *aws.ManageRoutesSpec) bool {
-	if !d.oneShot && upsertRoute.Healthcheck != "" {
+	if !d.oneShot && upsertRoute.HealthcheckName != "" {
 		if d.Config == nil || d.Config.Healthchecks == nil {
 			panic("No healthchecks, have you run Setup()?")
 		}
-		if hc, ok := d.Config.Healthchecks[upsertRoute.Healthcheck]; ok {
+		if hc, ok := d.Config.Healthchecks[upsertRoute.HealthcheckName]; ok {
 			//log.Printf("Got healthcheck %s", upsertRoute.Healthcheck)
 			if !hc.IsHealthy() {
-				log.Printf("Skipping upsert route %s, healthcheck %s isn't healthy yet", name, upsertRoute.Healthcheck)
+				log.Printf("Skipping upsert route %s, healthcheck %s isn't healthy yet", name, upsertRoute.HealthcheckName)
 				return false
 			}
 		} else {
-			panic(fmt.Sprintf("Could not find healthcheck %s", upsertRoute.Healthcheck))
+			panic(fmt.Sprintf("Could not find healthcheck %s", upsertRoute.HealthcheckName))
 		}
-		log.Printf("%s Is healthy", upsertRoute.Healthcheck)
+		log.Printf("%s Is healthy", upsertRoute.HealthcheckName)
 	}
 	return true
 }

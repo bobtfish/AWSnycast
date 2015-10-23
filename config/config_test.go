@@ -95,12 +95,12 @@ func TestLoadConfigHealthchecks(t *testing.T) {
 				t.Fail()
 			}
 			if route.Cidr == "0.0.0.0/0" {
-				if route.Healthcheck != "public" {
+				if route.HealthcheckName != "public" {
 					t.Log("Healthcheck not public")
 					t.Fail()
 				}
 			} else {
-				if route.Healthcheck != "localservice" {
+				if route.HealthcheckName != "localservice" {
 					t.Fail()
 				}
 			}
