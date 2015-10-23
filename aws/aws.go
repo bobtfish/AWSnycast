@@ -100,6 +100,11 @@ func (r RouteTableFetcherEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageR
 	}*/
 	route := findRouteFromRouteTable(rtb, rs.Cidr)
 	if route != nil {
+		if route.InstanceId != nil && *(route.InstanceId) == rs.Instance {
+			log.Printf("Skipping doing anything, %s is already routed via %s", rs.Cidr, rs.Instance)
+			return nil
+		}
+
 		if err := r.ReplaceInstanceRoute(rtb.RouteTableId, route, rs.Cidr, rs.Instance, rs.IfUnhealthy, noop); err != nil {
 			return err
 		}
