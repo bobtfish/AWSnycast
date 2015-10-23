@@ -27,14 +27,20 @@ type Daemon struct {
 	FetchWait         time.Duration
 }
 
-func (d *Daemon) Setup() error {
+func (d *Daemon) setupMetadataFetcher() {
 	if d.MetadataFetcher == nil {
 		d.MetadataFetcher = aws.NewMetadataFetcher(d.Debug)
 	}
+}
+
+func (d *Daemon) Setup() error {
+	d.setupMetadataFetcher()
 	if !d.MetadataFetcher.Available() {
 		return errors.New("No metadata service")
 	}
-	d.FetchWait = time.Second * 300
+	if d.FetchWait == 0 {
+		d.FetchWait = time.Second * 300
+	}
 	az, err := d.MetadataFetcher.GetMetadata("placement/availability-zone")
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error getting AZ: %s", err.Error()))

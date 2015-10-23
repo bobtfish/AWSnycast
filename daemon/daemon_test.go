@@ -96,6 +96,16 @@ func TestSetupNoMetadataService(t *testing.T) {
 	}
 }
 
+func TestSetupNormalMetadataService(t *testing.T) {
+	d := Daemon{
+		ConfigFile: "../tests/awsnycast.yaml",
+	}
+	d.setupMetadataFetcher()
+	if d.MetadataFetcher == nil {
+		t.Fail()
+	}
+}
+
 func myHealthCheckConstructorFail(h healthcheck.Healthcheck) (healthcheck.HealthChecker, error) {
 	return nil, errors.New("Test")
 }
