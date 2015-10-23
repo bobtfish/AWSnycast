@@ -1,0 +1,14 @@
+---
+healthchecks: {}
+routetables:
+    a:
+        find:
+            type: by_tag
+            config:
+                key: Name
+                value: private a
+        manage_routes:
+           - cidr: 0.0.0.0/0
+             instance: SELF
+             healthcheck: public
+
