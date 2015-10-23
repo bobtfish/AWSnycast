@@ -21,6 +21,10 @@ type HealthChecker interface {
 	Healthcheck() bool
 }
 
+type CanBeHealthy interface {
+	IsHealthy() bool
+}
+
 type Healthcheck struct {
 	Type          string `yaml:"type"`
 	Destination   string `yaml:"destination"`

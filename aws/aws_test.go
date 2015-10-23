@@ -888,3 +888,30 @@ func TestManageRouteSpecDefaultInstanceOther(t *testing.T) {
 		t.Fail()
 	}
 }
+
+type FakeHealthCheck struct {
+	isHealthy bool
+}
+
+func (h *FakeHealthCheck) IsHealthy() bool {
+	return h.isHealthy
+}
+
+func TestManageInstanceRouteNoCreateRouteBadHealthcheck(t *testing.T) {
+	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	s := ManageRoutesSpec{
+		Cidr:            "0.0.0.0/0",
+		Instance:        "i-1234",
+		IfUnhealthy:     false,
+		HealthcheckName: "foo",
+		healthcheck:     &FakeHealthCheck{isHealthy: false},
+	}
+	err := rtf.ManageInstanceRoute(rtb1, s, false)
+	if err != nil {
+		t.Fail()
+	}
+	if rtf.conn.(*FakeEC2Conn).CreateRouteInput != nil {
+		t.Log("rtf.conn.(*FakeEC2Conn).CreateRoute was called")
+		t.Fail()
+	}
+}

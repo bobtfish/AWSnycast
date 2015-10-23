@@ -43,7 +43,7 @@ type ManageRoutesSpec struct {
 	Instance        string `yaml:"instance"`
 	InstanceIsSelf  bool   `yaml:"-"`
 	HealthcheckName string `yaml:"healthcheck"`
-	healthcheck     *healthcheck.Healthcheck
+	healthcheck     healthcheck.CanBeHealthy
 	IfUnhealthy     bool `yaml:"if_unhealthy"`
 }
 
