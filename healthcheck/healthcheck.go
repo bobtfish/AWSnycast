@@ -27,6 +27,7 @@ type CanBeHealthy interface {
 }
 
 type Healthcheck struct {
+	CanPassYet    bool   `yaml:"-"`
 	runCount      uint64
 	Type          string `yaml:"type"`
 	Destination   string `yaml:"destination"`
@@ -50,6 +51,7 @@ func (h *Healthcheck) GetListener() <-chan bool {
 }
 
 func (h Healthcheck) stateChange() {
+	h.CanPassYet = true
 	for _, l := range h.listeners {
 		l <- h.isHealthy
 	}

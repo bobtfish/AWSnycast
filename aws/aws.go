@@ -128,7 +128,8 @@ func (r RouteTableFetcherEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageR
 	route := findRouteFromRouteTable(rtb, rs.Cidr)
 	if route != nil {
 		if route.InstanceId != nil && *(route.InstanceId) == rs.Instance {
-			if rs.HealthcheckName != "" && !rs.healthcheck.IsHealthy() {
+			if rs.HealthcheckName != "" && !rs.healthcheck.IsHealthy() && rs.healthcheck.CanPassYet {
+				log.Printf("[INFO] Deleting route for %s: %s %s", *rtb.RouteTableId, rs.Cidr, rs.Instance)
 				if err := r.DeleteInstanceRoute(rtb.RouteTableId, route, rs.Cidr, rs.Instance, noop); err != nil {
 					return err
 				}
