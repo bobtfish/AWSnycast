@@ -2,6 +2,8 @@ package config
 
 import (
 	"fmt"
+	a "github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"testing"
@@ -493,4 +495,87 @@ func TestRouteTableFindUnknownType(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
+}
+
+func TestUpdateEc2RouteTablesRouteTablesGetFilterFail(t *testing.T) {
+	awsRt := make([]*ec2.RouteTable, 0)
+	rt := &RouteTable{}
+	err := rt.UpdateEc2RouteTables(awsRt)
+	if err == nil {
+		t.Fail()
+	} else {
+		if err.Error() != "Healthcheck type '' not found in the healthcheck registry" {
+			t.Log(err)
+			t.Fail()
+		}
+	}
+}
+
+func TestUpdateEc2RouteTablesNoRouteTablesInAWS(t *testing.T) {
+	awsRt := make([]*ec2.RouteTable, 0)
+	c := make(map[string]string)
+	c["key"] = "Name"
+	c["value"] = "private a"
+	rt := &RouteTable{
+		Find: RouteTableFindSpec{
+			Type:   "by_tag",
+			Config: c,
+		},
+	}
+	err := rt.UpdateEc2RouteTables(awsRt)
+	if err == nil {
+		t.Fail()
+	} else {
+		if err.Error() != "No route table in AWS matched filter spec" {
+			t.Log(err)
+			t.Fail()
+		}
+	}
+}
+
+func TestUpdateEc2RouteTablesFindRouteTablesInAWS(t *testing.T) {
+	awsRt := make([]*ec2.RouteTable, 1)
+	awsRt[0] = &ec2.RouteTable{
+		Associations: []*ec2.RouteTableAssociation{},
+		RouteTableId: a.String("rtb-9696cffe"),
+		Routes:       []*ec2.Route{},
+		Tags: []*ec2.Tag{
+			&ec2.Tag{
+				Key:   a.String("Name"),
+				Value: a.String("private a"),
+			},
+		},
+	}
+	c := make(map[string]string)
+	c["key"] = "Name"
+	c["value"] = "private a"
+	rt := &RouteTable{
+		Find: RouteTableFindSpec{
+			Type:   "by_tag",
+			Config: c,
+		},
+	}
+	err := rt.UpdateEc2RouteTables(awsRt)
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+}
+
+type FakeRouteTableManager struct {
+	Error            error
+	RouteTable       ec2.RouteTable
+	ManageRoutesSpec ManageRoutesSpec
+	Noop             bool
+}
+
+func (r *FakeRouteTableManager) GetRouteTables() ([]*ec2.RouteTable, error) {
+	return nil, nil
+}
+
+func (r *FakeRouteTableManager) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageRoutesSpec, noop bool) error {
+	r.RouteTable = rtb
+	r.ManageRoutesSpec = rs
+	r.Noop = noop
+	return r.Error
 }
