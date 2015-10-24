@@ -1,6 +1,6 @@
 # AWSnycast
 
-[![Build Status](https://travis-ci.org/bobtfish/AWSnycast.svg)](https://travis-ci.org/bobtfish/AWSnycast)
+[![Build Status](https://travis-ci.org/bobtfish/AWSnycast.svg)](https://travis-ci.org/bobtfish/AWSnycast) [![Coverage Status](https://coveralls.io/repos/bobtfish/AWSnycast/badge.svg?branch=master&service=github)](https://coveralls.io/github/bobtfish/AWSnycast?branch=master)
 
 AWSnycast is a routing daemon for AWS route tables, to simulate an Anycast like service, and act as an
 extension of in-datacenter Anycast. It can also be used to provide HA NAT service.
