@@ -24,10 +24,11 @@ type HealthChecker interface {
 type CanBeHealthy interface {
 	IsHealthy() bool
 	GetListener() <-chan bool
+	CanPassYet() bool
 }
 
 type Healthcheck struct {
-	CanPassYet    bool   `yaml:"-"`
+	canPassYet    bool   `yaml:"-"`
 	runCount      uint64
 	Type          string `yaml:"type"`
 	Destination   string `yaml:"destination"`
@@ -50,11 +51,15 @@ func (h *Healthcheck) GetListener() <-chan bool {
 	return c
 }
 
-func (h Healthcheck) stateChange() {
-	h.CanPassYet = true
+func (h *Healthcheck) stateChange() {
+	h.canPassYet = true
 	for _, l := range h.listeners {
 		l <- h.isHealthy
 	}
+}
+
+func (h *Healthcheck) CanPassYet() bool {
+	return h.canPassYet
 }
 
 func (h Healthcheck) GetHealthChecker() (HealthChecker, error) {

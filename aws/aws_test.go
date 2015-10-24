@@ -917,6 +917,10 @@ func (h *FakeHealthCheck) GetListener() <-chan bool {
 	return make(chan bool)
 }
 
+func (h *FakeHealthCheck) CanPassYet() bool {
+	return true
+}
+
 func TestManageInstanceRouteNoCreateRouteBadHealthcheck(t *testing.T) {
 	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
 	s := ManageRoutesSpec{
