@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	a "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -565,7 +566,7 @@ func TestUpdateEc2RouteTablesFindRouteTablesInAWS(t *testing.T) {
 type FakeRouteTableManager struct {
 	Error            error
 	RouteTable       ec2.RouteTable
-	ManageRoutesSpec ManageRoutesSpec
+	ManageRoutesSpec aws.ManageRoutesSpec
 	Noop             bool
 }
 
@@ -573,9 +574,50 @@ func (r *FakeRouteTableManager) GetRouteTables() ([]*ec2.RouteTable, error) {
 	return nil, nil
 }
 
-func (r *FakeRouteTableManager) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageRoutesSpec, noop bool) error {
+func (r *FakeRouteTableManager) ManageInstanceRoute(rtb ec2.RouteTable, rs aws.ManageRoutesSpec, noop bool) error {
 	r.RouteTable = rtb
 	r.ManageRoutesSpec = rs
 	r.Noop = noop
 	return r.Error
+}
+
+func TestRunEc2Updates(t *testing.T) {
+	rt := &RouteTable{
+		ManageRoutes: []*aws.ManageRoutesSpec{&aws.ManageRoutesSpec{Cidr: "127.0.0.1"}},
+	}
+	rt.Default("i-1234")
+	rt.ec2RouteTables = append(rt.ec2RouteTables, &ec2.RouteTable{
+		Associations: []*ec2.RouteTableAssociation{},
+		RouteTableId: a.String("rtb-9696cffe"),
+		Routes:       []*ec2.Route{},
+		Tags: []*ec2.Tag{
+			&ec2.Tag{
+				Key:   a.String("Name"),
+				Value: a.String("private a"),
+			},
+		},
+	})
+	frtm := &FakeRouteTableManager{}
+	err := rt.RunEc2Updates(frtm, true)
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	if *(frtm.RouteTable.RouteTableId) != "rtb-9696cffe" {
+		t.Log(*(frtm.RouteTable.RouteTableId))
+		t.Fail()
+	}
+	if frtm.ManageRoutesSpec.Cidr != "127.0.0.1/32" {
+		t.Fail()
+	}
+	frtm.Error = errors.New("Test error")
+	err = rt.RunEc2Updates(frtm, true)
+	if err == nil {
+		t.Fail()
+	} else {
+		if err.Error() != "Test error" {
+			t.Log(err)
+			t.Fail()
+		}
+	}
 }
