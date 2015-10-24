@@ -3,8 +3,11 @@ package aws
 import (
 	"errors"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/healthcheck"
+	"os"
 	"testing"
 )
 
@@ -997,4 +1000,20 @@ func TestManageInstanceRouteDeleteInstanceRouteThisInstanceUnhealthyAWSFail(t *t
 			t.Fail()
 		}
 	}
+}
+
+func TestGetCredFail(t *testing.T) {
+	os.Setenv("AWS_ACCESS_KEY_ID", "")
+	os.Setenv("AWS_ACCESS_KEY", "")
+	defer func() {
+		err := recover()
+		if err == nil {
+			t.Fail()
+		}
+		if err.(awserr.Error).Error() != "NoCredentialProviders: no valid providers in chain" {
+			t.Log(err)
+			t.Fail()
+		}
+	}()
+	getCred([]credentials.Provider{&credentials.EnvProvider{}})
 }

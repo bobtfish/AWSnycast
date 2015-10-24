@@ -183,9 +183,8 @@ func (r RouteTableFetcherEC2) GetRouteTables() ([]*ec2.RouteTable, error) {
 	return resp.RouteTables, nil
 }
 
-func NewRouteTableFetcher(region string, debug bool) RouteTableFetcher {
-	r := RouteTableFetcherEC2{}
-	providers := []credentials.Provider{
+func getProviders() []credentials.Provider {
+	return []credentials.Provider{
 		&credentials.EnvProvider{},
 		&ec2rolecreds.EC2RoleProvider{
 			Client: ec2metadata.New(&ec2metadata.Config{
@@ -195,11 +194,21 @@ func NewRouteTableFetcher(region string, debug bool) RouteTableFetcher {
 			}),
 		},
 	}
+}
+
+func getCred(providers []credentials.Provider) *credentials.Credentials {
 	cred := credentials.NewChainCredentials(providers)
 	_, credErr := cred.Get()
 	if credErr != nil {
 		panic(credErr)
 	}
+	return cred
+}
+
+func NewRouteTableFetcher(region string, debug bool) RouteTableFetcher {
+	r := RouteTableFetcherEC2{}
+	providers := getProviders()
+	cred := getCred(providers)
 	awsConfig := &aws.Config{
 		Credentials: cred,
 		Region:      aws.String(region),
