@@ -44,6 +44,7 @@ type ManageRoutesSpec struct {
 	healthcheck     healthcheck.CanBeHealthy
 	IfUnhealthy     bool `yaml:"if_unhealthy"`
 	ec2RouteTables  []*ec2.RouteTable
+	Manager         RouteTableFetcher `yaml:"-"`
 }
 
 func (r *ManageRoutesSpec) Default(instance string) {
@@ -75,6 +76,25 @@ func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*health
 		r.healthcheck = hc
 	}
 	return nil
+}
+
+func (r *ManageRoutesSpec) StartHealthcheckListener(noop bool) {
+	if r.healthcheck == nil {
+		return
+	}
+	go func() {
+		c := r.healthcheck.GetListener()
+		for {
+			<-c
+			log.Printf("Got notification from healthcheck, kicking routes")
+			for _, rtb := range r.ec2RouteTables {
+				if err := r.Manager.ManageInstanceRoute(*rtb, *r, noop); err != nil {
+					log.Printf(err.Error())
+				}
+			}
+		}
+	}()
+	return
 }
 
 func (r *ManageRoutesSpec) UpdateEc2RouteTables(rt []*ec2.RouteTable) {

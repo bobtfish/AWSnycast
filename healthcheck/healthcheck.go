@@ -23,6 +23,7 @@ type HealthChecker interface {
 
 type CanBeHealthy interface {
 	IsHealthy() bool
+	GetListener() <-chan bool
 }
 
 type Healthcheck struct {

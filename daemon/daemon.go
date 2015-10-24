@@ -96,6 +96,11 @@ func (d *Daemon) runHealthChecks() {
 	for _, v := range d.Config.Healthchecks {
 		v.Run(d.Debug)
 	}
+	for _, configRouteTables := range d.Config.RouteTables {
+		for _, mr := range configRouteTables.ManageRoutes {
+			mr.StartHealthcheckListener(d.noop)
+		}
+	}
 	if d.Debug {
 		log.Printf("Done starting healthchecks")
 	}
@@ -135,10 +140,6 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 		return 1
 	}
 	d.quitChan = make(chan bool, 1)
-	if !oneShot {
-		d.runHealthChecks()
-		defer d.stopHealthChecks()
-	}
 	err := d.RunRouteTables()
 	if err != nil {
 		log.Printf("Error: %v", err)
@@ -149,6 +150,8 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 	if oneShot {
 		d.quitChan <- true
 	} else {
+		d.runHealthChecks()
+		defer d.stopHealthChecks()
 		d.RunSleepLoop()
 	}
 	<-d.quitChan

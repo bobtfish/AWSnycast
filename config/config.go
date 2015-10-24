@@ -66,6 +66,7 @@ func (r *RouteTable) RunEc2Updates(manager aws.RouteTableFetcher, noop bool) err
 	for _, rtb := range r.ec2RouteTables {
 		log.Printf("Finder found route table %v", rtb)
 		for _, manageRoute := range r.ManageRoutes {
+			manageRoute.Manager = manager // FIXME - this is gross
 			log.Printf("Trying to manage route to %s", manageRoute.Cidr)
 			if err := manager.ManageInstanceRoute(*rtb, *manageRoute, noop); err != nil {
 				return err
