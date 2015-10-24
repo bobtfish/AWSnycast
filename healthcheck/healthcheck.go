@@ -38,6 +38,7 @@ type Healthcheck struct {
 	quitChan      chan<- bool
 	hasQuitChan   <-chan bool
 	Config        map[string]string
+	listeners     []chan<- bool
 }
 
 func (h Healthcheck) GetHealthChecker() (HealthChecker, error) {
@@ -65,6 +66,7 @@ func (h *Healthcheck) Default() {
 		max = 10
 	}
 	h.History = make([]bool, max)
+	h.listeners = make([]chan<- bool, 0)
 }
 
 func (h Healthcheck) IsHealthy() bool {

@@ -23,6 +23,7 @@ func TestHealthcheckPing(t *testing.T) {
 }
 
 func TestHealthcheckPingFail(t *testing.T) {
+	cmd = "false"
 	h := Healthcheck{
 		Type:        "ping",
 		Destination: "169.254.255.45", // Hopefully you can't talk to this :)

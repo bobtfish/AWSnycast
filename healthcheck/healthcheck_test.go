@@ -20,6 +20,9 @@ func TestHealthcheckDefault(t *testing.T) {
 	if h.Config == nil {
 		t.Fail()
 	}
+	if h.listeners == nil {
+		t.Fail()
+	}
 }
 
 func TestHealthcheckValidateNoType(t *testing.T) {
