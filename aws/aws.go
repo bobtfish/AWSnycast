@@ -85,8 +85,11 @@ func (r *ManageRoutesSpec) StartHealthcheckListener(noop bool) {
 	go func() {
 		c := r.healthcheck.GetListener()
 		for {
-			<-c
-			log.Printf("Got notification from healthcheck, kicking routes")
+			resText := "FAILED"
+			if <-c {
+				resText = "PASSED"
+			}
+			log.Printf("Got notification from healthcheck %s: %s, kicking routes for %s", r.HealthcheckName, resText, r.Cidr)
 			for _, rtb := range r.ec2RouteTables {
 				log.Printf("RTB IN KICK: %+v", rtb)
 				if err := r.Manager.ManageInstanceRoute(*rtb, *r, noop); err != nil {
