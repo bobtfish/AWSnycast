@@ -50,6 +50,13 @@ and _journalctl -u awsnycast_ to view the logs.
 
 Try terminating one of the machines and watch routes fail over!
 
+Or try running:
+
+    sudo iptables -I OUTPUT -d 8.8.8.8 -j DROP
+
+to kill the healthcheck on one machine, and watch it drop the route and the other
+machine pick it up.
+
 # Installation
 
 You need go installed to build this project (go 1.4 or 1.5). 
@@ -81,6 +88,27 @@ You can run AWSnycast -h to get a list of helpful options:
             Run route table manipulation exactly once, ignoring healthchecks, then exit
 
 Once you've got it fully setup, you shouldn't need any options.
+
+To run it also needs permissions to access the AWS API. This can be done either by
+supplying the standard *AWS_ACCESS_KEY_ID* and *AWS_SECRET_ACCESS_KEY* environment
+variables, or by applying an IAM Role to the instance running AWSnycast (recommended).
+
+An example IAM Policy is shown below:
+
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+            {
+                "Action": [
+                    "ec2:ReplaceRoute",
+                    "ec2:CreateRoute",
+                    "ec2:DescribeRouteTables"
+                ],
+                "Effect": "Allow",
+                "Resource": "*"
+            }
+        ]
+    }
 
 # Configuration
 
@@ -152,6 +180,24 @@ An example config is shown below:
 ### Finding them
 
 ### Managing them
+
+# TODO
+
+This project is currently under heavy development.
+
+Here's a list of the features that I'm planning to work on next, in approximate order:
+
+  * Making healthchecks actively notify routing tables on state change (so that changes happen more often than once every 5m)
+  * Make us autodetect the VPC this instance is running in, and refuse to adjust routing tables in other VPCs
+  * Make route table finding more flexible - be able to search by more than tag, and be able to interpolate current AZ
+  * Make how often we poll AWS for route tables configurable
+  * Enable the use of multiple different healthchecks for a route (to only consider it down if multiple checks fail)
+  * Make how often we poll AWS for route tables flexible (max/min times, and backoff)
+  * Implement 'negative' healthchecks, to be able to check the routes currently managed by other instances,
+    and takeover faster than the other instance deleting it's route + polling time.
+  * Add serf gossip between instances, to allow faster and reliable failover/STONITH
+  * Add the ability to have external clients participate in healthchecks in the serf network.
+  * Add a web interface to be able to get the state (and manually initiate failovers?)
 
 # Contributing
 
