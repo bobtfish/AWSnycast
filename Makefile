@@ -1,4 +1,4 @@
-.PHONY: coverage get test
+.PHONY: coverage get test clean
 
 all: get coverage AWSnycast
 
@@ -13,6 +13,9 @@ get:
 
 coverage:
 	go test -cover ./...
+
+clean:
+	rm -f */coverage.out */coverprofile.out coverage.out coverprofile.out AWSnycast
 
 coverage.out:
 	cd aws ; go test -coverprofile=coverage.out ./... ; cd ..
