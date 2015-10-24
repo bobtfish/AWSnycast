@@ -6,8 +6,7 @@ before_install:
 - go get github.com/axw/gocov/gocov
 - go get github.com/mattn/goveralls
 - if ! go get github.com/golang/tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
-script:
-- make
+after_success:
 - make coverage.out
 - $HOME/gopath/bin/goveralls -coverprofile coverage.out -service=travis-ci
 go:
@@ -16,6 +15,7 @@ go:
 env:
 - AWS_ACCESS_KEY_ID=AKIAJRYDH3TP2D3WKRNQ AWS_SECRET_ACCESS_KEY=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
 deploy:
+  skip_cleanup: true
   provider: releases
   api_key:
     secure: Fsjtv/dMVNDEvrkwxxrZJR1dUf526nG70/SDVfCHKqEBrkTQqPHgymWloo3D9DHpWhBOvbqtRCPLIcy/TqRUCnviZ4HVYlUXER0r7uQXk2eKUoxu6N5DKn/J3BKZwSi3ZW9GicsDqdfhZlnrVweBPzmmcklBqAkBjpfIyynlE+Y=
