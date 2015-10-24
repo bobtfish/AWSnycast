@@ -108,6 +108,14 @@ An example config is shown below:
 
 ### Managing them
 
+# Contributing
+
+Bug reports, success(or failure) stories, questions, suggestions, feature requests and (documentation or code) patches are all very welcome.
+
+Please feel free to ping t0m on Freenode or @bobtfish on Twitter if you'd like help configuring/using/debugging/improving this software.
+
+Please note however that this project is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms.
+
 # Copyright
 
 Copyright Tomas Doran 2015
