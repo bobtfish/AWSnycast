@@ -25,6 +25,28 @@ func TestHealthcheckDefault(t *testing.T) {
 	}
 }
 
+func TestHealthcheckDefaultLengthRise(t *testing.T) {
+	h := Healthcheck{
+		Type: "ping",
+		Rise: 20,
+	}
+	h.Default()
+	if len(h.History) != 21 {
+		t.Fail()
+	}
+}
+
+func TestHealthcheckDefaultLengthFall(t *testing.T) {
+	h := Healthcheck{
+		Type: "ping",
+		Fall: 20,
+	}
+	h.Default()
+	if len(h.History) != 21 {
+		t.Fail()
+	}
+}
+
 func TestHealthcheckValidateNoType(t *testing.T) {
 	h := Healthcheck{
 		Destination: "127.0.0.1",
