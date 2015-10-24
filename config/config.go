@@ -8,6 +8,7 @@ import (
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"log"
 )
 
 type RouteTableFindSpec struct {
@@ -44,6 +45,31 @@ type RouteTable struct {
 	Find           RouteTableFindSpec      `yaml:"find"`
 	ManageRoutes   []*aws.ManageRoutesSpec `yaml:"manage_routes"`
 	ec2RouteTables []*ec2.RouteTable
+}
+
+func (r *RouteTable) UpdateEc2RouteTables(rt []*ec2.RouteTable) error {
+	filter, err := r.Find.GetFilter()
+	if err != nil {
+		return err
+	}
+	r.ec2RouteTables = aws.FilterRouteTables(filter, rt)
+	if len(r.ec2RouteTables) == 0 {
+		return errors.New("No route table in AWS matched filter spec")
+	}
+	return nil
+}
+
+func (r *RouteTable) RunEc2Updates(manager aws.RouteTableFetcher, noop bool) error {
+	for _, rtb := range r.ec2RouteTables {
+		log.Printf("Finder found route table %v", rtb)
+		for _, manageRoute := range r.ManageRoutes {
+			log.Printf("Trying to manage route to %s", manageRoute.Cidr)
+			if err := manager.ManageInstanceRoute(*rtb, *manageRoute, noop); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 type Config struct {

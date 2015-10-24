@@ -331,6 +331,30 @@ func TestGetSubnetIdMacOk(t *testing.T) {
 
 func TestRunOneShot(t *testing.T) {
 	d := getD(true)
+	awsRt := make([]*ec2.RouteTable, 2)
+	awsRt[0] = &ec2.RouteTable{
+		Associations: []*ec2.RouteTableAssociation{},
+		RouteTableId: a.String("rtb-9696cffe"),
+		Routes:       []*ec2.Route{},
+		Tags: []*ec2.Tag{
+			&ec2.Tag{
+				Key:   a.String("Name"),
+				Value: a.String("private a"),
+			},
+		},
+	}
+	awsRt[1] = &ec2.RouteTable{
+		Associations: []*ec2.RouteTableAssociation{},
+		RouteTableId: a.String("rtb-deadbeef"),
+		Routes:       []*ec2.Route{},
+		Tags: []*ec2.Tag{
+			&ec2.Tag{
+				Key:   a.String("Name"),
+				Value: a.String("private b"),
+			},
+		},
+	}
+	d.RouteTableFetcher.(*FakeRouteTableFetcher).Tables = awsRt
 	if d.Run(true, true) != 0 {
 		t.Fail()
 	}
@@ -364,8 +388,13 @@ func TestRunOneRouteTableNoRouteTablesInAWS(t *testing.T) {
 		},
 	}
 	err := d.RunOneRouteTable(awsRt, "public", rt)
-	if err != nil {
+	if err == nil {
 		t.Fail()
+	} else {
+		if err.Error() != "No route table in AWS matched filter spec" {
+			t.Log(err)
+			t.Fail()
+		}
 	}
 }
 
@@ -491,9 +520,34 @@ func TestRunSleepLoop(t *testing.T) {
 func TestRunOneReal(t *testing.T) {
 	d := getD(true)
 	d.FetchWait = time.Nanosecond
+	awsRt := make([]*ec2.RouteTable, 2)
+	awsRt[0] = &ec2.RouteTable{
+		Associations: []*ec2.RouteTableAssociation{},
+		RouteTableId: a.String("rtb-9696cffe"),
+		Routes:       []*ec2.Route{},
+		Tags: []*ec2.Tag{
+			&ec2.Tag{
+				Key:   a.String("Name"),
+				Value: a.String("private a"),
+			},
+		},
+	}
+	awsRt[1] = &ec2.RouteTable{
+		Associations: []*ec2.RouteTableAssociation{},
+		RouteTableId: a.String("rtb-deadbeef"),
+		Routes:       []*ec2.Route{},
+		Tags: []*ec2.Tag{
+			&ec2.Tag{
+				Key:   a.String("Name"),
+				Value: a.String("private b"),
+			},
+		},
+	}
+	d.RouteTableFetcher.(*FakeRouteTableFetcher).Tables = awsRt
 	hasFinishedRunLoop := make(chan bool, 1)
 	go func() {
 		if d.Run(false, true) != 0 {
+			t.Log("Run was not successful")
 			t.Fail()
 		}
 		hasFinishedRunLoop <- true

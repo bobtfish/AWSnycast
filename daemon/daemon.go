@@ -108,21 +108,10 @@ func (d *Daemon) stopHealthChecks() {
 }
 
 func (d *Daemon) RunOneRouteTable(rt []*ec2.RouteTable, name string, configRouteTable *config.RouteTable) error {
-	filter, err := configRouteTable.Find.GetFilter()
-	if err != nil {
+	if err := configRouteTable.UpdateEc2RouteTables(rt); err != nil {
 		return err
 	}
-	remaining := aws.FilterRouteTables(filter, rt)
-	for _, rtb := range remaining {
-		log.Printf("Finder name %s found route table %v", name, rtb)
-		for _, upsertRoute := range configRouteTable.ManageRoutes {
-			//log.Printf("Trying to upsert route to %s", upsertRoute.Cidr)
-			if err := d.RouteTableFetcher.ManageInstanceRoute(*rtb, *upsertRoute, d.noop); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
+	return configRouteTable.RunEc2Updates(d.RouteTableFetcher, d.noop)
 }
 
 func (d *Daemon) RunRouteTables() error {
