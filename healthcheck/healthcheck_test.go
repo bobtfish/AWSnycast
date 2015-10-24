@@ -361,6 +361,69 @@ func TestHealthcheckFall(t *testing.T) {
 	}
 }
 
+func TestHealthcheckFallTen(t *testing.T) {
+	RegisterHealthcheck("test_fail", MyFakeHealthConstructorFail)
+	h_ok := Healthcheck{Type: "test_fail", Destination: "127.0.0.1", Fall: 10}
+	h_ok.Default()
+	h_ok.Setup()
+	h_ok.History = []bool{true, true, true, true, true, true, true, true, true, true, true}
+	h_ok.isHealthy = true
+	if !h_ok.IsHealthy() {
+		t.Log("Started unhealthy")
+		t.Fail()
+	}
+	h_ok.PerformHealthcheck()
+	if !h_ok.IsHealthy() {
+		t.Log("Became unhealthy after 1 (expected 2)")
+		t.Fail()
+	}
+	h_ok.PerformHealthcheck()
+	if !h_ok.IsHealthy() {
+		t.Log("Never unhealthy")
+		t.Fail()
+	}
+	h_ok.PerformHealthcheck() // 3
+	if !h_ok.IsHealthy() {
+		t.Fail()
+	}
+	h_ok.PerformHealthcheck()
+	if !h_ok.IsHealthy() {
+		t.Fail()
+	}
+	h_ok.PerformHealthcheck()
+	if !h_ok.IsHealthy() {
+		t.Fail()
+	}
+	h_ok.PerformHealthcheck()
+	if !h_ok.IsHealthy() {
+		t.Fail()
+	}
+	h_ok.PerformHealthcheck()
+	if !h_ok.IsHealthy() {
+		t.Fail()
+	}
+	h_ok.PerformHealthcheck()
+	if !h_ok.IsHealthy() {
+		t.Fail()
+	}
+	h_ok.PerformHealthcheck()
+	if !h_ok.IsHealthy() {
+		t.Fail()
+	}
+	h_ok.PerformHealthcheck() // 10
+	if h_ok.IsHealthy() {
+		t.Log("Didn't become unhealthy after 10")
+		t.Fail()
+	}
+	h_ok.PerformHealthcheck() // 11 to get false all through history
+	for i, v := range h_ok.History {
+		if v {
+			t.Log(fmt.Printf("Index %d was healthy", i))
+			t.Fail()
+		}
+	}
+}
+
 func TestHealthcheckRun(t *testing.T) {
 	RegisterHealthcheck("test_ok", MyFakeHealthConstructorOk)
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}

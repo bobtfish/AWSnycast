@@ -75,6 +75,7 @@ func (h *Healthcheck) Default() {
 	if h.Fall > h.Rise {
 		max = h.Rise
 	}
+	max = max + 1 // Avoid integer overflow in the loop counting down by keeping 1 more check than we need.
 	if max < 10 {
 		max = 10
 	}
