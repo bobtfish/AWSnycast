@@ -51,6 +51,7 @@ resource "aws_iam_role_policy" "modify_routes" {
             "Action": [
                 "ec2:ReplaceRoute",
                 "ec2:CreateRoute",
+                "ec2:DeleteRoute",
                 "ec2:DescribeRouteTables"
             ],
             "Effect": "Allow",
