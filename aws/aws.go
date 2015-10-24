@@ -88,8 +88,9 @@ func (r *ManageRoutesSpec) StartHealthcheckListener(noop bool) {
 			<-c
 			log.Printf("Got notification from healthcheck, kicking routes")
 			for _, rtb := range r.ec2RouteTables {
+				log.Printf("RTB IN KICK: %+v", rtb)
 				if err := r.Manager.ManageInstanceRoute(*rtb, *r, noop); err != nil {
-					log.Printf(err.Error())
+					log.Printf("ERROR: %s", err.Error())
 				}
 			}
 		}

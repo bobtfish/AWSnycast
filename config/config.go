@@ -57,7 +57,7 @@ func (r *RouteTable) UpdateEc2RouteTables(rt []*ec2.RouteTable) error {
 		return errors.New("No route table in AWS matched filter spec")
 	}
 	for _, manage := range r.ManageRoutes {
-		manage.UpdateEc2RouteTables(rt)
+		manage.UpdateEc2RouteTables(r.ec2RouteTables)
 	}
 	return nil
 }
