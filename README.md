@@ -39,9 +39,54 @@ from in-datacenter.
 N.B. Whilst publishing routes to *from* AWS into your datacenter's BGP would be useful, at this
 time that is beyond the goals for this project.
 
+# Trying it out
+
+In the tests/integration folder, there is [Terraform](terraform.io) code which will build
+a simple AWS VPC, with 2 AZs and 2 NAT machines (with HA and failover), and AWSnycast setup.
+
+To try this, you can just run _make_ then _terraform apply_ in that directory to build
+the example network, then _make sshnat_ to log into one of the machines,
+and _journalctl -u awsnycast_ to view the logs.
+
+Try terminating one of the machines and watch routes fail over!
+
+# Installation
+
+You need go installed to build this project (go 1.4 or 1.5). 
+
+Once you have go installed, and a GOPATH setup, you should be able
+to install with:
+
+    go get github.com/bobtfish/AWSnycast
+    go install github.com/bobtfish/AWSnycast
+
+This will install the software to the bin directory in the first part of your GOPATH.
+
+Run this to find it:
+
+    echo $(echo $GOPATH|cut -d: -f1)/bin/AWSnycast
+
+# Running it
+
+You can run AWSnycast -h to get a list of helpful options:
+
+    Usage of AWSnycast:
+      -debug
+            Enable debugging
+      -f string
+            Configration file (default "/etc/awsnycast.yaml")
+      -noop
+            Don't actually *do* anything, just print what would be done
+      -oneshot
+            Run route table manipulation exactly once, ignoring healthchecks, then exit
+
+Once you've got it fully setup, you shouldn't need any options.
+
 # Configuration
 
 Which routes to advertise into which route tables is configured with a YAML config file.
+
+By default AWSnycast will look for this in /etc/awsnycast.yaml
 
 An example config is shown below:
 
