@@ -398,3 +398,55 @@ func TestHealthcheckStop(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestHealthcheckListener(t *testing.T) {
+	h := Healthcheck{
+		Type:        "ping",
+		Destination: "127.0.0.1",
+	}
+	h.Default()
+	err := h.Validate("foo")
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	err = h.Setup()
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	c := h.GetListener()
+	h.PerformHealthcheck()
+	h.PerformHealthcheck()
+	val := <-c
+	if val != true {
+		t.Fail()
+	}
+}
+
+func TestHealthcheckListenerUnhealthy(t *testing.T) {
+	pingCmd = "false"
+	h := Healthcheck{
+		Type:        "ping",
+		Destination: "127.0.0.1",
+	}
+	h.Default()
+	err := h.Validate("foo")
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	err = h.Setup()
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	c := h.GetListener()
+	h.PerformHealthcheck()
+	h.PerformHealthcheck()
+	val := <-c
+	if val != false {
+		t.Fail()
+	}
+	pingCmd = "ping"
+}

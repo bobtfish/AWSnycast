@@ -26,6 +26,7 @@ type CanBeHealthy interface {
 }
 
 type Healthcheck struct {
+	runCount      uint64
 	Type          string `yaml:"type"`
 	Destination   string `yaml:"destination"`
 	isHealthy     bool   `yaml:"-"`
@@ -39,6 +40,18 @@ type Healthcheck struct {
 	hasQuitChan   <-chan bool
 	Config        map[string]string
 	listeners     []chan<- bool
+}
+
+func (h *Healthcheck) GetListener() <-chan bool {
+	c := make(chan bool, 5)
+	h.listeners = append(h.listeners, c)
+	return c
+}
+
+func (h Healthcheck) stateChange() {
+	for _, l := range h.listeners {
+		l <- h.isHealthy
+	}
 }
 
 func (h Healthcheck) GetHealthChecker() (HealthChecker, error) {
@@ -77,6 +90,7 @@ func (h *Healthcheck) PerformHealthcheck() {
 	if h.healthchecker == nil {
 		panic("Setup() never called for healthcheck before Run")
 	}
+	h.runCount = h.runCount + 1
 	result := h.healthchecker.Healthcheck()
 	maxIdx := uint(len(h.History) - 1)
 	h.History = append(h.History[:0], h.History[1:]...)
@@ -90,15 +104,20 @@ func (h *Healthcheck) PerformHealthcheck() {
 		}
 		log.Printf("Healthcheck %s to %s is unhealthy", h.Type, h.Destination)
 		h.isHealthy = false
-	} else {
+		h.stateChange()
+	} else { // Currently unhealthy
 		downTo := maxIdx - h.Rise + 1
 		for i := maxIdx; i >= downTo; i-- {
-			if !h.History[i] {
+			if !h.History[i] { // Still unhealthy
+				if h.runCount == uint64(h.Rise) { // We just started running, and *could* have come healthy, but didn't,
+					h.stateChange() // so lets inform anyone listening, in case they want to take action
+				}
 				return
 			}
 		}
 		h.isHealthy = true
 		log.Printf("Healthcheck %s to %s is healthy", h.Type, h.Destination)
+		h.stateChange()
 	}
 }
 

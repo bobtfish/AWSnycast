@@ -5,10 +5,10 @@ import (
 	"os/exec"
 )
 
-var cmd string
+var pingCmd string
 
 func init() {
-	cmd = "ping"
+	pingCmd = "ping"
 	RegisterHealthcheck("ping", PingConstructor)
 }
 
@@ -18,7 +18,7 @@ type PingHealthCheck struct {
 
 func (h PingHealthCheck) Healthcheck() bool {
 	args := []string{"-c", "1", h.Destination}
-	if err := exec.Command(cmd, args...).Run(); err != nil {
+	if err := exec.Command(pingCmd, args...).Run(); err != nil {
 		log.Printf("ping healthcheck to %s failed: %s", h.Destination, err.Error())
 		return false
 	}
