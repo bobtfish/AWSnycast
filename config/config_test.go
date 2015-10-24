@@ -555,6 +555,11 @@ func TestUpdateEc2RouteTablesFindRouteTablesInAWS(t *testing.T) {
 			Type:   "by_tag",
 			Config: c,
 		},
+		ManageRoutes: []*aws.ManageRoutesSpec{
+			&aws.ManageRoutesSpec{
+				Cidr: "127.0.0.1/32",
+			},
+		},
 	}
 	err := rt.UpdateEc2RouteTables(awsRt)
 	if err != nil {

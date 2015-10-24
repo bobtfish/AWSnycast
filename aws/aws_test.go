@@ -1017,3 +1017,21 @@ func TestGetCredFail(t *testing.T) {
 	}()
 	getCred([]credentials.Provider{&credentials.EnvProvider{}})
 }
+
+func TestEc2RouteTablesDefault(t *testing.T) {
+	rs := &ManageRoutesSpec{
+		Cidr: "127.0.0.1",
+	}
+	rs.Default("i-1234")
+	if rs.ec2RouteTables == nil {
+		t.Fail()
+	}
+}
+
+func TestUpdateEc2RouteTables(t *testing.T) {
+	rs := &ManageRoutesSpec{}
+	rs.UpdateEc2RouteTables([]*ec2.RouteTable{})
+	if rs.ec2RouteTables == nil {
+		t.Fail()
+	}
+}

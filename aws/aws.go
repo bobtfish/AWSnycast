@@ -43,6 +43,7 @@ type ManageRoutesSpec struct {
 	HealthcheckName string `yaml:"healthcheck"`
 	healthcheck     healthcheck.CanBeHealthy
 	IfUnhealthy     bool `yaml:"if_unhealthy"`
+	ec2RouteTables  []*ec2.RouteTable
 }
 
 func (r *ManageRoutesSpec) Default(instance string) {
@@ -56,6 +57,7 @@ func (r *ManageRoutesSpec) Default(instance string) {
 		r.InstanceIsSelf = true
 		r.Instance = instance
 	}
+	r.ec2RouteTables = make([]*ec2.RouteTable, 0)
 }
 
 func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck) error {
@@ -73,6 +75,10 @@ func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*health
 		r.healthcheck = hc
 	}
 	return nil
+}
+
+func (r *ManageRoutesSpec) UpdateEc2RouteTables(rt []*ec2.RouteTable) {
+	r.ec2RouteTables = rt
 }
 
 type RouteTableFetcher interface {
