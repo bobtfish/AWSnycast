@@ -3,24 +3,28 @@
 [![Build Status](https://travis-ci.org/bobtfish/AWSnycast.svg)](https://travis-ci.org/bobtfish/AWSnycast)
 
 AWSnycast is a routing daemon for AWS route tables, to simulate an Anycast like service, and act as an
-extension of in-datacenter Anycast. It can also be used to provide a scalable HA NAT service.
+extension of in-datacenter Anycast. It can also be used to provide HA NAT service.
 
 # NAT
 
 A common pattern in AWS is to route egressing traffic (from private subnets) through a NAT instance
 in a public subnet. AWSnycast can manage one or more NAT instances for you automatically, allowing
-you to deploy one or more NAT instances per VPC. If an AZ has a NAT instance, then it should be used
-for that AZ's traffic (to avoid cross AZ transfer costs + latency). AWSnycast will ensure that routes
-are repaired if one of your NAT instances fails.
+you to deploy one or more NAT instances per VPC.
+
+You can deploy 2 NAT machines, in different availability zones, and configure a private routing table
+for each AZ. AWSnycast can then be used to manage the routes to these NAT machines for High Availability,
+such that by default, both machines will be active (for their AZ - to avoid cross AZ transfer costs + latency),
+however if one machine fails, then the remaining machine will take over it's route for the duration that
+it's down.
 
 # Anycast in AWS?
 
 In datacenters, a common pattern is to have a /24 network for Anycast, and then in each datacenter,
 use systems like [exabgp](https://github.com/Exa-Networks/exabgp) and [bird](http://bird.network.cz/)
-on hosts to publish BGP routing information for services they're running.
+on hosts to publish BGP routing information for individual /32 IPs of services they're running.
 
-In AWS, we can configure VPN tunnels, or Direct Connects, and can publish routes to the Amazon
-routing tables using BGP, including the Anycast /24. AWSnycast runs locally on your AWS nodes,
+In AWS we can configure VPN tunnels, or Direct Connects, and publish routes to the Amazon
+routing tables using BGP, including the Anycast /24. AWSnycast then runs locally on your AWS nodes,
 healthchecks local services, and publishes more specific routes to them into the AWS route table.
 
 This means that all your systems in AWS can use *the same* network for Anycast services as your
@@ -30,9 +34,7 @@ providing high availability.
 
 You don't *have* to have a datacenter or VPN connection for AWSnycast to be useful to you, you
 still get route publishing based on healthchecks, and HA/failover, just not bootstrapping
-from in datacenter.
-
-N.B. This software should be considered *alpha* quality at best, it's currently vapourware / highly experimental.
+from in-datacenter.
 
 N.B. Whilst publishing routes to *from* AWS into your datacenter's BGP would be useful, at this
 time that is beyond the goals for this project.
@@ -40,6 +42,8 @@ time that is beyond the goals for this project.
 # Configuration
 
 Which routes to advertise into which route tables is configured with a YAML config file.
+
+An example config is shown below:
 
         ---
         healthchecks:
@@ -55,8 +59,8 @@ Which routes to advertise into which route tables is configured with a YAML conf
                 rise: 2
                 fall: 2
                 every: 30
-                send: HEAD / HTTP/1.0 # String to send
-                expect: 200 OK        # Response to get back
+                send: HEAD / HTTP/1.0 # String to send (optional)
+                expect: 200 OK        # Response to get back (optional)
         routetables:
             # This is our AZ, so always try to takeover routes always
             a:
@@ -84,11 +88,31 @@ Which routes to advertise into which route tables is configured with a YAML conf
                         value: private b
                 manage_routes:
                   - cidr: 0.0.0.0/0
-                    if_unhealthy: true # Note this is what causes routes only to be taken over if failed
+                    if_unhealthy: true # Note this is what causes routes only to be taken over not present currently, or the instance with them has failed
                     instance: SELF
                     healthcheck: public
                   - cidr: 192.168.1.1/32
                     if_unhealthy: true
                     instance: SELF
                     healthcheck: localservice
+
+## Healthchecks
+
+### ping
+
+### tcp
+
+## Route tables
+
+### Finding them
+
+### Managing them
+
+# Copyright
+
+Copyright Tomas Doran 2015
+
+# License
+
+Apache2 - See the included LICENSE file for more details.
 
