@@ -329,6 +329,13 @@ func TestGetSubnetIdMacOk(t *testing.T) {
 	}
 }
 
+func TestRunOneShotFail(t *testing.T) {
+	d := getD(true)
+	if d.Run(true, true) != 1 {
+		t.Fail()
+	}
+}
+
 func TestRunOneShot(t *testing.T) {
 	d := getD(true)
 	awsRt := make([]*ec2.RouteTable, 2)
