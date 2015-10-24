@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"gopkg.in/yaml.v2"
@@ -40,8 +41,9 @@ func (spec RouteTableFindSpec) GetFilter() (aws.RouteTableFilter, error) {
 }
 
 type RouteTable struct {
-	Find         RouteTableFindSpec      `yaml:"find"`
-	ManageRoutes []*aws.ManageRoutesSpec `yaml:"manage_routes"`
+	Find           RouteTableFindSpec      `yaml:"find"`
+	ManageRoutes   []*aws.ManageRoutesSpec `yaml:"manage_routes"`
+	ec2RouteTables []*ec2.RouteTable
 }
 
 type Config struct {
@@ -111,6 +113,9 @@ func (r *RouteTable) Default(instance string) {
 	}
 	for _, v := range r.ManageRoutes {
 		v.Default(instance)
+	}
+	if r.ec2RouteTables == nil {
+		r.ec2RouteTables = make([]*ec2.RouteTable, 0)
 	}
 }
 func (r RouteTable) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck) error {

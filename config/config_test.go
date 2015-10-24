@@ -35,11 +35,11 @@ func TestLoadConfigFailsValidation(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	} else {
-                if err.Error() != "Route table a, upsert 0.0.0.0/0 cannot find healthcheck 'public'" {
-                        t.Log(err)
-                        t.Fail()
-                }
-        }
+		if err.Error() != "Route table a, upsert 0.0.0.0/0 cannot find healthcheck 'public'" {
+			t.Log(err)
+			t.Fail()
+		}
+	}
 }
 
 func TestLoadConfigHealthchecks(t *testing.T) {
@@ -356,6 +356,12 @@ func TestRouteTableFindSpecValidateNoConfig(t *testing.T) {
 func TestRouteTableDefaultEmpty(t *testing.T) {
 	r := RouteTable{}
 	r.Default("i-1234")
+	if r.ManageRoutes == nil {
+		t.Fail()
+	}
+	if r.ec2RouteTables == nil {
+		t.Fail()
+	}
 }
 
 func TestRouteTableDefault(t *testing.T) {
