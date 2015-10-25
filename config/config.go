@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/healthcheck"
+	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
@@ -160,7 +161,7 @@ func (r RouteTable) Validate(name string, healthchecks map[string]*healthcheck.H
 	return nil
 }
 
-func New(filename string, instance string) (*Config, error) {
+func New(filename string, im instancemetadata.InstanceMetadata) (*Config, error) {
 	c := new(Config)
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -168,7 +169,7 @@ func New(filename string, instance string) (*Config, error) {
 	}
 	err = yaml.Unmarshal(data, &c)
 	if err == nil {
-		c.Default(instance)
+		c.Default(im.Instance)
 		err = c.Validate()
 	}
 	return c, err

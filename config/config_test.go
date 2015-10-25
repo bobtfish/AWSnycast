@@ -7,11 +7,20 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/healthcheck"
+	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"testing"
 )
 
+var tim instancemetadata.InstanceMetadata
+
+func init() {
+	tim = instancemetadata.InstanceMetadata{
+		Instance: "i-1234",
+	}
+}
+
 func TestLoadConfig(t *testing.T) {
-	c, err := New("../tests/awsnycast.yaml", "i-1234")
+	c, err := New("../tests/awsnycast.yaml", tim)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -22,7 +31,7 @@ func TestLoadConfig(t *testing.T) {
 }
 
 func TestLoadConfigFails(t *testing.T) {
-	_, err := New("../tests/doesnotexist.yaml", "i-1234")
+	_, err := New("../tests/doesnotexist.yaml", tim)
 	if err == nil {
 		t.Fail()
 	} else {
@@ -34,7 +43,7 @@ func TestLoadConfigFails(t *testing.T) {
 }
 
 func TestLoadConfigFailsValidation(t *testing.T) {
-	_, err := New("../tests/invalid.yaml", "i-1234")
+	_, err := New("../tests/invalid.yaml", tim)
 	if err == nil {
 		t.Fail()
 	} else {
@@ -46,7 +55,7 @@ func TestLoadConfigFailsValidation(t *testing.T) {
 }
 
 func TestLoadConfigHealthchecks(t *testing.T) {
-	c, _ := New("../tests/awsnycast.yaml", "i-1234")
+	c, _ := New("../tests/awsnycast.yaml", tim)
 	if c.Healthchecks == nil {
 		t.Log("c.Healthchecks == nil")
 		t.Fail()
@@ -218,7 +227,7 @@ func TestConfigValidateBadRouteTableUpserts(t *testing.T) {
 }
 
 func TestConfigValidateBadHealthChecks(t *testing.T) {
-	c_disk, _ := New("../tests/awsnycast.yaml", "i-1234")
+	c_disk, _ := New("../tests/awsnycast.yaml", tim)
 	h := make(map[string]*healthcheck.Healthcheck)
 	h["foo"] = &healthcheck.Healthcheck{}
 	c := Config{
@@ -236,7 +245,7 @@ func TestConfigValidateBadHealthChecks(t *testing.T) {
 }
 
 func TestConfigValidateNoHealthChecks(t *testing.T) {
-	c_disk, _ := New("../tests/awsnycast.yaml", "i-124")
+	c_disk, _ := New("../tests/awsnycast.yaml", tim)
 	c := Config{
 		RouteTables: c_disk.RouteTables,
 	}

@@ -42,7 +42,7 @@ func (d *Daemon) Setup() error {
 		d.FetchWait = time.Second * 300
 	}
 
-	config, err := config.New(d.ConfigFile, d.InstanceMetadata.Instance)
+	config, err := config.New(d.ConfigFile, d.InstanceMetadata)
 	if err != nil {
 		return err
 	}
