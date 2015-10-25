@@ -23,19 +23,6 @@ type MyEC2Conn interface {
 	DeleteRoute(*ec2.DeleteRouteInput) (*ec2.DeleteRouteOutput, error)
 }
 
-type MetadataFetcher interface {
-	Available() bool
-	GetMetadata(string) (string, error)
-}
-
-func NewMetadataFetcher(debug bool) MetadataFetcher {
-	c := ec2metadata.Config{}
-	if debug {
-		c.LogLevel = aws.LogLevel(aws.LogDebug)
-	}
-	return ec2metadata.New(&c)
-}
-
 type ManageRoutesSpec struct {
 	Cidr            string `yaml:"cidr"`
 	Instance        string `yaml:"instance"`
