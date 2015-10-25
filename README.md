@@ -188,7 +188,6 @@ This project is currently under heavy development.
 
 Here's a list of the features that I'm planning to work on next, in approximate order:
 
-  * Making healthchecks actively notify routing tables on state change (so that changes happen more often than once every 5m)
   * Make us autodetect the VPC this instance is running in, and refuse to adjust routing tables in other VPCs
   * Make route table finding more flexible - be able to search by more than tag, and be able to interpolate current AZ
   * Make how often we poll AWS for route tables configurable
