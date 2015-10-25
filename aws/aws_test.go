@@ -730,6 +730,12 @@ func TestGetRouteTablesAWSFail(t *testing.T) {
 }
 
 func TestNewRouteTableFetcher(t *testing.T) {
+	if os.Setenv("AWS_ACCESS_KEY_ID", "AKIAJRYDH3TP2D3WKRNQ") != nil {
+		t.Fail()
+	}
+	if os.Setenv("AWS_SECRET_ACCESS_KEY", "8Dbur5oqKACVDzpE/CA6g+XXAmyxmYEShVG7w4XF") != nil {
+		t.Fail()
+	}
 	rtf := NewRouteTableFetcher("us-west-1", false)
 	if rtf == nil {
 		t.Fail()
