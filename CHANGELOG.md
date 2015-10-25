@@ -1,5 +1,6 @@
 
-Version 0.0.1
+Version 0.0.1 - 2015-10-25
+
   - Well, [@garethr](http://twitter.com/garethr) put this in devops weekly,
     so I guess I should cut a binary release.
   - Currently working feature set:
