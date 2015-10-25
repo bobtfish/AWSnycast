@@ -41,7 +41,7 @@ time that is beyond the goals for this project.
 
 # Trying it out
 
-In the tests/integration folder, there is [Terraform](terraform.io) code which will build
+In the [tests/integration](tests/integration) folder, there is [Terraform](terraform.io) code which will build
 a simple AWS VPC, with 2 AZs and 2 NAT machines (with HA and failover), and AWSnycast setup.
 
 To try this, you can just run _make_ then _terraform apply_ in that directory to build
