@@ -1,10 +1,24 @@
-package daemon
+package instancemetadata
 
 import (
 	"errors"
 	"fmt"
-	"github.com/bobtfish/AWSnycast/aws"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 )
+
+type MetadataFetcher interface {
+	Available() bool
+	GetMetadata(string) (string, error)
+}
+
+func New(debug bool) MetadataFetcher {
+	c := ec2metadata.Config{}
+	if debug {
+		c.LogLevel = aws.LogLevel(aws.LogDebug)
+	}
+	return ec2metadata.New(&c)
+}
 
 type InstanceMetadata struct {
 	Subnet           string
@@ -13,13 +27,7 @@ type InstanceMetadata struct {
 	Region           string
 }
 
-func (d *Daemon) setupMetadataFetcher() {
-	if d.MetadataFetcher == nil {
-		d.MetadataFetcher = aws.NewMetadataFetcher(d.Debug)
-	}
-}
-
-func fetchMetadata(mdf aws.MetadataFetcher) (InstanceMetadata, error) {
+func FetchMetadata(mdf MetadataFetcher) (InstanceMetadata, error) {
 	m := InstanceMetadata{}
 	if !mdf.Available() {
 		return m, errors.New("No metadata service")
@@ -46,7 +54,7 @@ func fetchMetadata(mdf aws.MetadataFetcher) (InstanceMetadata, error) {
 	return m, nil
 }
 
-func getSubnetId(mdf aws.MetadataFetcher) (string, error) {
+func getSubnetId(mdf MetadataFetcher) (string, error) {
 	mac, err := mdf.GetMetadata("mac")
 	if err != nil {
 		return "", err

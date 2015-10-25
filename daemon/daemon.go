@@ -4,6 +4,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/config"
+	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"log"
 	"time"
 )
@@ -14,18 +15,24 @@ type Daemon struct {
 	ConfigFile        string
 	Debug             bool
 	Config            *config.Config
-	MetadataFetcher   aws.MetadataFetcher
+	MetadataFetcher   instancemetadata.MetadataFetcher
 	RouteTableManager aws.RouteTableManager
 	quitChan          chan bool
 	loopQuitChan      chan bool
 	loopTimerChan     chan bool
 	FetchWait         time.Duration
-	InstanceMetadata
+	instancemetadata.InstanceMetadata
+}
+
+func (d *Daemon) setupMetadataFetcher() {
+	if d.MetadataFetcher == nil {
+		d.MetadataFetcher = instancemetadata.New(d.Debug)
+	}
 }
 
 func (d *Daemon) Setup() error {
 	d.setupMetadataFetcher()
-	im, err := fetchMetadata(d.MetadataFetcher)
+	im, err := instancemetadata.FetchMetadata(d.MetadataFetcher)
 	if err != nil {
 		return err
 	}
