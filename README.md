@@ -39,6 +39,46 @@ from in-datacenter.
 N.B. Whilst publishing routes to *from* AWS into your datacenter's BGP would be useful, at this
 time that is beyond the goals for this project.
 
+# How does this even work?
+
+You can setup routes in AWS to go to an individual instance. This means that you inject routes
+that are *outside* the addesses space for your VPC, and point them to an instance, failing over
+to a different instance if the machine providing the service fails.
+
+All you have to do on the instance itself is setup a network interface which can deal with this traffic;
+for example, alias ls0:0 as 192.168.1.1 and disable source/destination checking for that instance in AWS.
+
+By advertising a larger range via BGP (from VPN or Direct connect) and then injecting /32 routes for
+the AWS instances of individual services, you get both bootstrapping (being able to bootstrap new AWS
+regions from a VPN connection, as critical services such as dns and puppet/chef are always at a fixed
+IP address) and HA.
+
+## Why not manage / move ENIs?
+
+Good question! You *can* provide HA in AWS by assigning each service an ENI, and moving them between
+healthy instances.
+
+There are a number of reasons I chose not to do this:
+  * Most AWS machine classes/sizes are fairly restricted about the number of ENIs they can have attached.
+  * ENIs need to be detached then re-attached - so failover isn't atomic and it makes writing reliable
+    distributed software to do this hard without a strong consensus store. (Think detach-fight!)
+  * I explicitly didn't want to depend on a strong consensus store (to make this useful for VPC
+    bootstrapping).
+  * ENIs are an AWS only solution, and don't/can't provide parity with existing Anycast implementations
+    in datacenter.
+
+## What do you recommend using this for?
+
+Basic infrastructure services, like DNS (if you use your own DNS already), puppet or chef servers, package
+repositories, etc. This is *not* a load balancing, or SOA service discovery solution.
+
+I'd *highly* recommend putting any TCP service you use AWSnycast for behind haproxy, for load balancing (as
+only one route can be active at a time), and to make AWSnycast's failover only needed when an instance dies,
+rather than an individual service instance.
+
+If you're building an SOA, and for 'application level' rather than 'infrastructure level' services, I'd
+recommend checking out Consul, Smartstack and similar technologies.
+
 # Trying it out
 
 In the [tests/integration](tests/integration) folder, there is [Terraform](terraform.io) code which will build
