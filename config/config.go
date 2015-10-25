@@ -62,7 +62,7 @@ func (r *RouteTable) UpdateEc2RouteTables(rt []*ec2.RouteTable) error {
 	return nil
 }
 
-func (r *RouteTable) RunEc2Updates(manager aws.RouteTableFetcher, noop bool) error {
+func (r *RouteTable) RunEc2Updates(manager aws.RouteTableManager, noop bool) error {
 	for _, rtb := range r.ec2RouteTables {
 		log.Printf("Finder found route table %v", rtb)
 		for _, manageRoute := range r.ManageRoutes {

@@ -222,22 +222,22 @@ func TestMetaDataFetcher(t *testing.T) {
 	_ = NewMetadataFetcher(true)
 }
 
-type FakeRouteTableFetcher struct {
+type FakeRouteTableManager struct {
 	Error  error
 	Routes []*ec2.RouteTable
 }
 
-func (r FakeRouteTableFetcher) GetRouteTables() ([]*ec2.RouteTable, error) {
+func (r FakeRouteTableManager) GetRouteTables() ([]*ec2.RouteTable, error) {
 	return r.Routes, r.Error
 }
 
-func (r FakeRouteTableFetcher) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageRoutesSpec, noop bool) error {
+func (r FakeRouteTableManager) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageRoutesSpec, noop bool) error {
 	return nil
 }
 
 func TestFakeFetcher(t *testing.T) {
-	var f RouteTableFetcher
-	f = FakeRouteTableFetcher{
+	var f RouteTableManager
+	f = FakeRouteTableManager{
 		Routes: []*ec2.RouteTable{&rtb1},
 	}
 	rtb, err := f.GetRouteTables()
@@ -511,8 +511,8 @@ func (f *FakeEC2Conn) DescribeRouteTables(i *ec2.DescribeRouteTablesInput) (*ec2
 	return f.DescribeRouteTablesOutput, f.DescribeRouteTablesError
 }
 
-func TestRouteTableFetcherEC2ReplaceInstanceRouteNoop(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+func TestRouteTableManagerEC2ReplaceInstanceRouteNoop(t *testing.T) {
+	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")
 	if route == nil {
 		t.Fail()
@@ -532,8 +532,8 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteNoop(t *testing.T) {
 	}
 }
 
-func TestRouteTableFetcherEC2ReplaceInstanceRoute(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+func TestRouteTableManagerEC2ReplaceInstanceRoute(t *testing.T) {
+	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")
 	if route == nil {
 		t.Fail()
@@ -558,8 +558,8 @@ func TestRouteTableFetcherEC2ReplaceInstanceRoute(t *testing.T) {
 	}
 }
 
-func TestRouteTableFetcherEC2ReplaceInstanceRouteFails(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+func TestRouteTableManagerEC2ReplaceInstanceRouteFails(t *testing.T) {
+	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	rtf.conn.(*FakeEC2Conn).ReplaceRouteError = errors.New("Whoops, AWS blew up")
 	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")
 	if route == nil {
@@ -579,8 +579,8 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteFails(t *testing.T) {
 	}
 }
 
-func TestRouteTableFetcherEC2ReplaceInstanceRouteNotIfHealthy(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+func TestRouteTableManagerEC2ReplaceInstanceRouteNotIfHealthy(t *testing.T) {
+	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")
 	if route == nil {
 		t.Fail()
@@ -595,8 +595,8 @@ func TestRouteTableFetcherEC2ReplaceInstanceRouteNotIfHealthy(t *testing.T) {
 	}
 }
 
-func TestRouteTableFetcherEC2ManageInstanceRouteAlreadyThisInstance(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+func TestRouteTableManagerEC2ManageInstanceRouteAlreadyThisInstance(t *testing.T) {
+	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	s := ManageRoutesSpec{
 		Cidr:        "0.0.0.0/0",
 		Instance:    "i-605bd2aa",
@@ -613,7 +613,7 @@ func TestRouteTableFetcherEC2ManageInstanceRouteAlreadyThisInstance(t *testing.T
 }
 
 func TestManageInstanceRoute(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	s := ManageRoutesSpec{
 		Cidr:        "0.0.0.0/0",
 		Instance:    "i-1234",
@@ -640,7 +640,7 @@ func TestManageInstanceRoute(t *testing.T) {
 }
 
 func TestManageInstanceRouteAWSFailOnReplace(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	rtf.conn.(*FakeEC2Conn).ReplaceRouteError = errors.New("Whoops, AWS blew up")
 	s := ManageRoutesSpec{
 		Cidr:        "0.0.0.0/0",
@@ -657,7 +657,7 @@ func TestManageInstanceRouteAWSFailOnReplace(t *testing.T) {
 }
 
 func TestManageInstanceRouteAWSFailOnCreate(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	rtf.conn.(*FakeEC2Conn).CreateRouteError = errors.New("Whoops, AWS blew up")
 	s := ManageRoutesSpec{
 		Cidr:        "0.0.0.0/0",
@@ -674,7 +674,7 @@ func TestManageInstanceRouteAWSFailOnCreate(t *testing.T) {
 }
 
 func TestManageInstanceRouteCreateRoute(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	s := ManageRoutesSpec{
 		Cidr:        "0.0.0.0/0",
 		Instance:    "i-1234",
@@ -701,7 +701,7 @@ func TestManageInstanceRouteCreateRoute(t *testing.T) {
 }
 
 func TestGetRouteTables(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	_, err := rtf.GetRouteTables()
 	if err != nil {
 		t.Fail()
@@ -713,7 +713,7 @@ func TestGetRouteTables(t *testing.T) {
 }
 
 func TestGetRouteTablesAWSFail(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	rtf.conn.(*FakeEC2Conn).DescribeRouteTablesError = errors.New("Whoops, AWS blew up")
 	_, err := rtf.GetRouteTables()
 	if err == nil {
@@ -729,18 +729,18 @@ func TestGetRouteTablesAWSFail(t *testing.T) {
 	}
 }
 
-func TestNewRouteTableFetcher(t *testing.T) {
+func TestNewRouteTableManager(t *testing.T) {
 	if os.Setenv("AWS_ACCESS_KEY_ID", "AKIAJRYDH3TP2D3WKRNQ") != nil {
 		t.Fail()
 	}
 	if os.Setenv("AWS_SECRET_ACCESS_KEY", "8Dbur5oqKACVDzpE/CA6g+XXAmyxmYEShVG7w4XF") != nil {
 		t.Fail()
 	}
-	rtf := NewRouteTableFetcher("us-west-1", false)
+	rtf := NewRouteTableManager("us-west-1", false)
 	if rtf == nil {
 		t.Fail()
 	}
-	if rtf.(RouteTableFetcherEC2).conn == nil {
+	if rtf.(RouteTableManagerEC2).conn == nil {
 		t.Fail()
 	}
 }
@@ -928,7 +928,7 @@ func (h *FakeHealthCheck) CanPassYet() bool {
 }
 
 func TestManageInstanceRouteNoCreateRouteBadHealthcheck(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	s := ManageRoutesSpec{
 		Cidr:            "0.0.0.0/0",
 		Instance:        "i-1234",
@@ -947,7 +947,7 @@ func TestManageInstanceRouteNoCreateRouteBadHealthcheck(t *testing.T) {
 }
 
 func TestManageInstanceRouteCreateRouteGoodHealthcheck(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	s := ManageRoutesSpec{
 		Cidr:            "0.0.0.0/0",
 		Instance:        "i-1234",
@@ -966,7 +966,7 @@ func TestManageInstanceRouteCreateRouteGoodHealthcheck(t *testing.T) {
 }
 
 func TestManageInstanceRouteDeleteInstanceRouteThisInstanceUnhealthy(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	s := ManageRoutesSpec{
 		Cidr:            "0.0.0.0/0",
 		Instance:        "i-605bd2aa",
@@ -996,7 +996,7 @@ func TestManageInstanceRouteDeleteInstanceRouteThisInstanceUnhealthy(t *testing.
 }
 
 func TestManageInstanceRouteDeleteInstanceRouteThisInstanceUnhealthyAWSFail(t *testing.T) {
-	rtf := RouteTableFetcherEC2{conn: NewFakeEC2Conn()}
+	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	rtf.conn.(*FakeEC2Conn).DeleteRouteError = errors.New("Whoops, AWS blew up")
 	s := ManageRoutesSpec{
 		Cidr:            "0.0.0.0/0",

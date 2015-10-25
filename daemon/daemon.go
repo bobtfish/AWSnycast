@@ -17,7 +17,7 @@ type Daemon struct {
 	Debug             bool
 	Config            *config.Config
 	MetadataFetcher   aws.MetadataFetcher
-	RouteTableFetcher aws.RouteTableFetcher
+	RouteTableManager aws.RouteTableManager
 	Subnet            string
 	Instance          string
 	Region            string
@@ -65,8 +65,8 @@ func (d *Daemon) Setup() error {
 	}
 	d.Config = config
 
-	if d.RouteTableFetcher == nil {
-		d.RouteTableFetcher = aws.NewRouteTableFetcher(d.Region, d.Debug)
+	if d.RouteTableManager == nil {
+		d.RouteTableManager = aws.NewRouteTableManager(d.Region, d.Debug)
 	}
 	return setupHealthchecks(d.Config)
 }
@@ -116,11 +116,11 @@ func (d *Daemon) RunOneRouteTable(rt []*ec2.RouteTable, name string, configRoute
 	if err := configRouteTable.UpdateEc2RouteTables(rt); err != nil {
 		return err
 	}
-	return configRouteTable.RunEc2Updates(d.RouteTableFetcher, d.noop)
+	return configRouteTable.RunEc2Updates(d.RouteTableManager, d.noop)
 }
 
 func (d *Daemon) RunRouteTables() error {
-	rt, err := d.RouteTableFetcher.GetRouteTables()
+	rt, err := d.RouteTableManager.GetRouteTables()
 	if err != nil {
 		return err
 	}

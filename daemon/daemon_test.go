@@ -30,13 +30,13 @@ func (m FakeMetadataFetcher) GetMetadata(key string) (string, error) {
 	return v, errors.New(fmt.Sprintf("Key %s unknown", key))
 }
 
-func NewFakeRouteTableFetcher() *FakeRouteTableFetcher {
-	f := &FakeRouteTableFetcher{}
+func NewFakeRouteTableManager() *FakeRouteTableManager {
+	f := &FakeRouteTableManager{}
 	f.Tables = make([]*ec2.RouteTable, 0)
 	return f
 }
 
-type FakeRouteTableFetcher struct {
+type FakeRouteTableManager struct {
 	Tables                   []*ec2.RouteTable
 	Error                    error
 	RouteTable               ec2.RouteTable
@@ -47,11 +47,11 @@ type FakeRouteTableFetcher struct {
 	ManageInstanceRouteError error
 }
 
-func (f *FakeRouteTableFetcher) GetRouteTables() ([]*ec2.RouteTable, error) {
+func (f *FakeRouteTableManager) GetRouteTables() ([]*ec2.RouteTable, error) {
 	return f.Tables, f.Error
 }
 
-func (f *FakeRouteTableFetcher) ManageInstanceRoute(rtb ec2.RouteTable, rs aws.ManageRoutesSpec, noop bool) error {
+func (f *FakeRouteTableManager) ManageInstanceRoute(rtb ec2.RouteTable, rs aws.ManageRoutesSpec, noop bool) error {
 	f.RouteTable = rtb
 	f.Cidr = rs.Cidr
 	f.Instance = rs.Instance
@@ -62,7 +62,7 @@ func (f *FakeRouteTableFetcher) ManageInstanceRoute(rtb ec2.RouteTable, rs aws.M
 
 func TestRunRouteTablesFailGetRouteTables(t *testing.T) {
 	d := getD(true)
-	rtf := d.RouteTableFetcher.(*FakeRouteTableFetcher)
+	rtf := d.RouteTableManager.(*FakeRouteTableManager)
 	rtf.Error = errors.New("Route table get fail")
 	err := d.RunRouteTables()
 	if err == nil {
@@ -81,7 +81,7 @@ func TestSetupNoMetadataService(t *testing.T) {
 	d := Daemon{
 		ConfigFile: "../tests/awsnycast.yaml",
 	}
-	if d.RouteTableFetcher != nil {
+	if d.RouteTableManager != nil {
 		t.Fail()
 	}
 	d.MetadataFetcher = fakeM
@@ -146,7 +146,7 @@ func TestSetupNormal(t *testing.T) {
 	d := Daemon{
 		ConfigFile: "../tests/awsnycast.yaml",
 	}
-	if d.RouteTableFetcher != nil {
+	if d.RouteTableManager != nil {
 		t.Fail()
 	}
 	d.MetadataFetcher = fakeM
@@ -166,14 +166,14 @@ func getD(a bool) Daemon {
 	fakeM := FakeMetadataFetcher{
 		FAvailable: a,
 	}
-	fakeR := NewFakeRouteTableFetcher()
+	fakeR := NewFakeRouteTableManager()
 	fakeM.Meta = make(map[string]string)
 	fakeM.Meta["placement/availability-zone"] = "us-west-1a"
 	fakeM.Meta["instance-id"] = "i-1234"
 	fakeM.Meta["mac"] = "06:1d:ea:6f:8c:6e"
 	fakeM.Meta["network/interfaces/macs/06:1d:ea:6f:8c:6e/subnet-id"] = "subnet-28b0e940"
 	d.MetadataFetcher = fakeM
-	d.RouteTableFetcher = fakeR
+	d.RouteTableManager = fakeR
 	return d
 }
 
@@ -361,7 +361,7 @@ func TestRunOneShot(t *testing.T) {
 			},
 		},
 	}
-	d.RouteTableFetcher.(*FakeRouteTableFetcher).Tables = awsRt
+	d.RouteTableManager.(*FakeRouteTableManager).Tables = awsRt
 	if d.Run(true, true) != 0 {
 		t.Fail()
 	}
@@ -473,7 +473,7 @@ func TestRunOneRouteTable(t *testing.T) {
 
 func TestRunOneRouteTableUpsertRouteFail(t *testing.T) {
 	d := getD(true)
-	rtf := d.RouteTableFetcher.(*FakeRouteTableFetcher)
+	rtf := d.RouteTableManager.(*FakeRouteTableManager)
 	rtf.ManageInstanceRouteError = errors.New("Test")
 	awsRt := make([]*ec2.RouteTable, 1)
 	awsRt[0] = &ec2.RouteTable{
@@ -550,7 +550,7 @@ func TestRunOneReal(t *testing.T) {
 			},
 		},
 	}
-	d.RouteTableFetcher.(*FakeRouteTableFetcher).Tables = awsRt
+	d.RouteTableManager.(*FakeRouteTableManager).Tables = awsRt
 	hasFinishedRunLoop := make(chan bool, 1)
 	go func() {
 		if d.Run(false, true) != 0 {

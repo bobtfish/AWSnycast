@@ -44,7 +44,7 @@ type ManageRoutesSpec struct {
 	healthcheck     healthcheck.CanBeHealthy
 	IfUnhealthy     bool `yaml:"if_unhealthy"`
 	ec2RouteTables  []*ec2.RouteTable
-	Manager         RouteTableFetcher `yaml:"-"`
+	Manager         RouteTableManager `yaml:"-"`
 }
 
 func (r *ManageRoutesSpec) Default(instance string) {
@@ -105,12 +105,12 @@ func (r *ManageRoutesSpec) UpdateEc2RouteTables(rt []*ec2.RouteTable) {
 	r.ec2RouteTables = rt
 }
 
-type RouteTableFetcher interface {
+type RouteTableManager interface {
 	GetRouteTables() ([]*ec2.RouteTable, error)
 	ManageInstanceRoute(ec2.RouteTable, ManageRoutesSpec, bool) error
 }
 
-type RouteTableFetcherEC2 struct {
+type RouteTableManagerEC2 struct {
 	Region string
 	conn   MyEC2Conn
 }
@@ -124,7 +124,7 @@ func getCreateRouteInput(rtb ec2.RouteTable, cidr string, instance string, noop 
 	}
 }
 
-func (r RouteTableFetcherEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageRoutesSpec, noop bool) error {
+func (r RouteTableManagerEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageRoutesSpec, noop bool) error {
 	route := findRouteFromRouteTable(rtb, rs.Cidr)
 	if route != nil {
 		if route.InstanceId != nil && *(route.InstanceId) == rs.Instance {
@@ -166,7 +166,7 @@ func findRouteFromRouteTable(rtb ec2.RouteTable, cidr string) *ec2.Route {
 	return nil
 }
 
-func (r RouteTableFetcherEC2) DeleteInstanceRoute(routeTableId *string, route *ec2.Route, cidr string, instance string, noop bool) error {
+func (r RouteTableManagerEC2) DeleteInstanceRoute(routeTableId *string, route *ec2.Route, cidr string, instance string, noop bool) error {
 	params := &ec2.DeleteRouteInput{
 		DestinationCidrBlock: aws.String(cidr),
 		RouteTableId:         routeTableId,
@@ -183,7 +183,7 @@ func (r RouteTableFetcherEC2) DeleteInstanceRoute(routeTableId *string, route *e
 	return nil
 }
 
-func (r RouteTableFetcherEC2) ReplaceInstanceRoute(routeTableId *string, route *ec2.Route, cidr string, instance string, ifUnhealthy bool, noop bool) error {
+func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *ec2.Route, cidr string, instance string, ifUnhealthy bool, noop bool) error {
 	params := &ec2.ReplaceRouteInput{
 		DestinationCidrBlock: aws.String(cidr),
 		RouteTableId:         routeTableId,
@@ -205,7 +205,7 @@ func (r RouteTableFetcherEC2) ReplaceInstanceRoute(routeTableId *string, route *
 	return nil
 }
 
-func (r RouteTableFetcherEC2) GetRouteTables() ([]*ec2.RouteTable, error) {
+func (r RouteTableManagerEC2) GetRouteTables() ([]*ec2.RouteTable, error) {
 	resp, err := r.conn.DescribeRouteTables(&ec2.DescribeRouteTablesInput{})
 	if err != nil {
 		log.Printf("Error on DescribeRouteTables: %s", err)
@@ -236,8 +236,8 @@ func getCred(providers []credentials.Provider) *credentials.Credentials {
 	return cred
 }
 
-func NewRouteTableFetcher(region string, debug bool) RouteTableFetcher {
-	r := RouteTableFetcherEC2{}
+func NewRouteTableManager(region string, debug bool) RouteTableManager {
+	r := RouteTableManagerEC2{}
 	providers := getProviders()
 	cred := getCred(providers)
 	awsConfig := &aws.Config{
