@@ -1,8 +1,6 @@
 package daemon
 
 import (
-	"errors"
-	"fmt"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/config"
@@ -18,48 +16,26 @@ type Daemon struct {
 	Config            *config.Config
 	MetadataFetcher   aws.MetadataFetcher
 	RouteTableManager aws.RouteTableManager
-	Subnet            string
-	Instance          string
-	Region            string
 	quitChan          chan bool
 	loopQuitChan      chan bool
 	loopTimerChan     chan bool
 	FetchWait         time.Duration
-}
-
-func (d *Daemon) setupMetadataFetcher() {
-	if d.MetadataFetcher == nil {
-		d.MetadataFetcher = aws.NewMetadataFetcher(d.Debug)
-	}
+	InstanceMetadata
 }
 
 func (d *Daemon) Setup() error {
 	d.setupMetadataFetcher()
-	if !d.MetadataFetcher.Available() {
-		return errors.New("No metadata service")
+	im, err := fetchMetadata(d.MetadataFetcher)
+	if err != nil {
+		return err
 	}
+	d.InstanceMetadata = im
+
 	if d.FetchWait == 0 {
 		d.FetchWait = time.Second * 300
 	}
-	az, err := d.MetadataFetcher.GetMetadata("placement/availability-zone")
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error getting AZ: %s", err.Error()))
-	}
-	d.Region = az[:len(az)-1]
 
-	instanceId, err := d.MetadataFetcher.GetMetadata("instance-id")
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error getting instance-id: %s", err.Error()))
-	}
-	d.Instance = instanceId
-
-	subnet, err := d.GetSubnetId()
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error getting metadata: %s", err.Error()))
-	}
-	d.Subnet = subnet
-
-	config, err := config.New(d.ConfigFile, instanceId)
+	config, err := config.New(d.ConfigFile, d.InstanceMetadata.Instance)
 	if err != nil {
 		return err
 	}
@@ -79,14 +55,6 @@ func setupHealthchecks(c *config.Config) error {
 		}
 	}
 	return nil
-}
-
-func (d *Daemon) GetSubnetId() (string, error) {
-	mac, err := d.MetadataFetcher.GetMetadata("mac")
-	if err != nil {
-		return "", err
-	}
-	return d.MetadataFetcher.GetMetadata(fmt.Sprintf("network/interfaces/macs/%s/subnet-id", mac))
 }
 
 func (d *Daemon) runHealthChecks() {
