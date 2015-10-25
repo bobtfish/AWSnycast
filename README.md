@@ -182,6 +182,16 @@ An example config is shown below:
 
 ### Managing them
 
+# Releases
+
+Release (stable) version of AWSnycast are tagged in the repository, see the CHANGELOG.md for information
+about what is in each release.
+
+Note that currently this project is pre-1.0, so I reserve the right to make massive sweeping changes.
+Also this may eat your lunch, and generally mess up your AWS account! :)
+
+Once I've got something that *I* am happy deploying to production, I'll cut a 1.0.0 and switch to semver.
+
 # TODO
 
 This project is currently under heavy development.
