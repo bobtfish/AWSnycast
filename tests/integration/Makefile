@@ -1,7 +1,14 @@
-.PHONEY: all ssh_key sshnat
+.PHONEY: all ssh_key sshnat go integration
 
 all: ssh_key .terraform variables.tf.json
 		true
+
+go:
+	go get github.com/onsi/ginkgo/ginkgo
+	go get github.com/onsi/gomega
+
+integration: go
+	ginkgo -v
 
 sshnat:
 	ssh -A -i id_rsa ubuntu@$$(terraform output nat_public_ips|cut -d, -f1)
