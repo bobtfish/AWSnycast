@@ -154,7 +154,7 @@ func TestConfigDefault(t *testing.T) {
 	c := Config{
 		RouteTables: r,
 	}
-	c.Default("i-1234")
+	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"})
 	if c.Healthchecks == nil {
 		t.Fail()
 	}
@@ -249,7 +249,7 @@ func TestConfigValidateNoHealthChecks(t *testing.T) {
 	c := Config{
 		RouteTables: c_disk.RouteTables,
 	}
-	c.Default("i-1234")
+	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"})
 	err := c.Validate()
 	if err == nil {
 		t.Fail()
@@ -268,7 +268,7 @@ func TestConfigValidate(t *testing.T) {
 	c := Config{
 		RouteTables: r,
 	}
-	c.Default("i-1234")
+	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"})
 	err := c.Validate()
 	if err != nil {
 		t.Log(err)
@@ -283,7 +283,7 @@ func TestConfigValidate(t *testing.T) {
 
 func TestConfigValidateEmpty(t *testing.T) {
 	c := Config{}
-	c.Default("i-1234")
+	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"})
 	err := c.Validate()
 	if err == nil {
 		t.Fail()

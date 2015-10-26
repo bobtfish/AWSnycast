@@ -82,19 +82,19 @@ type Config struct {
 	RouteTables  map[string]*RouteTable              `yaml:"routetables"`
 }
 
-func (c *Config) Default(instance string) {
+func (c *Config) Default(im instancemetadata.InstanceMetadata) {
 	if c.Healthchecks == nil {
 		c.Healthchecks = make(map[string]*healthcheck.Healthcheck)
 	}
 	if c.RouteTables != nil {
 		for _, v := range c.RouteTables {
-			v.Default(instance)
+			v.Default(im.Instance)
 		}
 	} else {
 		c.RouteTables = make(map[string]*RouteTable)
 	}
 	for _, v := range c.Healthchecks {
-		v.Default()
+		v.Default(im)
 	}
 }
 func (c Config) Validate() error {
@@ -169,7 +169,7 @@ func New(filename string, im instancemetadata.InstanceMetadata) (*Config, error)
 	}
 	err = yaml.Unmarshal(data, &c)
 	if err == nil {
-		c.Default(im.Instance)
+		c.Default(im)
 		err = c.Validate()
 	}
 	return c, err
