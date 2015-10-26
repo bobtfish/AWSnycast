@@ -3,6 +3,7 @@ package healthcheck
 import (
 	"errors"
 	"fmt"
+	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"log"
 	"net"
 	"time"
@@ -28,7 +29,7 @@ type CanBeHealthy interface {
 }
 
 type Healthcheck struct {
-	canPassYet    bool   `yaml:"-"`
+	canPassYet    bool `yaml:"-"`
 	runCount      uint64
 	Type          string `yaml:"type"`
 	Destination   string `yaml:"destination"`
@@ -69,7 +70,7 @@ func (h Healthcheck) GetHealthChecker() (HealthChecker, error) {
 	return nil, errors.New(fmt.Sprintf("Healthcheck type '%s' not found in the healthcheck registry", h.Type))
 }
 
-func (h *Healthcheck) Default() {
+func (h *Healthcheck) Default(instancemetadata.InstanceMetadata) {
 	if h.Config == nil {
 		h.Config = make(map[string]string)
 	}

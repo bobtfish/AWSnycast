@@ -1,6 +1,7 @@
 package healthcheck
 
 import (
+	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"testing"
 )
 
@@ -9,7 +10,7 @@ func TestHealthcheckPing(t *testing.T) {
 		Type:        "ping",
 		Destination: "127.0.0.1",
 	}
-	h.Default()
+	h.Default(instancemetadata.InstanceMetadata{})
 	err := h.Validate("foo")
 	if err != nil {
 		t.Log(err)
@@ -28,7 +29,7 @@ func TestHealthcheckPingFail(t *testing.T) {
 		Type:        "ping",
 		Destination: "169.254.255.45", // Hopefully you can't talk to this :)
 	}
-	h.Default()
+	h.Default(instancemetadata.InstanceMetadata{})
 	err := h.Validate("foo")
 	if err != nil {
 		t.Log(err)

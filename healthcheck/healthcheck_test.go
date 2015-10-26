@@ -3,6 +3,7 @@ package healthcheck
 import (
 	"errors"
 	"fmt"
+	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"testing"
 )
 
@@ -10,7 +11,7 @@ func TestHealthcheckDefault(t *testing.T) {
 	h := Healthcheck{
 		Type: "ping",
 	}
-	h.Default()
+	h.Default(instancemetadata.InstanceMetadata{})
 	if h.Rise != 2 {
 		t.Fail()
 	}
@@ -30,7 +31,7 @@ func TestHealthcheckDefaultLengthRise(t *testing.T) {
 		Type: "ping",
 		Rise: 20,
 	}
-	h.Default()
+	h.Default(instancemetadata.InstanceMetadata{})
 	if len(h.History) != 21 {
 		t.Fail()
 	}
@@ -41,7 +42,7 @@ func TestHealthcheckDefaultLengthFall(t *testing.T) {
 		Type: "ping",
 		Fall: 20,
 	}
-	h.Default()
+	h.Default(instancemetadata.InstanceMetadata{})
 	if len(h.History) != 21 {
 		t.Fail()
 	}
@@ -51,7 +52,7 @@ func TestHealthcheckValidateNoType(t *testing.T) {
 	h := Healthcheck{
 		Destination: "127.0.0.1",
 	}
-	h.Default()
+	h.Default(instancemetadata.InstanceMetadata{})
 	err := h.Validate("foo")
 	if err == nil {
 		t.Fail()
@@ -68,7 +69,7 @@ func TestHealthcheckValidate(t *testing.T) {
 		Type:        "ping",
 		Destination: "127.0.0.1",
 	}
-	h.Default()
+	h.Default(instancemetadata.InstanceMetadata{})
 	err := h.Validate("foo")
 	if err != nil {
 		t.Log(err)
@@ -252,7 +253,7 @@ func TestHealthcheckRunSimple(t *testing.T) {
 	if fail.Healthcheck() {
 		t.Fail()
 	}
-	h_ok.Default()
+	h_ok.Default(instancemetadata.InstanceMetadata{})
 	h_ok.Setup()
 	if h_ok.IsHealthy() {
 		t.Fail()
@@ -266,7 +267,7 @@ func TestHealthcheckRunSimple(t *testing.T) {
 func TestHealthcheckRise(t *testing.T) {
 	RegisterHealthcheck("test_ok", MyFakeHealthConstructorOk)
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
-	h_ok.Default()
+	h_ok.Default(instancemetadata.InstanceMetadata{})
 	h_ok.Setup()
 	if h_ok.IsHealthy() {
 		t.Log("Started healthy")
@@ -325,7 +326,7 @@ func TestHealthcheckRise(t *testing.T) {
 func TestHealthcheckFall(t *testing.T) {
 	RegisterHealthcheck("test_fail", MyFakeHealthConstructorFail)
 	h_ok := Healthcheck{Type: "test_fail", Destination: "127.0.0.1", Fall: 2}
-	h_ok.Default()
+	h_ok.Default(instancemetadata.InstanceMetadata{})
 	h_ok.Setup()
 	h_ok.History = []bool{true, true, true, true, true, true, true, true, true, true}
 	h_ok.isHealthy = true
@@ -386,7 +387,7 @@ func TestHealthcheckFall(t *testing.T) {
 func TestHealthcheckFallTen(t *testing.T) {
 	RegisterHealthcheck("test_fail", MyFakeHealthConstructorFail)
 	h_ok := Healthcheck{Type: "test_fail", Destination: "127.0.0.1", Fall: 10}
-	h_ok.Default()
+	h_ok.Default(instancemetadata.InstanceMetadata{})
 	h_ok.Setup()
 	h_ok.History = []bool{true, true, true, true, true, true, true, true, true, true, true}
 	h_ok.isHealthy = true
@@ -449,7 +450,7 @@ func TestHealthcheckFallTen(t *testing.T) {
 func TestHealthcheckRun(t *testing.T) {
 	RegisterHealthcheck("test_ok", MyFakeHealthConstructorOk)
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
-	h_ok.Default()
+	h_ok.Default(instancemetadata.InstanceMetadata{})
 	h_ok.Setup()
 	h_ok.Run(true)
 	if !h_ok.IsRunning() {
@@ -465,7 +466,7 @@ func TestHealthcheckRun(t *testing.T) {
 func TestHealthcheckStop(t *testing.T) {
 	RegisterHealthcheck("test_ok", MyFakeHealthConstructorOk)
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
-	h_ok.Default()
+	h_ok.Default(instancemetadata.InstanceMetadata{})
 	h_ok.Setup()
 	if h_ok.IsRunning() {
 		t.Fail()
@@ -489,7 +490,7 @@ func TestHealthcheckListener(t *testing.T) {
 		Type:        "ping",
 		Destination: "127.0.0.1",
 	}
-	h.Default()
+	h.Default(instancemetadata.InstanceMetadata{})
 	err := h.Validate("foo")
 	if err != nil {
 		t.Log(err)
@@ -515,7 +516,7 @@ func TestHealthcheckListenerUnhealthy(t *testing.T) {
 		Type:        "ping",
 		Destination: "127.0.0.1",
 	}
-	h.Default()
+	h.Default(instancemetadata.InstanceMetadata{})
 	err := h.Validate("foo")
 	if err != nil {
 		t.Log(err)
