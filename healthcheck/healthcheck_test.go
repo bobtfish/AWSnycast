@@ -258,8 +258,14 @@ func TestHealthcheckRunSimple(t *testing.T) {
 	if h_ok.IsHealthy() {
 		t.Fail()
 	}
+	if h_ok.CanPassYet() {
+		t.Fail()
+	}
 	h_ok.PerformHealthcheck()
 	if !h_ok.IsHealthy() {
+		t.Fail()
+	}
+	if !h_ok.CanPassYet() {
 		t.Fail()
 	}
 }
