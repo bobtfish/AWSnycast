@@ -31,3 +31,8 @@ variables.tf.json:
 clean:
 		rm -rf .terraform id_rsa id_rsa.pub variables.tf.json
 
+destroy:
+	yes yes | terraform destroy
+
+realclean: .terraform destroy clean
+

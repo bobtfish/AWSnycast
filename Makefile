@@ -20,6 +20,9 @@ integration:
 clean:
 	rm -f */coverage.out */coverprofile.out coverage.out coverprofile.out AWSnycast
 
+realclean: clean
+	make -C tests/integration realclean
+
 coverage.out:
 	cd aws ; go test -coverprofile=coverage.out ./... ; cd ..
 	cd daemon ; go test -coverprofile=coverage.out ./... ; cd ..
