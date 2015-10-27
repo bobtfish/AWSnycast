@@ -4,9 +4,13 @@ import (
 	. "github.com/bobtfish/AWSnycast/tests/integration"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"testing"
 )
 
 var _ = Describe("Integration", func() {
+	if testing.Short() {
+		Skip("skipping test in short mode.")
+	}
 	BeforeEach(func() {
 		RunMake()
 		RunTerraform()
