@@ -268,7 +268,7 @@ func TestRunOneRouteTableGetFilterFail(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	} else {
-		if err.Error() != "Healthcheck type '' not found in the healthcheck registry" {
+		if err.Error() != "Route table finder type '' not found in the registry" {
 			t.Log(err)
 			t.Fail()
 		}
