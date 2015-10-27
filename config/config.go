@@ -39,7 +39,7 @@ func (spec RouteTableFindSpec) GetFilter() (aws.RouteTableFilter, error) {
 	if genFilter, found := routeFindTypes[spec.Type]; found {
 		return genFilter(spec)
 	}
-	return nil, errors.New(fmt.Sprintf("Healthcheck type '%s' not found in the healthcheck registry", spec.Type))
+	return nil, errors.New(fmt.Sprintf("Route table finder type '%s' not found in the registry", spec.Type))
 }
 
 type RouteTable struct {
