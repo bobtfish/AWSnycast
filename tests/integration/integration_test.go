@@ -3,7 +3,7 @@ package integration_test
 import (
 	. "github.com/bobtfish/AWSnycast/tests/integration"
 	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	//	. "github.com/onsi/gomega"
 	"testing"
 )
 
@@ -13,15 +13,18 @@ var _ = Describe("Integration", func() {
 	}
 	BeforeEach(func() {
 		RunMake()
-		RunTerraform()
+		//RunTerraform()
 	})
-	Describe("Categorizing book length", func() {
-		Context("With more than 300 pages", func() {
-			It("should be a novel", func() {
-				Expect(Foo()).To(Equal(0))
+	Describe("Basic NAT machine tests", func() {
+		Context("A availability zone", func() {
+			It("should be able to ping 8.8.8.8", func() {
+				Ssh("ping -c 2 8.8.8.8", NatA())
 			})
 		})
-
+		Context("B availability zone", func() {
+			It("should be able to ping 8.8.8.8", func() {
+				Ssh("ping -c 2 8.8.8.8", NatB())
+			})
+		})
 	})
-
 })
