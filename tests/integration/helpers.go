@@ -54,6 +54,12 @@ func NatIPs() []string {
 	return strings.Split(strings.TrimSuffix(string(output), "\n"), ",")
 }
 
+func InternalIPs() []string {
+	output, err := exec.Command("terraform", "output", "internal_private_ips").Output()
+	Ω(err).ShouldNot(HaveOccurred())
+	return strings.Split(strings.TrimSuffix(string(output), "\n"), ",")
+}
+
 func NatA() string {
 	ips := NatIPs()
 	return ips[0]
