@@ -8,7 +8,6 @@ resource "aws_instance" "internal-a" {
         Name = "internal eu-west-1a"
     }
     user_data = "${replace(file(\"${path.module}/internal.conf\"), \"__NETWORKPREFIX__\", \"10.0\")}"
-    iam_instance_profile = "${aws_iam_instance_profile.test_profile.id}"
     provisioner "remote-exec" {
         inline = [
           "while sudo pkill -0 cloud-init; do sleep 2; done"
@@ -31,7 +30,6 @@ resource "aws_instance" "internal-b" {
         Name = "internal eu-west-1b"
     }
     user_data = "${replace(file(\"${path.module}/internal.conf\"), \"__NETWORKPREFIX__\", \"10.0\")}"
-    iam_instance_profile = "${aws_iam_instance_profile.test_profile.id}"
     provisioner "remote-exec" {
         inline = [
           "while sudo pkill -0 cloud-init; do sleep 2; done"
