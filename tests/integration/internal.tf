@@ -1,14 +1,13 @@
-resource "aws_instance" "nat-a" {
+resource "aws_instance" "internal-a" {
     ami = "${module.ami.ami_id}"
     instance_type = "m3.medium"
-    source_dest_check = false
     key_name = "${aws_key_pair.awsnycast.key_name}"
-    subnet_id = "${aws_subnet.publica.id}"
+    subnet_id = "${aws_subnet.privatea.id}"
     security_groups = ["${aws_security_group.allow_all.id}"]
     tags {
-        Name = "nat eu-west-1a"
+        Name = "internal eu-west-1a"
     }
-    user_data = "${replace(replace(replace(file(\"${path.module}/nat.conf\"), \"__NETWORKPREFIX__\", \"10.0\"), \"__A_EXTRA__\", \"\"), \"__B_EXTRA__\", \"if_unhealthy: true\")}"
+    user_data = "${replace(file(\"${path.module}/internal.conf\"), \"__NETWORKPREFIX__\", \"10.0\")}"
     iam_instance_profile = "${aws_iam_instance_profile.test_profile.id}"
     provisioner "remote-exec" {
         inline = [
@@ -17,21 +16,21 @@ resource "aws_instance" "nat-a" {
         connection {
           user = "ubuntu"
           key_file = "id_rsa"
+          bastion_host = "${aws_instance.nat-a.public_ip}"
         }
     }
 }
 
-resource "aws_instance" "nat-b" {
+resource "aws_instance" "internal-b" {
     ami = "${module.ami.ami_id}"
     instance_type = "m3.medium"
-    source_dest_check = false
     key_name = "${aws_key_pair.awsnycast.key_name}"
-    subnet_id = "${aws_subnet.publicb.id}"
+    subnet_id = "${aws_subnet.privateb.id}"
     security_groups = ["${aws_security_group.allow_all.id}"]
     tags {
-        Name = "nat eu-west-1b"
+        Name = "internal eu-west-1b"
     }
-    user_data = "${replace(replace(replace(file(\"${path.module}/nat.conf\"), \"__NETWORKPREFIX__\", \"10.0\"), \"__B_EXTRA__\", \"\"), \"__A_EXTRA__\", \"if_unhealthy: true\")}"
+    user_data = "${replace(file(\"${path.module}/internal.conf\"), \"__NETWORKPREFIX__\", \"10.0\")}"
     iam_instance_profile = "${aws_iam_instance_profile.test_profile.id}"
     provisioner "remote-exec" {
         inline = [
@@ -40,11 +39,12 @@ resource "aws_instance" "nat-b" {
         connection {
           user = "ubuntu"
           key_file = "id_rsa"
+          bastion_host = "${aws_instance.nat-b.public_ip}"
         }
     }
 }
 
-output "nat_public_ips" {
-    value = "${aws_instance.nat-a.public_ip},${aws_instance.nat-b.public_ip}"
+output "internal_private_ips" {
+    value = "${aws_instance.internal-a.private_ip},${aws_instance.internal-b.private_ip}"
 }
 
