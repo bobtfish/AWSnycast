@@ -29,12 +29,12 @@ var _ = Describe("Integration", func() {
 			})
 		})
 	})
-	Describe("NAT works from inside", func() {
+	Describe("NAT works from inside, both AZs", func() {
 		for _, ip := range internalIPs {
 			Context(ip, func() {
 				It("should be able to ping 8.8.8.8", func() {
 					out := Ssh("nc "+ip+" 8732", NatA())
-					Ω(out).Should(ContainSubstring("64 bytes from 8.8.8.8"))
+					Ω(out).Should(ContainSubstring("OK"))
 				})
 			})
 		}
