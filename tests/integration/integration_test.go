@@ -12,7 +12,7 @@ var _ = Describe("Integration", func() {
 		Skip("skipping test in short mode.")
 	}
 	var internalIPs []string
-	BeforeEach(func() {
+	BeforeAll(func() {
 		RunMake()
 		RunTerraform()
 		internalIPs = InternalIPs()
