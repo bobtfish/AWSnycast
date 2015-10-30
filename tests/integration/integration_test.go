@@ -12,7 +12,7 @@ var _ = Describe("Integration", func() {
 		Skip("skipping test in short mode.")
 	}
 	var internalIPs []string
-	BeforeAll(func() {
+	BeforeEach(func() {
 		RunMake()
 		RunTerraform()
 		internalIPs = InternalIPs()
@@ -28,10 +28,8 @@ var _ = Describe("Integration", func() {
 				Ssh("ping -c 2 8.8.8.8", NatB())
 			})
 		})
-	})
-	Describe("NAT works from inside, both AZs", func() {
 		for _, ip := range internalIPs {
-			Context(ip, func() {
+			Context("Internal server: "+ip, func() {
 				It("should be able to ping 8.8.8.8", func() {
 					out := Ssh("nc "+ip+" 8732", NatA())
 					Ω(out).Should(ContainSubstring("OK"))
