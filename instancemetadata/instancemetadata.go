@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
 type MetadataFetcher interface {
@@ -13,11 +14,11 @@ type MetadataFetcher interface {
 }
 
 func New(debug bool) MetadataFetcher {
-	c := ec2metadata.Config{}
+	sess := session.New()
 	if debug {
-		c.LogLevel = aws.LogLevel(aws.LogDebug)
+		sess.Config.LogLevel = aws.LogLevel(aws.LogDebug)
 	}
-	return ec2metadata.New(&c)
+	return ec2metadata.New(sess)
 }
 
 type InstanceMetadata struct {

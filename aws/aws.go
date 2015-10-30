@@ -4,16 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/ec2metadata"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/awslabs/aws-sdk-go/aws/credentials/ec2rolecreds"
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"log"
 	"net"
-	"net/http"
 	"strings"
-	"time"
 )
 
 type MyEC2Conn interface {
@@ -201,38 +197,13 @@ func (r RouteTableManagerEC2) GetRouteTables() ([]*ec2.RouteTable, error) {
 	return resp.RouteTables, nil
 }
 
-func getProviders() []credentials.Provider {
-	return []credentials.Provider{
-		&credentials.EnvProvider{},
-		&ec2rolecreds.EC2RoleProvider{
-			Client: ec2metadata.New(&ec2metadata.Config{
-				HTTPClient: &http.Client{
-					Timeout: 2 * time.Second,
-				},
-			}),
-		},
-	}
-}
-
-func getCred(providers []credentials.Provider) *credentials.Credentials {
-	cred := credentials.NewChainCredentials(providers)
-	_, credErr := cred.Get()
-	if credErr != nil {
-		panic(credErr)
-	}
-	return cred
-}
-
 func NewRouteTableManager(region string, debug bool) RouteTableManager {
 	r := RouteTableManagerEC2{}
-	providers := getProviders()
-	cred := getCred(providers)
-	awsConfig := &aws.Config{
-		Credentials: cred,
-		Region:      aws.String(region),
-		MaxRetries:  aws.Int(3),
-	}
-	r.conn = ec2.New(awsConfig)
+	sess := session.New(&aws.Config{
+		Region:     aws.String(region),
+		MaxRetries: aws.Int(3),
+	})
+	r.conn = ec2.New(sess)
 	return r
 }
 
