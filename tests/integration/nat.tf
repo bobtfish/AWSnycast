@@ -8,7 +8,7 @@ resource "aws_instance" "nat-a" {
     tags {
         Name = "nat eu-west-1a"
     }
-    user_data = "${replace(replace(replace(replace(replace(file(\"${path.module}/nat.conf\"), \"__NETWORKPREFIX__\", \"10.0\"), \"__A_EXTRA__\", \"\"), \"__B_EXTRA__\", \"if_unhealthy: true\") \"__A_HEALTHCHECK__\", \"healthcheck: anycast\"), \"__B_HEALTHCHECK__\", \"\")}"
+    user_data = "${replace(replace(replace(replace(replace(file(\"${path.module}/nat.conf\"), \"__NETWORKPREFIX__\", \"10.0\"), \"__A_EXTRA__\", \"\"), \"__B_EXTRA__\", \"if_unhealthy: true\"), \"__A_HEALTHCHECK__\", \"healthcheck: anycast\"), \"__B_HEALTHCHECK__\", \"\")}"
     iam_instance_profile = "${aws_iam_instance_profile.test_profile.id}"
     provisioner "remote-exec" {
         inline = [
