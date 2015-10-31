@@ -252,6 +252,11 @@ Once I've got something that *I* am happy deploying to production, I'll cut a 1.
 
 This project is currently under heavy development.
 
+Bugs to fix:
+
+  * Fix not deleting routes when healthcheck goes unhealthy sometimes
+  * Fix issue when we try to change a route, and it's been deleted under us (re-add it)
+
 Here's a list of the features that I'm planning to work on next, in approximate order:
 
   * Make us autodetect the VPC this instance is running in, and refuse to adjust routing tables in other VPCs
