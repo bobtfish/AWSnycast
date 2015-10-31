@@ -27,7 +27,7 @@ func (h TcpHealthCheck) Healthcheck() bool {
 	//
 	c, err := net.Dial("tcp", h.Destination+":"+h.Port)
 	if err != nil {
-		log.Println("net.Dial: %s", err.Error())
+		log.Println(fmt.Sprintf("net.Dial: %s", err.Error()))
 		return false
 	}
 	defer c.Close()
