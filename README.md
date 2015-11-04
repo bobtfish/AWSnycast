@@ -46,7 +46,7 @@ that are *outside* the addesses space for your VPC, and point them to an instanc
 to a different instance if the machine providing the service fails.
 
 All you have to do on the instance itself is setup a network interface which can deal with this traffic;
-for example, alias ls0:0 as 192.168.1.1 and disable source/destination checking for that instance in AWS.
+for example, alias lo0:0 as 192.168.1.1 and disable source/destination checking for that instance in AWS.
 
 By advertising a larger range via BGP (from VPN or Direct connect) and then injecting /32 routes for
 the AWS instances of individual services, you get both bootstrapping (being able to bootstrap new AWS
