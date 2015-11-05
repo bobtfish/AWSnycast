@@ -36,7 +36,7 @@ You don't *have* to have a datacenter or VPN connection for AWSnycast to be usef
 still get route publishing based on healthchecks, and HA/failover, just not bootstrapping
 from in-datacenter.
 
-N.B. Whilst publishing routes to *from* AWS into your datacenter's BGP would be useful, at this
+N.B. Whilst publishing routes *from* AWS into your datacenter's BGP would be useful, at this
 time that is beyond the goals for this project.
 
 # How does this even work?
