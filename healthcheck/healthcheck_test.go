@@ -542,3 +542,76 @@ func TestHealthcheckListenerUnhealthy(t *testing.T) {
 	}
 	pingCmd = "ping"
 }
+
+func TestChangeDestination(t *testing.T) {
+	h := Healthcheck{
+		Type:        "ping",
+		Destination: "127.0.0.1",
+	}
+	h.Default(instancemetadata.InstanceMetadata{})
+	err := h.Validate("foo")
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	err = h.Setup()
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	h.PerformHealthcheck()
+	h.PerformHealthcheck()
+	pingCmd = "false"
+	if h.canPassYet == false {
+		t.Fail()
+	}
+	if h.runCount != 2 {
+		t.Fail()
+	}
+	if h.ChangeDestination("127.0.0.2") != nil {
+		t.Fail()
+	}
+	if h.canPassYet == true {
+		t.Fail()
+	}
+	if h.runCount != 0 {
+		t.Fail()
+	}
+	pingCmd = "ping"
+}
+
+func TestChangeDestinationFail(t *testing.T) {
+	h := Healthcheck{
+		Type:        "ping",
+		Destination: "127.0.0.1",
+	}
+	h.Default(instancemetadata.InstanceMetadata{})
+	err := h.Validate("foo")
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	err = h.Setup()
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	h.PerformHealthcheck()
+	h.PerformHealthcheck()
+	if h.canPassYet == false {
+		t.Fail()
+	}
+	if h.runCount != 2 {
+		t.Fail()
+	}
+	h.Type = "test_this_healthcheck_does_not_exist"
+	if h.ChangeDestination("127.0.0.2") == nil {
+		t.Fail()
+	}
+	if h.canPassYet == false {
+		t.Fail()
+	}
+	if h.runCount != 2 {
+		t.Fail()
+	}
+}

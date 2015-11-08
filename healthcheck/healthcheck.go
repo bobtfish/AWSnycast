@@ -46,6 +46,19 @@ type Healthcheck struct {
 	listeners     []chan<- bool
 }
 
+func (h *Healthcheck) ChangeDestination(newDestination string) error {
+	oldDestination := h.Destination
+	h.Destination = newDestination
+	err := h.Setup()
+	if err != nil {
+		h.Destination = oldDestination
+		return err
+	}
+	h.canPassYet = false
+	h.runCount = 0
+	return nil
+}
+
 func (h *Healthcheck) GetListener() <-chan bool {
 	c := make(chan bool, 5)
 	h.listeners = append(h.listeners, c)
