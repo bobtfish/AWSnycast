@@ -1031,3 +1031,8 @@ func TestUpdateEc2RouteTables(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestStartHealthcheckListenerNoHealthcheck(t *testing.T) {
+	rs := &ManageRoutesSpec{}
+	rs.StartHealthcheckListener(false)
+}
