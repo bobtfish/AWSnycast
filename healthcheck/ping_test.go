@@ -11,7 +11,7 @@ func TestHealthcheckPing(t *testing.T) {
 		Destination: "127.0.0.1",
 	}
 	h.Default(instancemetadata.InstanceMetadata{})
-	err := h.Validate("foo")
+	err := h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -30,7 +30,7 @@ func TestHealthcheckPingFail(t *testing.T) {
 		Destination: "169.254.255.45", // Hopefully you can't talk to this :)
 	}
 	h.Default(instancemetadata.InstanceMetadata{})
-	err := h.Validate("foo")
+	err := h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
 		t.Fail()

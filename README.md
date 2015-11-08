@@ -187,6 +187,14 @@ An example config is shown below:
                 every: 30
                 send: HEAD / HTTP/1.0 # String to send (optional)
                 expect: 200 OK        # Response to get back (optional)
+        remote_healthchecks:
+            service:
+                type: tcp
+                rise: 2
+                fall: 2
+                every: 30
+                send: HEAD / HTTP/1.0 # String to send (optional)
+                expect: 200 OK        # Response to get back (optional)
         routetables:
             # This is our AZ, so always try to takeover routes always
             a:
@@ -202,6 +210,7 @@ An example config is shown below:
                   - cidr: 192.168.1.1/32 # Manage an AWSnycast service on this machine
                     instance: SELF
                     healthcheck: localservice
+                    remote_healthcheck: service
             # This is not our AZ, so only takeover routes only if they don't exist already, or
             # the instance serving them is dead (terminated or stopped).
             # Every backup AWSnycast instance should have if_unhealthy: true set for route tables

@@ -53,11 +53,28 @@ func TestHealthcheckValidateNoType(t *testing.T) {
 		Destination: "127.0.0.1",
 	}
 	h.Default(instancemetadata.InstanceMetadata{})
-	err := h.Validate("foo")
+	err := h.Validate("foo", false)
 	if err == nil {
 		t.Fail()
 	} else {
 		if err.Error() != "No healthcheck type set" {
+			t.Log(err)
+			t.Fail()
+		}
+	}
+}
+
+func TestHealthcheckValidateRemoteWithDestFails(t *testing.T) {
+	h := Healthcheck{
+		Type:        "ping",
+		Destination: "127.0.0.1",
+	}
+	h.Default(instancemetadata.InstanceMetadata{})
+	err := h.Validate("foo", true)
+	if err == nil {
+		t.Fail()
+	} else {
+		if err.Error() != "Remote healthcheck foo cannot have destination set" {
 			t.Log(err)
 			t.Fail()
 		}
@@ -70,7 +87,7 @@ func TestHealthcheckValidate(t *testing.T) {
 		Destination: "127.0.0.1",
 	}
 	h.Default(instancemetadata.InstanceMetadata{})
-	err := h.Validate("foo")
+	err := h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -81,7 +98,7 @@ func TestHealthcheckValidateFailNoDestination(t *testing.T) {
 	h := Healthcheck{
 		Type: "notping",
 	}
-	err := h.Validate("foo")
+	err := h.Validate("foo", false)
 	if err == nil {
 		t.Fail()
 	}
@@ -96,7 +113,7 @@ func TestHealthcheckValidateFailDestination(t *testing.T) {
 		Type:        "notping",
 		Destination: "www.google.com",
 	}
-	err := h.Validate("foo")
+	err := h.Validate("foo", false)
 	if err == nil {
 		t.Fail()
 	}
@@ -111,7 +128,7 @@ func TestHealthcheckValidateFailType(t *testing.T) {
 		Type:        "notping",
 		Destination: "127.0.0.1",
 	}
-	err := h.Validate("foo")
+	err := h.Validate("foo", false)
 	if err == nil {
 		t.Fail()
 	}
@@ -127,7 +144,7 @@ func TestHealthcheckValidateFailRise(t *testing.T) {
 		Fall:        1,
 		Destination: "127.0.0.1",
 	}
-	err := h.Validate("foo")
+	err := h.Validate("foo", false)
 	if err == nil {
 		t.Fail()
 	}
@@ -143,7 +160,7 @@ func TestHealthcheckValidateFailFall(t *testing.T) {
 		Rise:        1,
 		Destination: "127.0.0.1",
 	}
-	err := h.Validate("foo")
+	err := h.Validate("foo", false)
 	if err == nil {
 		t.Fail()
 	}
@@ -497,7 +514,7 @@ func TestHealthcheckListener(t *testing.T) {
 		Destination: "127.0.0.1",
 	}
 	h.Default(instancemetadata.InstanceMetadata{})
-	err := h.Validate("foo")
+	err := h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -523,7 +540,7 @@ func TestHealthcheckListenerUnhealthy(t *testing.T) {
 		Destination: "127.0.0.1",
 	}
 	h.Default(instancemetadata.InstanceMetadata{})
-	err := h.Validate("foo")
+	err := h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -549,7 +566,7 @@ func TestChangeDestination(t *testing.T) {
 		Destination: "127.0.0.1",
 	}
 	h.Default(instancemetadata.InstanceMetadata{})
-	err := h.Validate("foo")
+	err := h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -586,7 +603,7 @@ func TestChangeDestinationFail(t *testing.T) {
 		Destination: "127.0.0.1",
 	}
 	h.Default(instancemetadata.InstanceMetadata{})
-	err := h.Validate("foo")
+	err := h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
 		t.Fail()

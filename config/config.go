@@ -78,13 +78,17 @@ func (r *RouteTable) RunEc2Updates(manager aws.RouteTableManager, noop bool) err
 }
 
 type Config struct {
-	Healthchecks map[string]*healthcheck.Healthcheck `yaml:"healthchecks"`
-	RouteTables  map[string]*RouteTable              `yaml:"routetables"`
+	Healthchecks       map[string]*healthcheck.Healthcheck `yaml:"healthchecks"`
+	RemoteHealthchecks map[string]*healthcheck.Healthcheck `yaml:"remote_healthchecks"`
+	RouteTables        map[string]*RouteTable              `yaml:"routetables"`
 }
 
 func (c *Config) Default(im instancemetadata.InstanceMetadata) {
 	if c.Healthchecks == nil {
 		c.Healthchecks = make(map[string]*healthcheck.Healthcheck)
+	}
+	if c.RemoteHealthchecks == nil {
+		c.RemoteHealthchecks = make(map[string]*healthcheck.Healthcheck)
 	}
 	if c.RouteTables != nil {
 		for _, v := range c.RouteTables {
@@ -96,7 +100,11 @@ func (c *Config) Default(im instancemetadata.InstanceMetadata) {
 	for _, v := range c.Healthchecks {
 		v.Default(im)
 	}
+	for _, v := range c.RemoteHealthchecks {
+		v.Default(im)
+	}
 }
+
 func (c Config) Validate() error {
 	if c.RouteTables == nil {
 		return errors.New("No route_tables key in config")
@@ -106,7 +114,7 @@ func (c Config) Validate() error {
 	}
 	if c.Healthchecks != nil {
 		for k, v := range c.Healthchecks {
-			if err := v.Validate(k); err != nil {
+			if err := v.Validate(k, false); err != nil {
 				return err
 			}
 		}

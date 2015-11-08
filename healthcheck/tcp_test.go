@@ -18,7 +18,7 @@ func TestHealthcheckTcpNoPort(t *testing.T) {
 		Config:      c,
 	}
 	h.Default(instancemetadata.InstanceMetadata{})
-	h.Validate("foo")
+	h.Validate("foo", false)
 	err := h.Setup()
 	if err == nil {
 		t.Fail()
@@ -75,7 +75,7 @@ func TestHealthcheckTcp(t *testing.T) {
 		Config:      c,
 	}
 	h.Default(instancemetadata.InstanceMetadata{})
-	err = h.Validate("foo")
+	err = h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -141,7 +141,7 @@ func TestHealthcheckTcpFail(t *testing.T) {
 		Config:      c,
 	}
 	h.Default(instancemetadata.InstanceMetadata{})
-	err = h.Validate("foo")
+	err = h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -179,7 +179,7 @@ func TestHealthcheckTcpClosed(t *testing.T) {
 		Config:      c,
 	}
 	h.Default(instancemetadata.InstanceMetadata{})
-	err = h.Validate("foo")
+	err = h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -230,7 +230,7 @@ func TestHealthcheckTcpFailClientClose(t *testing.T) {
 		Config:      c,
 	}
 	h.Default(instancemetadata.InstanceMetadata{})
-	err = h.Validate("foo")
+	err = h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -294,7 +294,7 @@ func TestHealthcheckTcpNoExpect(t *testing.T) {
 		Config:      c,
 	}
 	h.Default(instancemetadata.InstanceMetadata{})
-	err = h.Validate("foo")
+	err = h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -345,7 +345,7 @@ func TestHealthcheckTcpNoSendOrExpect(t *testing.T) {
 		Config:      c,
 	}
 	h.Default(instancemetadata.InstanceMetadata{})
-	err = h.Validate("foo")
+	err = h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -398,7 +398,7 @@ func TestHealthcheckTcpNoSend(t *testing.T) {
 		Config:      c,
 	}
 	h.Default(instancemetadata.InstanceMetadata{})
-	err = h.Validate("foo")
+	err = h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
 		t.Fail()

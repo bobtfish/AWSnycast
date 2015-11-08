@@ -144,12 +144,18 @@ func (h *Healthcheck) PerformHealthcheck() {
 	}
 }
 
-func (h Healthcheck) Validate(name string) error {
-	if h.Destination == "" {
-		return errors.New(fmt.Sprintf("Healthcheck %s has no destination set", name))
-	}
-	if net.ParseIP(h.Destination) == nil {
-		return errors.New(fmt.Sprintf("Healthcheck %s destination '%s' does not parse as an IP address", name, h.Destination))
+func (h Healthcheck) Validate(name string, remote bool) error {
+	if !remote {
+		if h.Destination == "" {
+			return errors.New(fmt.Sprintf("Healthcheck %s has no destination set", name))
+		}
+		if net.ParseIP(h.Destination) == nil {
+			return errors.New(fmt.Sprintf("Healthcheck %s destination '%s' does not parse as an IP address", name, h.Destination))
+		}
+	} else {
+		if h.Destination != "" {
+			return errors.New(fmt.Sprintf("Remote healthcheck %s cannot have destination set", name))
+		}
 	}
 	if h.Type == "" {
 		return errors.New("No healthcheck type set")
