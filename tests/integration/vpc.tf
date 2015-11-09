@@ -33,6 +33,10 @@ resource "aws_route_table" "privatea" {
         cidr_block = "0.0.0.0/0"
         instance_id = "${aws_instance.nat-a.id}"
     }
+    route {
+        cidr_block = "192.168.1.1/32"
+        instance_id = "${aws_instance.nat-a.id}"
+    }
     tags {
         Name = "private a"
     }
@@ -42,6 +46,10 @@ resource "aws_route_table" "privateb" {
     vpc_id = "${aws_vpc.main.id}"
     route {
         cidr_block = "0.0.0.0/0"
+        instance_id = "${aws_instance.nat-b.id}"
+    }
+    route {
+        cidr_block = "192.168.1.1/32"
         instance_id = "${aws_instance.nat-b.id}"
     }
     tags {
