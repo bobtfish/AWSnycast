@@ -172,6 +172,7 @@ By default AWSnycast will look for this in /etc/awsnycast.yaml
 An example config is shown below:
 
         ---
+        poll_time: 300 # How often to poll AWS route tables
         healthchecks:
             public:
                 type: ping

@@ -38,15 +38,15 @@ func (d *Daemon) Setup() error {
 	}
 	d.InstanceMetadata = im
 
-	if d.FetchWait == 0 {
-		d.FetchWait = time.Second * 300
-	}
-
 	config, err := config.New(d.ConfigFile, d.InstanceMetadata)
 	if err != nil {
 		return err
 	}
 	d.Config = config
+
+	if d.FetchWait == 0 {
+		d.FetchWait = time.Second * time.Duration(config.PollTime)
+	}
 
 	if d.RouteTableManager == nil {
 		d.RouteTableManager = aws.NewRouteTableManager(d.Region, d.Debug)

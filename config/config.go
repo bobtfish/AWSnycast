@@ -12,6 +12,13 @@ import (
 	"log"
 )
 
+type Config struct {
+	PollTime           uint                                `yaml:"poll_time"`
+	Healthchecks       map[string]*healthcheck.Healthcheck `yaml:"healthchecks"`
+	RemoteHealthchecks map[string]*healthcheck.Healthcheck `yaml:"remote_healthchecks"`
+	RouteTables        map[string]*RouteTable              `yaml:"routetables"`
+}
+
 type RouteTableFindSpec struct {
 	Type   string            `yaml:"type"`
 	Config map[string]string `yaml:"config"`
@@ -77,13 +84,10 @@ func (r *RouteTable) RunEc2Updates(manager aws.RouteTableManager, noop bool) err
 	return nil
 }
 
-type Config struct {
-	Healthchecks       map[string]*healthcheck.Healthcheck `yaml:"healthchecks"`
-	RemoteHealthchecks map[string]*healthcheck.Healthcheck `yaml:"remote_healthchecks"`
-	RouteTables        map[string]*RouteTable              `yaml:"routetables"`
-}
-
 func (c *Config) Default(im instancemetadata.InstanceMetadata) {
+	if c.PollTime == 0 {
+		c.PollTime = 300 // Default to every 5m
+	}
 	if c.Healthchecks == nil {
 		c.Healthchecks = make(map[string]*healthcheck.Healthcheck)
 	}
