@@ -747,7 +747,7 @@ func TestManageRoutesSpecDefault(t *testing.T) {
 	u := &ManageRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
-	u.Default("i-1234")
+	u.Default("i-1234", FakeRouteTableManager{})
 	if u.Cidr != "127.0.0.1/32" {
 		t.Log("Not canonicalized in ManageRoutesSpecDefault")
 		t.Fail()
@@ -892,7 +892,7 @@ func TestManageRouteSpecDefaultInstanceSELF(t *testing.T) {
 		Cidr:     "127.0.0.1",
 		Instance: "SELF",
 	}
-	urs.Default("i-other")
+	urs.Default("i-other", FakeRouteTableManager{})
 	if urs.Instance != "i-other" {
 		t.Fail()
 	}
@@ -903,7 +903,7 @@ func TestManageRouteSpecDefaultInstanceOther(t *testing.T) {
 		Cidr:     "127.0.0.1",
 		Instance: "i-foo",
 	}
-	urs.Default("i-other")
+	urs.Default("i-other", FakeRouteTableManager{})
 	if urs.Instance != "i-foo" {
 		t.Fail()
 	}
@@ -1018,7 +1018,7 @@ func TestEc2RouteTablesDefault(t *testing.T) {
 	rs := &ManageRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
-	rs.Default("i-1234")
+	rs.Default("i-1234", FakeRouteTableManager{})
 	if rs.ec2RouteTables == nil {
 		t.Fail()
 	}

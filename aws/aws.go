@@ -30,7 +30,7 @@ type ManageRoutesSpec struct {
 	Manager         RouteTableManager `yaml:"-"`
 }
 
-func (r *ManageRoutesSpec) Default(instance string) {
+func (r *ManageRoutesSpec) Default(instance string, manager RouteTableManager) {
 	if !strings.Contains(r.Cidr, "/") {
 		r.Cidr = fmt.Sprintf("%s/32", r.Cidr)
 	}
@@ -42,6 +42,7 @@ func (r *ManageRoutesSpec) Default(instance string) {
 		r.Instance = instance
 	}
 	r.ec2RouteTables = make([]*ec2.RouteTable, 0)
+	r.Manager = manager
 }
 
 func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck) error {
