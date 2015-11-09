@@ -2,6 +2,7 @@ package aws
 
 import (
 	"errors"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/healthcheck"
@@ -752,8 +753,12 @@ func TestManageRoutesSpecDefault(t *testing.T) {
 		t.Log("Not canonicalized in ManageRoutesSpecDefault")
 		t.Fail()
 	}
-	if u.Instance != "SELF" {
-		t.Log("Instance not defaulted to SELF")
+	if u.Instance != "i-1234" {
+		t.Log(fmt.Sprintf("Instance not defaulted to SELF (i-1234), is '%s'", u.Instance))
+		t.Fail()
+	}
+	if u.Manager == nil {
+		t.Fail()
 	}
 }
 
