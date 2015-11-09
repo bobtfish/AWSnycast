@@ -84,7 +84,7 @@ func (r *RouteTable) RunEc2Updates(manager aws.RouteTableManager, noop bool) err
 	return nil
 }
 
-func (c *Config) Default(im instancemetadata.InstanceMetadata) {
+func (c *Config) Default(im instancemetadata.InstanceMetadata, manager aws.RouteTableManager) {
 	if c.PollTime == 0 {
 		c.PollTime = 300 // Default to every 5m
 	}
@@ -96,7 +96,7 @@ func (c *Config) Default(im instancemetadata.InstanceMetadata) {
 	}
 	if c.RouteTables != nil {
 		for _, v := range c.RouteTables {
-			v.Default(im.Instance)
+			v.Default(im.Instance, manager)
 		}
 	} else {
 		c.RouteTables = make(map[string]*RouteTable)
@@ -149,13 +149,13 @@ func (r *RouteTableFindSpec) Validate(name string) error {
 	return nil
 }
 
-func (r *RouteTable) Default(instance string) {
+func (r *RouteTable) Default(instance string, manager aws.RouteTableManager) {
 	r.Find.Default()
 	if r.ManageRoutes == nil {
 		r.ManageRoutes = make([]*aws.ManageRoutesSpec, 0)
 	}
 	for _, v := range r.ManageRoutes {
-		v.Default(instance)
+		v.Default(instance, manager)
 	}
 	if r.ec2RouteTables == nil {
 		r.ec2RouteTables = make([]*ec2.RouteTable, 0)
@@ -173,7 +173,7 @@ func (r RouteTable) Validate(name string, healthchecks map[string]*healthcheck.H
 	return nil
 }
 
-func New(filename string, im instancemetadata.InstanceMetadata) (*Config, error) {
+func New(filename string, im instancemetadata.InstanceMetadata, manager aws.RouteTableManager) (*Config, error) {
 	c := new(Config)
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -181,7 +181,7 @@ func New(filename string, im instancemetadata.InstanceMetadata) (*Config, error)
 	}
 	err = yaml.Unmarshal(data, &c)
 	if err == nil {
-		c.Default(im)
+		c.Default(im, manager)
 		err = c.Validate()
 	}
 	return c, err

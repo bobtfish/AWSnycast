@@ -114,7 +114,7 @@ func myHealthCheckConstructorFail(h healthcheck.Healthcheck) (healthcheck.Health
 func TestConfigBadHealthcheck(t *testing.T) {
 	healthcheck.RegisterHealthcheck("testconstructorfail", myHealthCheckConstructorFail)
 	c := &config.Config{}
-	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"})
+	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"}, NewFakeRouteTableManager())
 	c.Healthchecks["one"] = &healthcheck.Healthcheck{
 		Type:        "testconstructorfail",
 		Destination: "127.0.0.1",
@@ -175,7 +175,7 @@ func getD(a bool) Daemon {
 		ConfigFile: "../tests/awsnycast.yaml",
 		Config:     &config.Config{},
 	}
-	d.Config.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"})
+	d.Config.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"}, NewFakeRouteTableManager())
 	fakeR := NewFakeRouteTableManager()
 	d.MetadataFetcher = getFakeMetadataFetcher(a)
 	d.RouteTableManager = fakeR

@@ -12,15 +12,17 @@ import (
 )
 
 var tim instancemetadata.InstanceMetadata
+var rtm *FakeRouteTableManager
 
 func init() {
 	tim = instancemetadata.InstanceMetadata{
 		Instance: "i-1234",
 	}
+	rtm = &FakeRouteTableManager{}
 }
 
 func TestLoadConfig(t *testing.T) {
-	c, err := New("../tests/awsnycast.yaml", tim)
+	c, err := New("../tests/awsnycast.yaml", tim, rtm)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -31,7 +33,7 @@ func TestLoadConfig(t *testing.T) {
 }
 
 func TestLoadConfigFails(t *testing.T) {
-	_, err := New("../tests/doesnotexist.yaml", tim)
+	_, err := New("../tests/doesnotexist.yaml", tim, rtm)
 	if err == nil {
 		t.Fail()
 	} else {
@@ -43,7 +45,7 @@ func TestLoadConfigFails(t *testing.T) {
 }
 
 func TestLoadConfigFailsValidation(t *testing.T) {
-	_, err := New("../tests/invalid.yaml", tim)
+	_, err := New("../tests/invalid.yaml", tim, rtm)
 	if err == nil {
 		t.Fail()
 	} else {
@@ -55,7 +57,7 @@ func TestLoadConfigFailsValidation(t *testing.T) {
 }
 
 func TestLoadConfigHealthchecks(t *testing.T) {
-	c, _ := New("../tests/awsnycast.yaml", tim)
+	c, _ := New("../tests/awsnycast.yaml", tim, rtm)
 	if c.Healthchecks == nil {
 		t.Log("c.Healthchecks == nil")
 		t.Fail()
@@ -154,7 +156,7 @@ func TestConfigDefault(t *testing.T) {
 	c := Config{
 		RouteTables: r,
 	}
-	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"})
+	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"}, rtm)
 	if c.Healthchecks == nil {
 		t.Fail()
 	}
@@ -227,7 +229,7 @@ func TestConfigValidateBadRouteTableUpserts(t *testing.T) {
 }
 
 func TestConfigValidateBadHealthChecks(t *testing.T) {
-	c_disk, _ := New("../tests/awsnycast.yaml", tim)
+	c_disk, _ := New("../tests/awsnycast.yaml", tim, rtm)
 	h := make(map[string]*healthcheck.Healthcheck)
 	h["foo"] = &healthcheck.Healthcheck{}
 	c := Config{
@@ -245,11 +247,11 @@ func TestConfigValidateBadHealthChecks(t *testing.T) {
 }
 
 func TestConfigValidateNoHealthChecks(t *testing.T) {
-	c_disk, _ := New("../tests/awsnycast.yaml", tim)
+	c_disk, _ := New("../tests/awsnycast.yaml", tim, rtm)
 	c := Config{
 		RouteTables: c_disk.RouteTables,
 	}
-	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"})
+	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"}, rtm)
 	err := c.Validate()
 	if err == nil {
 		t.Fail()
@@ -268,7 +270,7 @@ func TestConfigValidate(t *testing.T) {
 	c := Config{
 		RouteTables: r,
 	}
-	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"})
+	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"}, rtm)
 	err := c.Validate()
 	if err != nil {
 		t.Log(err)
@@ -283,7 +285,7 @@ func TestConfigValidate(t *testing.T) {
 
 func TestConfigValidateEmpty(t *testing.T) {
 	c := Config{}
-	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"})
+	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"}, rtm)
 	err := c.Validate()
 	if err == nil {
 		t.Fail()
@@ -367,7 +369,7 @@ func TestRouteTableFindSpecValidateNoConfig(t *testing.T) {
 
 func TestRouteTableDefaultEmpty(t *testing.T) {
 	r := RouteTable{}
-	r.Default("i-1234")
+	r.Default("i-1234", rtm)
 	if r.ManageRoutes == nil {
 		t.Fail()
 	}
@@ -384,7 +386,7 @@ func TestRouteTableDefault(t *testing.T) {
 	r := RouteTable{
 		ManageRoutes: routes,
 	}
-	r.Default("i-1234")
+	r.Default("i-1234", rtm)
 	if len(r.ManageRoutes) != 1 {
 		t.Fail()
 	}
@@ -430,7 +432,7 @@ func TestRouteTableValidate(t *testing.T) {
 	r := RouteTable{
 		ManageRoutes: routes,
 	}
-	r.Default("i-1234")
+	r.Default("i-1234", rtm)
 	h := make(map[string]*healthcheck.Healthcheck)
 	err := r.Validate("foo", h)
 	if err != nil {
@@ -599,7 +601,7 @@ func TestRunEc2Updates(t *testing.T) {
 	rt := &RouteTable{
 		ManageRoutes: []*aws.ManageRoutesSpec{&aws.ManageRoutesSpec{Cidr: "127.0.0.1"}},
 	}
-	rt.Default("i-1234")
+	rt.Default("i-1234", rtm)
 	rt.ec2RouteTables = append(rt.ec2RouteTables, &ec2.RouteTable{
 		Associations: []*ec2.RouteTableAssociation{},
 		RouteTableId: a.String("rtb-9696cffe"),

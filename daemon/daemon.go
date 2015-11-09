@@ -38,7 +38,11 @@ func (d *Daemon) Setup() error {
 	}
 	d.InstanceMetadata = im
 
-	config, err := config.New(d.ConfigFile, d.InstanceMetadata)
+	if d.RouteTableManager == nil {
+		d.RouteTableManager = aws.NewRouteTableManager(d.Region, d.Debug)
+	}
+
+	config, err := config.New(d.ConfigFile, d.InstanceMetadata, d.RouteTableManager)
 	if err != nil {
 		return err
 	}
@@ -48,9 +52,6 @@ func (d *Daemon) Setup() error {
 		d.FetchWait = time.Second * time.Duration(config.PollTime)
 	}
 
-	if d.RouteTableManager == nil {
-		d.RouteTableManager = aws.NewRouteTableManager(d.Region, d.Debug)
-	}
 	return setupHealthchecks(d.Config)
 }
 
