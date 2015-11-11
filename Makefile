@@ -30,3 +30,6 @@ coverage.out:
 	cd healthcheck ; go test -coverprofile=coverage.out ./... ; cd ..
 	cd instancemetadata ; go test -coverprofile=coverage.out ./... ; cd ..
 	echo "mode: set" > coverage.out && cat */coverage.out | grep -v mode: | sort -r | awk '{if($$1 != last) {print $$0;last=$$1}}' >> coverage.out
+
+itest_%:
+	make -C itest_$*
