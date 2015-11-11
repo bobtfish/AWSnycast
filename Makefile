@@ -32,4 +32,4 @@ coverage.out:
 	echo "mode: set" > coverage.out && cat */coverage.out | grep -v mode: | sort -r | awk '{if($$1 != last) {print $$0;last=$$1}}' >> coverage.out
 
 itest_%:
-	make -C itest_$*
+	make -C package itest_$*
