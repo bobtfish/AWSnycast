@@ -1,5 +1,5 @@
 .PHONY: itest_% clean shell
-PROJECT = awsnycast 
+PROJECT = awsnycast
 
 
 BUILD_NUMBER?=0
