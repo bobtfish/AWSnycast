@@ -41,10 +41,10 @@ routetables:
                     not: true
                     config:
                        key: az
-                       value: "__MYAZ__"
+                       value: eu-west-1
                   - type: by_tag
                     config:
-                       key: az
+                       key: type
                        value: private
         manage_routes:
           - cidr: 0.0.0.0/0

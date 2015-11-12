@@ -255,8 +255,12 @@ func TestRunOneShot(t *testing.T) {
 		Routes:       []*ec2.Route{},
 		Tags: []*ec2.Tag{
 			&ec2.Tag{
-				Key:   a.String("Name"),
-				Value: a.String("private b"),
+				Key:   a.String("type"),
+				Value: a.String("private"),
+			},
+			&ec2.Tag{
+				Key:   a.String("az"),
+				Value: a.String("eu-west-1b"),
 			},
 		},
 	}
@@ -448,8 +452,12 @@ func TestRunOneReal(t *testing.T) {
 		Routes:       []*ec2.Route{},
 		Tags: []*ec2.Tag{
 			&ec2.Tag{
-				Key:   a.String("Name"),
-				Value: a.String("private b"),
+				Key:   a.String("az"),
+				Value: a.String("eu-west-1b"),
+			},
+			&ec2.Tag{
+				Key:   a.String("type"),
+				Value: a.String("private"),
 			},
 		},
 	}
