@@ -5,6 +5,12 @@
 AWSnycast is a routing daemon for AWS route tables, to simulate an Anycast like service, and act as an
 extension of in-datacenter Anycast. It can also be used to provide HA NAT service.
 
+# WARNING
+
+master is currently *highly* unstable.
+
+If you're crazy enough to want to use this, please use release version 0.0.1
+
 # NAT
 
 A common pattern in AWS is to route egressing traffic (from private subnets) through a NAT instance
