@@ -283,8 +283,6 @@ This project is currently under heavy development.
 
 Here's a list of the features that I'm planning to work on next, in approximate order:
 
-  * Http health check for apt
-
   * Better logging for create
   * Log levels, log messages
 
