@@ -42,11 +42,20 @@ func init() {
 		}, nil
 	}
 	routeFindTypes["and"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
-		if _, ok := spec.Config["filters"]; !ok {
+		v, ok := spec.Config["filters"]
+		if !ok {
 			return nil, errors.New("No filters in config for and route table finder")
 		}
-		//return aws.RouteTableFilterAnd{RouteTableFilters: spec.Config["filters"].([]RouteTableFindSpec)}, nil
-		return nil, nil
+		filtersRepacked, err := yaml.Marshal(v)
+		if err != nil {
+			return nil, err
+		}
+		var filters []aws.RouteTableFilter
+		err = yaml.Unmarshal(filtersRepacked, filters)
+		if err != nil {
+			return nil, err
+		}
+		return aws.RouteTableFilterAnd{filters}, nil
 	}
 }
 
