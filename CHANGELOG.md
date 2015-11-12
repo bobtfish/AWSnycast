@@ -1,3 +1,5 @@
+Version 0.0.3 - 2015-11-12
+
   - Add much better documentation
   - Add the ability to setup a route finder which does not bomb out it
     doesn't find anything
