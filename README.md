@@ -283,8 +283,6 @@ This project is currently under heavy development.
 
 Here's a list of the features that I'm planning to work on next, in approximate order:
 
-  * Yelp awsnycast for apt one region TCP hc
-  * Yelp support devc in tags/config
   * Http health check for apt
 
   * Better logging for create
