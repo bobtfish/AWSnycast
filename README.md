@@ -273,8 +273,6 @@ Bugs to fix:
 Here's a list of the features that I'm planning to work on next, in approximate order:
 
  * Type switch filters
- * Abstract
- * Or filter
  * Give up route non mandatory
 
   * Yelp subnet tags

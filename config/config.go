@@ -42,12 +42,32 @@ func init() {
 		}, nil
 	}
 	routeFindTypes["and"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
-		v, ok := spec.Config["filters"]
-		if !ok {
+		filters, ok := getFiltersListForSpec(spec)
+		if ok != nil {
 			return nil, errors.New("No filters in config for and route table finder")
 		}
-		var filters []aws.RouteTableFilter
-		for _, filter := range v.([]interface{}) { // I REGRET NOTHING
+		return aws.RouteTableFilterAnd{filters}, nil
+	}
+	routeFindTypes["or"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
+		filters, ok := getFiltersListForSpec(spec)
+		if ok != nil {
+			return nil, errors.New("No filters in config for or route table finder")
+		}
+		return aws.RouteTableFilterOr{filters}, nil
+	}
+}
+
+func getFiltersListForSpec(spec RouteTableFindSpec) ([]aws.RouteTableFilter, error) {
+	v, ok := spec.Config["filters"]
+	if !ok {
+		return nil, errors.New("No filters in config for route table finder")
+	}
+	var filters []aws.RouteTableFilter
+	switch t := v.(type) {
+	default:
+		return filters, errors.New(fmt.Sprintf("unexpected type %T\n", t))
+	case []interface{}:
+		for _, filter := range t { // I REGRET NOTHING
 			filterRepacked, err := yaml.Marshal(filter)
 			if err != nil {
 				return nil, err
@@ -63,8 +83,8 @@ func init() {
 			}
 			filters = append(filters, filter)
 		} // End lack of regret
-		return aws.RouteTableFilterAnd{filters}, nil
 	}
+	return filters, nil
 }
 
 func (spec RouteTableFindSpec) GetFilter() (aws.RouteTableFilter, error) {
