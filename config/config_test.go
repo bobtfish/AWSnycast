@@ -138,10 +138,12 @@ func TestLoadConfigHealthchecks(t *testing.T) {
 				}
 			} else {
 				if route.HealthcheckName != "localservice" {
+					t.Log("HealthcheckName is not localservice")
 					t.Fail()
 				}
 			}
 		} else {
+			t.Log("CIDR unknown")
 			t.Fail()
 		}
 	}
@@ -149,7 +151,7 @@ func TestLoadConfigHealthchecks(t *testing.T) {
 	if !ok {
 		t.Fail()
 	}
-	if b.Find.Type != "by_tag" {
+	if b.Find.Type != "and" {
 		t.Fail()
 	}
 }
