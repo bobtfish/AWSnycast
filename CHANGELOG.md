@@ -1,3 +1,6 @@
+  - Add the ability to setup a route finder which does not bomb out it
+    doesn't find anything
+
 Version 0.0.2 - 2015-11-12
 
   - Make the interval between polls to AWS for the current routing tables
