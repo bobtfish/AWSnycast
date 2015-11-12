@@ -304,7 +304,7 @@ func TestRouteTableFindSpecDefault(t *testing.T) {
 	}
 }
 func TestRouteTableFindSpecValidate(t *testing.T) {
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["key"] = "Name"
 	c["value"] = "private a"
 	r := RouteTableFindSpec{
@@ -319,7 +319,7 @@ func TestRouteTableFindSpecValidate(t *testing.T) {
 }
 
 func TestRouteTableFindSpecValidateNoType(t *testing.T) {
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["key"] = "Name"
 	c["value"] = "private a"
 	r := RouteTableFindSpec{
@@ -336,7 +336,7 @@ func TestRouteTableFindSpecValidateNoType(t *testing.T) {
 }
 
 func TestRouteTableFindSpecValidateUnknownType(t *testing.T) {
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["key"] = "Name"
 	c["value"] = "private a"
 	r := RouteTableFindSpec{
@@ -441,7 +441,7 @@ func TestRouteTableValidate(t *testing.T) {
 }
 
 func TestByTagRouteTableFindMissingKey(t *testing.T) {
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	rts := RouteTableFindSpec{
 		Type:   "by_tag",
 		Config: c,
@@ -459,7 +459,7 @@ func TestByTagRouteTableFindMissingKey(t *testing.T) {
 }
 
 func TestByTagRouteTableFindMissingValue(t *testing.T) {
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["key"] = "Name"
 	rts := RouteTableFindSpec{
 		Type:   "by_tag",
@@ -478,7 +478,7 @@ func TestByTagRouteTableFindMissingValue(t *testing.T) {
 }
 
 func TestByTagRouteTableFind(t *testing.T) {
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["key"] = "Name"
 	c["value"] = "private b"
 	rts := RouteTableFindSpec{
@@ -495,7 +495,7 @@ func TestByTagRouteTableFind(t *testing.T) {
 }
 
 func TestRouteTableFindUnknownType(t *testing.T) {
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	rts := RouteTableFindSpec{
 		Type:   "unknown",
 		Config: c,
@@ -525,7 +525,7 @@ func TestUpdateEc2RouteTablesRouteTablesGetFilterFail(t *testing.T) {
 
 func TestUpdateEc2RouteTablesNoRouteTablesInAWS(t *testing.T) {
 	awsRt := make([]*ec2.RouteTable, 0)
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["key"] = "Name"
 	c["value"] = "private a"
 	rt := &RouteTable{
@@ -558,7 +558,7 @@ func TestUpdateEc2RouteTablesFindRouteTablesInAWS(t *testing.T) {
 			},
 		},
 	}
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["key"] = "Name"
 	c["value"] = "private a"
 	rt := &RouteTable{

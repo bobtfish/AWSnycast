@@ -278,7 +278,7 @@ func TestRunOneRouteTableGetFilterFail(t *testing.T) {
 func TestRunOneRouteTableNoRouteTablesInAWS(t *testing.T) {
 	d := getD(true)
 	awsRt := make([]*ec2.RouteTable, 0)
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["key"] = "Name"
 	c["value"] = "private a"
 	rt := &config.RouteTable{
@@ -312,7 +312,7 @@ func TestRunOneRouteTableNoManageRoutes(t *testing.T) {
 			},
 		},
 	}
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["key"] = "Name"
 	c["value"] = "private a"
 	rt := &config.RouteTable{
@@ -342,7 +342,7 @@ func TestRunOneRouteTable(t *testing.T) {
 			},
 		},
 	}
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["key"] = "Name"
 	c["value"] = "private a"
 	u := make([]*aws.ManageRoutesSpec, 1)
@@ -380,7 +380,7 @@ func TestRunOneRouteTableUpsertRouteFail(t *testing.T) {
 			},
 		},
 	}
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["key"] = "Name"
 	c["value"] = "private a"
 	u := make([]*aws.ManageRoutesSpec, 1)
