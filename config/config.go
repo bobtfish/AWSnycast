@@ -21,6 +21,7 @@ type Config struct {
 
 type RouteTableFindSpec struct {
 	Type   string            `yaml:"type"`
+	Not    bool              `yaml:"not"`
 	Config map[string]string `yaml:"config"`
 }
 
@@ -44,7 +45,14 @@ func init() {
 
 func (spec RouteTableFindSpec) GetFilter() (aws.RouteTableFilter, error) {
 	if genFilter, found := routeFindTypes[spec.Type]; found {
-		return genFilter(spec)
+		filter, err := genFilter(spec)
+		if err != nil {
+			return filter, err
+		}
+		if spec.Not {
+			return aws.RouteTableFilterNot{filter}, nil
+		}
+		return filter, nil
 	}
 	return nil, errors.New(fmt.Sprintf("Route table finder type '%s' not found in the registry", spec.Type))
 }

@@ -224,6 +224,14 @@ func (fs RouteTableFilterNever) Keep(rt *ec2.RouteTable) bool {
 	return true
 }
 
+type RouteTableFilterNot struct {
+	Filter RouteTableFilter
+}
+
+func (fs RouteTableFilterNot) Keep(rt *ec2.RouteTable) bool {
+	return !fs.Filter.Keep(rt)
+}
+
 type RouteTableFilterAnd struct {
 	RouteTableFilters []RouteTableFilter
 }
