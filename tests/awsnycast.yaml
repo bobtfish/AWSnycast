@@ -29,6 +29,7 @@ routetables:
            - cidr: 0.0.0.0/0
              instance: SELF
              healthcheck: public
+             never_delete: true
            - cidr: 192.168.1.1/32
              instance: SELF
              healthcheck: localservice
@@ -51,6 +52,7 @@ routetables:
             if_unhealthy: true
             instance: SELF
             healthcheck: public
+            never_delete: true
           - cidr: 192.168.1.1/32
             if_unhealthy: true
             instance: SELF

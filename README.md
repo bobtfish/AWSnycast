@@ -204,16 +204,23 @@ An example config is shown below:
                 expect: 200 OK        # Response to get back (optional)
         routetables:
             # This is our AZ, so always try to takeover routes always
-            a:
+            our_az:
                 find:
-                    type: by_tag
+                    type: and
                     config:
-                        key: Name
-                        value: private a
+                      - type: by_tag
+                        config:
+                            key: az 
+                            value: eu-west-1a
+                      - type: by_tag
+                            config:
+                                key: type
+                                value: private
                 manage_routes:
                   - cidr: 0.0.0.0/0     # NAT box, so manage the default route
                     instance: SELF
                     healthcheck: public
+                    never_delete: true   # Don't delete the default route if google goes down ;)
                   - cidr: 192.168.1.1/32 # Manage an AWSnycast service on this machine
                     instance: SELF
                     healthcheck: localservice
@@ -222,12 +229,20 @@ An example config is shown below:
             # the instance serving them is dead (terminated or stopped).
             # Every backup AWSnycast instance should have if_unhealthy: true set for route tables
             # it is the backup server for, otherwise multiple instances can cause routes to flap
-            b:
+            other_azs:
                 find:
-                    type: by_tag
+                    type: and
                     config:
-                        key: Name
-                        value: private b
+                        filters:
+                          - type: by_tag
+                            not: true
+                            config:
+                                key: az
+                                value: eu-west-1a
+                          - type: by_tag
+                            config:
+                                key: type
+                                value: private
                 manage_routes:
                   - cidr: 0.0.0.0/0
                     if_unhealthy: true # Note this is what causes routes only to be taken over not present currently, or the instance with them has failed
@@ -271,8 +286,6 @@ This project is currently under heavy development.
 Bugs to fix:
 
 Here's a list of the features that I'm planning to work on next, in approximate order:
-
- * Give up route non mandatory
 
   * Yelp subnet tags
   * Yelp awsnycast for apt one region TCP hc

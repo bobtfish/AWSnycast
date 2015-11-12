@@ -20,14 +20,15 @@ type MyEC2Conn interface {
 }
 
 type ManageRoutesSpec struct {
-	Cidr            string `yaml:"cidr"`
-	Instance        string `yaml:"instance"`
-	InstanceIsSelf  bool   `yaml:"-"`
-	HealthcheckName string `yaml:"healthcheck"`
-	healthcheck     healthcheck.CanBeHealthy
-	IfUnhealthy     bool `yaml:"if_unhealthy"`
-	ec2RouteTables  []*ec2.RouteTable
-	Manager         RouteTableManager `yaml:"-"`
+	Cidr            string                   `yaml:"cidr"`
+	Instance        string                   `yaml:"instance"`
+	InstanceIsSelf  bool                     `yaml:"-"`
+	HealthcheckName string                   `yaml:"healthcheck"`
+	healthcheck     healthcheck.CanBeHealthy `yaml:"-"`
+	IfUnhealthy     bool                     `yaml:"if_unhealthy"`
+	ec2RouteTables  []*ec2.RouteTable        `yaml:"-"`
+	Manager         RouteTableManager        `yaml:"-"`
+	NeverDelete     bool                     `yaml:"never_delete"`
 }
 
 func (r *ManageRoutesSpec) Default(instance string, manager RouteTableManager) {
@@ -113,6 +114,10 @@ func (r RouteTableManagerEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageR
 	if route != nil {
 		if route.InstanceId != nil && *(route.InstanceId) == rs.Instance {
 			if rs.HealthcheckName != "" && !rs.healthcheck.IsHealthy() && rs.healthcheck.CanPassYet() {
+				if rs.NeverDelete {
+					log.Printf("[INFO] Not deleting route for %s: %s %s as set to never_delete", *rtb.RouteTableId, rs.Cidr, rs.Instance)
+					return nil
+				}
 				log.Printf("[INFO] Deleting route for %s: %s %s", *rtb.RouteTableId, rs.Cidr, rs.Instance)
 				if err := r.DeleteInstanceRoute(rtb.RouteTableId, route, rs.Cidr, rs.Instance, noop); err != nil {
 					return err
