@@ -270,10 +270,32 @@ This project is currently under heavy development.
 
 Bugs to fix:
 
-  * Fix not deleting routes when healthcheck goes unhealthy sometimes
-  * Fix issue when we try to change a route, and it's been deleted under us (re-add it)
-
 Here's a list of the features that I'm planning to work on next, in approximate order:
+
+ * Type switch filters
+ * Abstract
+ * Or filter
+ * Give up route non mandatory
+
+  * Yelp subnet tags
+  * Yelp awsnycast for apt one region TCP hc
+  * Yelp support devc in tags/config
+  * Http health check for apt
+
+  * Better logging for create
+  * Log levels, log messages
+
+  * Docs
+  * Other route table finders
+
+  * Apt package from Travis release
+  * Os release
+
+  * Remote healthchecks
+  * Command healthcheck
+  * Inline health checks into config
+
+  * Http interface json
 
   * Make us autodetect the VPC this instance is running in, and refuse to adjust routing tables in other VPCs
   * Make route table finding more flexible - be able to search by more than tag, and be able to interpolate current AZ
