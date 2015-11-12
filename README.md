@@ -96,13 +96,6 @@ and _journalctl -u awsnycast_ to view the logs.
 
 Try terminating one of the machines and watch routes fail over!
 
-Or try running:
-
-    sudo iptables -I OUTPUT -d 8.8.8.8 -j DROP
-
-to kill the healthcheck on one machine, and watch it drop the route and the other
-machine pick it up.
-
 # Installing (binary)
 
 You can install binary release versions onto x68 Linux
