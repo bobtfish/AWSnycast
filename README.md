@@ -9,7 +9,7 @@ extension of in-datacenter Anycast. It can also be used to provide HA NAT servic
 
 master is currently *highly* unstable.
 
-If you're crazy enough to want to use this, please use release version 0.0.2
+If you're crazy enough to want to use this, please use release version 0.0.3
 
 # NAT
 
@@ -101,7 +101,7 @@ Try terminating one of the machines and watch routes fail over!
 You can install binary release versions onto x68 Linux
 directly from github, e.g.
 
-    sudo wget https://github.com/bobtfish/AWSnycast/releases/download/v0.0.2/AWSnycast -O /usr/local/bin/AWSnycast
+    sudo wget https://github.com/bobtfish/AWSnycast/releases/download/v0.0.3/AWSnycast -O /usr/local/bin/AWSnycast
     sudo chmod 700 /usr/local/bin/AWSnycast
 
 # Building from source
