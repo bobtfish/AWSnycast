@@ -40,6 +40,7 @@ resource "aws_route_table" "privatea" {
     tags {
         Name = "private a"
         az = "eu-west-1a"
+        type = "private"
     }
 }
 
@@ -56,6 +57,7 @@ resource "aws_route_table" "privateb" {
     tags {
         Name = "private b"
         az = "eu-west-1b"
+        type = "private"
     }
 }
 
