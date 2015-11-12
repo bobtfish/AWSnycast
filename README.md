@@ -185,16 +185,20 @@ An example config is shown below:
                 rise: 2
                 fall: 2
                 every: 30
-                send: HEAD / HTTP/1.0 # String to send (optional)
-                expect: 200 OK        # Response to get back (optional)
+                config:
+                    send: HEAD / HTTP/1.0 # String to send (optional)
+                    expect: 200 OK        # Response to get back (optional)
+                    port: 80
         remote_healthchecks: # N.B. This is a WIP - doesn't work yet!
             service:
                 type: tcp
                 rise: 2
                 fall: 2
                 every: 30
-                send: HEAD / HTTP/1.0 # String to send (optional)
-                expect: 200 OK        # Response to get back (optional)
+                config:
+                    send: HEAD / HTTP/1.0 # String to send (optional)
+                    expect: 200 OK        # Response to get back (optional)
+                    port: 80
         routetables:
             # This is our AZ, so always try to takeover routes always
             our_az:
@@ -276,11 +280,8 @@ Once I've got something that *I* am happy deploying to production, I'll cut a 1.
 
 This project is currently under heavy development.
 
-Bugs to fix:
-
 Here's a list of the features that I'm planning to work on next, in approximate order:
 
-  * Yelp subnet tags
   * Yelp awsnycast for apt one region TCP hc
   * Yelp support devc in tags/config
   * Http health check for apt
