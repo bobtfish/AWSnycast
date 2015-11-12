@@ -19,10 +19,17 @@ type Config struct {
 	RouteTables        map[string]*RouteTable              `yaml:"routetables"`
 }
 
+type RouteTable struct {
+	Find           RouteTableFindSpec      `yaml:"find"`
+	ManageRoutes   []*aws.ManageRoutesSpec `yaml:"manage_routes"`
+	ec2RouteTables []*ec2.RouteTable
+}
+
 type RouteTableFindSpec struct {
-	Type   string                 `yaml:"type"`
-	Not    bool                   `yaml:"not"`
-	Config map[string]interface{} `yaml:"config"`
+	NoResultsOk bool                   `yaml:"no_results_ok"`
+	Type        string                 `yaml:"type"`
+	Not         bool                   `yaml:"not"`
+	Config      map[string]interface{} `yaml:"config"`
 }
 
 var routeFindTypes map[string]func(RouteTableFindSpec) (aws.RouteTableFilter, error)
@@ -101,12 +108,6 @@ func (spec RouteTableFindSpec) GetFilter() (aws.RouteTableFilter, error) {
 	return nil, errors.New(fmt.Sprintf("Route table finder type '%s' not found in the registry", spec.Type))
 }
 
-type RouteTable struct {
-	Find           RouteTableFindSpec      `yaml:"find"`
-	ManageRoutes   []*aws.ManageRoutesSpec `yaml:"manage_routes"`
-	ec2RouteTables []*ec2.RouteTable
-}
-
 func (r *RouteTable) UpdateEc2RouteTables(rt []*ec2.RouteTable) error {
 	filter, err := r.Find.GetFilter()
 	if err != nil {
@@ -114,6 +115,9 @@ func (r *RouteTable) UpdateEc2RouteTables(rt []*ec2.RouteTable) error {
 	}
 	r.ec2RouteTables = aws.FilterRouteTables(filter, rt)
 	if len(r.ec2RouteTables) == 0 {
+		if r.Find.NoResultsOk {
+			return nil
+		}
 		return errors.New("No route table in AWS matched filter spec")
 	}
 	for _, manage := range r.ManageRoutes {

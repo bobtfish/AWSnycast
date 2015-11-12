@@ -228,6 +228,7 @@ An example config is shown below:
             # it is the backup server for, otherwise multiple instances can cause routes to flap
             other_azs:
                 find:
+                    no_results_ok: true # This allows you to deploy the same config in regions you only have 1 AZ
                     type: and
                     config:
                         filters:
