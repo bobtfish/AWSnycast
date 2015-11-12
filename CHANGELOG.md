@@ -1,3 +1,5 @@
+Version 0.0.2 - 2015-11-12
+
   - Make the interval between polls to AWS for the current routing tables
     be configurable with the top level poll_time key. (Defaults to 300s)
   - Add a never_delete flag which can/should be used with the default route
