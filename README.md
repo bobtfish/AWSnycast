@@ -253,9 +253,30 @@ An example config is shown below:
 
 ## Healthchecks
 
+Healthchecks are indicated by the top level 'healthchecks' key. Values are a hash of name / definition.
+
+The definition is composed of a few fields:
+
+ * type - required
+ * destination - required. The destination IP for the healthcheck. N.B. this *must* be an IP.
+ * rise - optional, how many checks need to pass in a row to become healthy. Default 2
+ * fall - optional, how many checks need to fail in a row to become unhealthy. Default 2
+ * every - required, how often in seconds to run the healthcheck
+ * config - optional, A hash of keys/values for the specific healthcheck type you are using
+
 ### ping
 
+Does an ICMP ping against the destination.
+
 ### tcp
+
+Makes a TCP connection against the destination on a port. Optionally sends data and checks
+returned data.
+
+  * port - required, the port number to connect on
+  * send - optional, a string to send to the remote side
+  * expect - optional, a string to expect back in the
+             response from the remote side
 
 ## Route tables
 
