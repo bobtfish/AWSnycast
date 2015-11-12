@@ -68,7 +68,9 @@ resource "aws_subnet" "publica" {
     availability_zone = "eu-west-1a"
 
     tags {
-        Name = "eu-west-1a public"
+        Name = "public a"
+        az = "eu-west-1a"
+        type = "public"
     }
 }
 
@@ -79,7 +81,9 @@ resource "aws_subnet" "publicb" {
     availability_zone = "eu-west-1b"
 
     tags {
-        Name = "eu-west-1b public"
+        Name = "public b"
+        az = "eu-west-1a"
+        type = "public"
     }
 }
 
