@@ -259,9 +259,58 @@ An example config is shown below:
 
 ## Route tables
 
+Indicated by the top level 'route_tabls' key. Values are a hash of name / definition.
+
+The definition is composed of a few fields:
+
+ * find (see Finding them below)
+ * manage_routes (see Managing them below)
+
 ### Finding them
 
+Route tables are found by various 'filters' which you can configure. Each finder has a 'type' and some 'config'.
+
+Depending on the type of your finder, different config keys are required / valid.
+
+All filters can optionally take a 'not' key, which if true inverts the result
+
+Top level filters can optionally take a 'no_results_ok' key, which if true stops AWSnycast from failing if no
+route tables can be found. Use this when you want a setup with a backup server / az in *some* regions, but
+you want to deploy the same config in all regions.
+
+Currently supported filters are:
+
+#### by_tag
+
+Does a simple equality match on a tag. Expects config keys 'key' and 'value', whos values are exaclty matched
+with the tag's key and value.
+
+#### and
+
+Runs a series of other filters, and only matches if *all* of it's filters match.
+
+Supply a list to the 'filters' config key, with values being hashes of other finders
+
+#### or
+
+Runs a series of other filters, and matches if *any* of it's filters match.
+
+Supply a list to the 'filters' config key, with values being hashes of other finders
+
 ### Managing them
+
+Routes to be managed are a list of hashes, with the following keys:
+
+  * cidr - required. The address to advertise into the route table
+  * instance - required. The Amazon instance ID to route this cidr to. Can be
+    SELF to mean this instance
+  * healthcheck - optional. The string name of the healthcheck to associate
+    with this route. If the healthcheck doesn't pass then the route will be
+    removed from the routing table (allowing you to failover to a wider scope
+    Anycast route advertised from your datacenter)
+  * if_unhealthy - true. Only take this route over if the instance currently
+    associated with it is unhealthy in the AWS route table (i.e. black holing
+    traffic). This is used for backup servers in a multi-az deployment.
 
 # Releases
 
