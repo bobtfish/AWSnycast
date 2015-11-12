@@ -20,9 +20,9 @@ type Config struct {
 }
 
 type RouteTableFindSpec struct {
-	Type   string            `yaml:"type"`
-	Not    bool              `yaml:"not"`
-	Config map[string]string `yaml:"config"`
+	Type   string                 `yaml:"type"`
+	Not    bool                   `yaml:"not"`
+	Config map[string]interface{} `yaml:"config"`
 }
 
 var routeFindTypes map[string]func(RouteTableFindSpec) (aws.RouteTableFilter, error)
@@ -37,9 +37,16 @@ func init() {
 			return nil, errors.New("No value in config for by_tag route table finder")
 		}
 		return aws.RouteTableFilterTagMatch{
-			Key:   spec.Config["key"],
-			Value: spec.Config["value"],
+			Key:   spec.Config["key"].(string),
+			Value: spec.Config["value"].(string),
 		}, nil
+	}
+	routeFindTypes["and"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
+		if _, ok := spec.Config["filters"]; !ok {
+			return nil, errors.New("No filters in config for and route table finder")
+		}
+		//return aws.RouteTableFilterAnd{RouteTableFilters: spec.Config["filters"].([]RouteTableFindSpec)}, nil
+		return nil, nil
 	}
 }
 
@@ -140,7 +147,7 @@ func (c Config) Validate() error {
 
 func (r *RouteTableFindSpec) Default() {
 	if r.Config == nil {
-		r.Config = make(map[string]string)
+		r.Config = make(map[string]interface{})
 	}
 }
 func (r *RouteTableFindSpec) Validate(name string) error {
