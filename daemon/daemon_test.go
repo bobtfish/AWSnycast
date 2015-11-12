@@ -91,6 +91,7 @@ func TestSetupNoMetadataService(t *testing.T) {
 	if err == nil {
 		t.Log(err)
 		t.Fail()
+		return
 	}
 	if err.Error() != "No metadata service" {
 		t.Fail()
@@ -155,6 +156,7 @@ func TestSetupNormal(t *testing.T) {
 	if err != nil {
 		t.Log(err)
 		t.Fail()
+		return
 	}
 }
 
@@ -188,6 +190,7 @@ func TestSetupBadConfigFile(t *testing.T) {
 	err := d.Setup()
 	if err == nil {
 		t.Fail()
+		return
 	}
 	if err.Error() != "open ../tests/doesnotexist.yaml: no such file or directory" {
 		t.Log(err)
@@ -204,7 +207,10 @@ func TestSetupHealthChecks(t *testing.T) {
 	d.Debug = true
 	err := d.Setup()
 	if err != nil {
+		t.Log("Setup failed")
+		t.Log(err)
 		t.Fail()
+		return
 	}
 	if d.Config.Healthchecks["public"].IsRunning() {
 		t.Log("HealthChecks already running")
@@ -407,7 +413,11 @@ func TestRunOneRouteTableUpsertRouteFail(t *testing.T) {
 
 func TestRunSleepLoop(t *testing.T) {
 	d := getD(true)
-	d.Setup()
+	err := d.Setup()
+	if err != nil {
+		t.Fail()
+		return
+	}
 	d.FetchWait = time.Nanosecond
 	d.loopQuitChan = make(chan bool, 10)
 	d.loopTimerChan = make(chan bool, 10)

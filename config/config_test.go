@@ -57,7 +57,13 @@ func TestLoadConfigFailsValidation(t *testing.T) {
 }
 
 func TestLoadConfigHealthchecks(t *testing.T) {
-	c, _ := New("../tests/awsnycast.yaml", tim, rtm)
+	c, err := New("../tests/awsnycast.yaml", tim, rtm)
+	if err != nil {
+		t.Log("Loading config failed")
+		t.Log(err)
+		t.Fail()
+		return
+	}
 	if c.Healthchecks == nil {
 		t.Log("c.Healthchecks == nil")
 		t.Fail()

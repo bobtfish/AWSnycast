@@ -41,10 +41,10 @@ routetables:
                     not: true
                     config:
                        key: az
-                       value: __MYAZ__
-                 - type: by_tag
-                   config:
-                       key: type
+                       value: "__MYAZ__"
+                  - type: by_tag
+                    config:
+                       key: az
                        value: private
         manage_routes:
           - cidr: 0.0.0.0/0
