@@ -34,10 +34,18 @@ routetables:
              healthcheck: localservice
     b:
         find:
-            type: by_tag
+            type: and
             config:
-                key: Name
-                value: private b
+                filters:
+                  - type: by_tag
+                    not: true
+                    config:
+                       key: az
+                       value: __MYAZ__
+                 - type: by_tag
+                   config:
+                       key: type
+                       value: private
         manage_routes:
           - cidr: 0.0.0.0/0
             if_unhealthy: true

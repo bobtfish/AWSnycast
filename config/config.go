@@ -50,10 +50,19 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-		var filters []aws.RouteTableFilter
-		err = yaml.Unmarshal(filtersRepacked, filters)
+		log.Printf(string(filtersRepacked))
+		var specs []RouteTableFindSpec
+		err = yaml.Unmarshal(filtersRepacked, specs)
 		if err != nil {
 			return nil, err
+		}
+		filters := make([]aws.RouteTableFilter, len(specs))
+		for i, spec := range specs {
+			filter, err := spec.GetFilter()
+			if err != nil {
+				return nil, err
+			}
+			filters[i] = filter
 		}
 		return aws.RouteTableFilterAnd{filters}, nil
 	}
