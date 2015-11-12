@@ -8,7 +8,7 @@ resource "aws_instance" "nat-a" {
     tags {
         Name = "nat eu-west-1a"
     }
-    user_data = "${replace(replace(replace(replace(replace(file(\"${path.module}/nat.conf\"), \"__NETWORKPREFIX__\", \"10.0\"), \"__A_EXTRA__\", \"\"), \"__B_EXTRA__\", \"if_unhealthy: true\"), \"__A_HEALTHCHECK__\", \"healthcheck: anycast\"), \"__B_HEALTHCHECK__\", \"\")}"
+    user_data = "${replace(file(\"${path.module}/nat.conf\"), \"__MYAZ__\", \"eu-west-1a\")}"
     iam_instance_profile = "${aws_iam_instance_profile.test_profile.id}"
     provisioner "remote-exec" {
         inline = [
@@ -31,7 +31,7 @@ resource "aws_instance" "nat-b" {
     tags {
         Name = "nat eu-west-1b"
     }
-    user_data = "${replace(replace(replace(replace(replace(file(\"${path.module}/nat.conf\"), \"__NETWORKPREFIX__\", \"10.0\"), \"__B_EXTRA__\", \"\"), \"__A_EXTRA__\", \"if_unhealthy: true\"), \"__A_HEALTHCHECK__\", \"\"), \"__B_HEALTHCHECK__\", \"healthcheck: anycast\")}"
+    user_data = "${replace(file(\"${path.module}/nat.conf\"), \"__MYAZ__\", \"eu-west-1b\")}"
     iam_instance_profile = "${aws_iam_instance_profile.test_profile.id}"
     provisioner "remote-exec" {
         inline = [
