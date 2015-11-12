@@ -1,3 +1,17 @@
+  - Make the interval between polls to AWS for the current routing tables
+    be configurable with the top level poll_time key. (Defaults to 300s)
+  - Add a never_delete flag which can/should be used with the default route
+    (0.0.0.0/0) when providing NAT service to not delete the route if connectivity
+    to a healthcheck location fails.
+  - Expand route filters with two new types 'and' and 'or'. These both take a single
+    config key, 'filters', which is a list of other filters to and/or together.
+    If you have a few consistent tags on your route tables then you can use this
+    to create logic for finding sets of route tables, rather than having to hard
+    code route table names/numbers/etc into the config.
+  - Update to the breaking changes in the latest version of aws-sdk-go
+  - Deb packaging example added to the repository
+  - Expand the integration test examples to use all the features above,
+    and have an example of an Anycast type service and not just NAT.
 
 Version 0.0.1 - 2015-10-25
 
