@@ -46,24 +46,23 @@ func init() {
 		if !ok {
 			return nil, errors.New("No filters in config for and route table finder")
 		}
-		filtersRepacked, err := yaml.Marshal(v)
-		if err != nil {
-			return nil, err
-		}
-		log.Printf(string(filtersRepacked))
-		var specs []RouteTableFindSpec
-		err = yaml.Unmarshal(filtersRepacked, specs)
-		if err != nil {
-			return nil, err
-		}
-		filters := make([]aws.RouteTableFilter, len(specs))
-		for i, spec := range specs {
+		var filters []aws.RouteTableFilter
+		for _, filter := range v.([]interface{}) { // I REGRET NOTHING
+			filterRepacked, err := yaml.Marshal(filter)
+			if err != nil {
+				return nil, err
+			}
+			var spec RouteTableFindSpec
+			err = yaml.Unmarshal(filterRepacked, &spec)
+			if err != nil {
+				return nil, err
+			}
 			filter, err := spec.GetFilter()
 			if err != nil {
 				return nil, err
 			}
-			filters[i] = filter
-		}
+			filters = append(filters, filter)
+		} // End lack of regret
 		return aws.RouteTableFilterAnd{filters}, nil
 	}
 }
