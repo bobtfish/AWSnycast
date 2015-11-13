@@ -118,6 +118,10 @@ func (h *Healthcheck) PerformHealthcheck() {
 	maxIdx := uint(len(h.History) - 1)
 	h.History = append(h.History[:0], h.History[1:]...)
 	h.History = append(h.History, result)
+	contextLogger := log.WithFields(log.Fields{
+		"destination": h.Destination,
+		"type":        h.Type,
+	})
 	if h.isHealthy {
 		downTo := maxIdx - h.Fall + 1
 		for i := maxIdx; i >= downTo; i-- {
@@ -125,7 +129,7 @@ func (h *Healthcheck) PerformHealthcheck() {
 				return
 			}
 		}
-		log.Printf("Healthcheck %s to %s is unhealthy", h.Type, h.Destination)
+		contextLogger.Info("Healthcheck is healthy")
 		h.isHealthy = false
 		h.stateChange()
 	} else { // Currently unhealthy
@@ -139,7 +143,7 @@ func (h *Healthcheck) PerformHealthcheck() {
 			}
 		}
 		h.isHealthy = true
-		log.Printf("Healthcheck %s to %s is healthy", h.Type, h.Destination)
+		contextLogger.Info("Healthcheck is unhealthy")
 		h.stateChange()
 	}
 }
@@ -200,16 +204,12 @@ func (h *Healthcheck) Run(debug bool) {
 		for {
 			select {
 			case <-quit:
-				log.Println("healthcheck is exiting")
+				log.Debug("Healthcheck is exiting")
 				break Loop
 			case <-run:
-				if debug {
-					log.Println("healthcheck is running")
-				}
+				log.Debug("Healthcheck is running")
 				h.PerformHealthcheck()
-				if debug {
-					log.Println("healthcheck has run")
-				}
+				log.Debug("Healthcheck has run")
 				sleepAndSend(h.Every, run) // Queue the next run up
 			}
 		}
