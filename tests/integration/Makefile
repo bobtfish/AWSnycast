@@ -7,7 +7,12 @@ go:
 	go get github.com/onsi/ginkgo/ginkgo
 	go get github.com/onsi/gomega
 
-integration: go
+.terraform_applied:
+	terraform apply
+	sleep 35
+	touch .terraform_applied
+
+integration: go .terraform_applied
 	ginkgo -v
 
 sshnat:
@@ -29,7 +34,7 @@ variables.tf.json:
 		ruby getvariables.rb > variables.tf.json
 
 clean:
-		rm -rf .terraform id_rsa id_rsa.pub variables.tf.json
+		rm -rf .terraform .terraform_applied id_rsa id_rsa.pub variables.tf.json
 
 destroy:
 	yes yes | terraform destroy
