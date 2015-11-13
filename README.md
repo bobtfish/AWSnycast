@@ -318,6 +318,19 @@ Runs a series of other filters, and matches if *any* of it's filters match.
 
 Supply a list to the 'filters' config key, with values being hashes of other finders
 
+### main
+
+Matches the main route table only. Takes no config parmeters
+
+### subnet
+
+Matches the route table associated with the subnet given in the 'subnet_id' config key
+
+### has_route_to
+
+Matches any route tables which have a route to a specific (and exact) cidr (given by the 'cidr'
+config key).
+
 ### Managing them
 
 Routes to be managed are a list of hashes, with the following keys:
@@ -353,8 +366,6 @@ This project is currently under heavy development.
 
 Here's a list of the features that I'm planning to work on next, in approximate order:
 
-  * Other route table finders
-
   * Apt package from Travis release
   * Os release
 
@@ -362,18 +373,11 @@ Here's a list of the features that I'm planning to work on next, in approximate 
   * Command healthcheck
   * Inline health checks into config
 
-  * Http interface json
-
   * Make us autodetect the VPC this instance is running in, and refuse to adjust routing tables in other VPCs
-  * Make route table finding more flexible - be able to search by more than tag, and be able to interpolate current AZ
-  * Make how often we poll AWS for route tables configurable
   * Enable the use of multiple different healthchecks for a route (to only consider it down if multiple checks fail)
-  * Make how often we poll AWS for route tables flexible (max/min times, and backoff)
-  * Implement 'negative' healthchecks, to be able to check the routes currently managed by other instances,
-    and takeover faster than the other instance deleting it's route + polling time.
   * Add serf gossip between instances, to allow faster and reliable failover/STONITH
   * Add the ability to have external clients participate in healthchecks in the serf network.
-  * Add a web interface to be able to get the state (and manually initiate failovers?)
+  * Add a web interface to be able to get the state as HTML or JSON (and manually initiate failovers?)
 
 # Contributing
 
