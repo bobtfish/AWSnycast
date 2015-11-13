@@ -29,14 +29,16 @@ resource "aws_route_table" "public" {
 
 resource "aws_route_table" "privatea" {
     vpc_id = "${aws_vpc.main.id}"
-    route { 
-        cidr_block = "0.0.0.0/0"
-        instance_id = "${aws_instance.nat-a.id}"
-    }
-    route {
-        cidr_block = "192.168.1.1/32"
-        instance_id = "${aws_instance.nat-a.id}"
-    }
+# N.B. These type of routes are the equivalent of what AWSnycast creates in this configuration
+#      This allows you to comment / un-comment them to play with what happens
+#    route { 
+#        cidr_block = "0.0.0.0/0"
+#        instance_id = "${aws_instance.nat-a.id}"
+#    }
+#    route {
+#        cidr_block = "192.168.1.1/32"
+#        instance_id = "${aws_instance.nat-a.id}"
+#    }
     tags {
         Name = "private a"
         az = "eu-west-1a"
@@ -46,14 +48,14 @@ resource "aws_route_table" "privatea" {
 
 resource "aws_route_table" "privateb" {
     vpc_id = "${aws_vpc.main.id}"
-    route {
-        cidr_block = "0.0.0.0/0"
-        instance_id = "${aws_instance.nat-b.id}"
-    }
-    route {
-        cidr_block = "192.168.1.1/32"
-        instance_id = "${aws_instance.nat-b.id}"
-    }
+#    route {
+#        cidr_block = "0.0.0.0/0"
+#        instance_id = "${aws_instance.nat-b.id}"
+#    }
+#    route {
+#        cidr_block = "192.168.1.1/32"
+#        instance_id = "${aws_instance.nat-b.id}"
+#    }
     tags {
         Name = "private b"
         az = "eu-west-1b"
