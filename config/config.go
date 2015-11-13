@@ -128,9 +128,12 @@ func (r *RouteTable) UpdateEc2RouteTables(rt []*ec2.RouteTable) error {
 
 func (r *RouteTable) RunEc2Updates(manager aws.RouteTableManager, noop bool) error {
 	for _, rtb := range r.ec2RouteTables {
-		log.Printf("Finder found route table %v", rtb)
+		contextLogger := log.WithFields(log.Fields{
+			"rtb": *(rtb.RouteTableId),
+		})
+		contextLogger.Debug("Finder found route table")
 		for _, manageRoute := range r.ManageRoutes {
-			log.Printf("Trying to manage route to %s", manageRoute.Cidr)
+			contextLogger.WithFields(log.Fields{"cidr": manageRoute.Cidr}).Debug("Trying to manage route")
 			if err := manager.ManageInstanceRoute(*rtb, *manageRoute, noop); err != nil {
 				return err
 			}

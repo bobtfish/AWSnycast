@@ -74,11 +74,20 @@ func (r *ManageRoutesSpec) StartHealthcheckListener(noop bool) {
 			if <-c {
 				resText = "PASSED"
 			}
-			log.Printf("Got notification from healthcheck %s: %s, kicking routes for %s", r.HealthcheckName, resText, r.Cidr)
+			contextLogger := log.WithFields(log.Fields{
+				"healtcheck_status": resText,
+				"healthcheck_name":  r.HealthcheckName,
+				"route_cidr":        r.Cidr,
+			})
+			contextLogger.Info("Healthcheck status change, reevaluating current routes")
 			for _, rtb := range r.ec2RouteTables {
-				log.Printf("RTB IN KICK: %+v", rtb)
+				innerLogger := contextLogger.WithFields(log.Fields{
+					"vpc": *(rtb.VpcId),
+					"rtb": *(rtb.RouteTableId),
+				})
+				innerLogger.Debug("Working for one route table")
 				if err := r.Manager.ManageInstanceRoute(*rtb, *r, noop); err != nil {
-					log.Printf("ERROR: %s", err.Error())
+					innerLogger.WithFields(log.Fields{"err": err.Error()}).Warn("error")
 				}
 			}
 		}
@@ -111,20 +120,27 @@ func getCreateRouteInput(rtb ec2.RouteTable, cidr string, instance string, noop 
 
 func (r RouteTableManagerEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageRoutesSpec, noop bool) error {
 	route := findRouteFromRouteTable(rtb, rs.Cidr)
+	contextLogger := log.WithFields(log.Fields{
+		"vpc":         *(rtb.VpcId),
+		"rtb":         *(rtb.RouteTableId),
+		"noop":        noop,
+		"cidr":        rs.Cidr,
+		"my_instance": rs.Instance,
+	})
 	if route != nil {
 		if route.InstanceId != nil && *(route.InstanceId) == rs.Instance {
 			if rs.HealthcheckName != "" && !rs.healthcheck.IsHealthy() && rs.healthcheck.CanPassYet() {
 				if rs.NeverDelete {
-					log.Printf("[INFO] Not deleting route for %s: %s %s as set to never_delete", *rtb.RouteTableId, rs.Cidr, rs.Instance)
+					contextLogger.Info("Healthcheck unhealthy, but set to never_delete - ignoring")
 					return nil
 				}
-				log.Printf("[INFO] Deleting route for %s: %s %s", *rtb.RouteTableId, rs.Cidr, rs.Instance)
+				contextLogger.Info("Healthcheck unhealthy: deleting route")
 				if err := r.DeleteInstanceRoute(rtb.RouteTableId, route, rs.Cidr, rs.Instance, noop); err != nil {
 					return err
 				}
 				return nil
 			}
-			log.Printf("Skipping doing anything, %s is already routed via %s", rs.Cidr, rs.Instance)
+			contextLogger.Debug("Currently routed by my instance")
 			return nil
 		}
 
@@ -139,7 +155,7 @@ func (r RouteTableManagerEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageR
 
 	opts := getCreateRouteInput(rtb, rs.Cidr, rs.Instance, noop)
 
-	log.Printf("[INFO] Creating route for %s: %#v", *rtb.RouteTableId, opts)
+	contextLogger.Info("Creating route to my instance")
 	if _, err := r.conn.CreateRoute(&opts); err != nil {
 		return err
 	}
@@ -161,14 +177,20 @@ func (r RouteTableManagerEC2) DeleteInstanceRoute(routeTableId *string, route *e
 		RouteTableId:         routeTableId,
 		DryRun:               aws.Bool(noop),
 	}
-	resp, err := r.conn.DeleteRoute(params)
+	_, err := r.conn.DeleteRoute(params)
+	contextLogger := log.WithFields(log.Fields{
+		"cidr": cidr,
+		"rtb":  *routeTableId,
+	})
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and
 		// Message from an error.
-		fmt.Println(err.Error())
+		contextLogger.WithFields(log.Fields{
+			"err": err.Error(),
+		}).Warn("Error deleting route")
 		return err
 	}
-	fmt.Println(resp)
+	contextLogger.Debug("Successfully deleted route")
 	return nil
 }
 
@@ -179,25 +201,32 @@ func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *
 		InstanceId:           aws.String(instance),
 		DryRun:               aws.Bool(noop),
 	}
+	contextLogger := log.WithFields(log.Fields{
+		"cidr":        cidr,
+		"rtb":         *routeTableId,
+		"instance_id": instance,
+	})
 	if ifUnhealthy && *(route.State) == "active" {
-		log.Printf("Not replacing route, as current route is active/healthy")
+		contextLogger.Info("Not replacing route, as current route is active/healthy")
 		return nil
 	}
-	resp, err := r.conn.ReplaceRoute(params)
+	_, err := r.conn.ReplaceRoute(params)
 	if err != nil {
-		// Print the error, cast err to awserr.Error to get the Code and
-		// Message from an error.
-		fmt.Println(err.Error())
+		contextLogger.WithFields(log.Fields{
+			"err": err.Error(),
+		}).Warn("Error replacing route")
 		return err
 	}
-	fmt.Println(resp)
+	contextLogger.Info("Replaced route")
 	return nil
 }
 
 func (r RouteTableManagerEC2) GetRouteTables() ([]*ec2.RouteTable, error) {
 	resp, err := r.conn.DescribeRouteTables(&ec2.DescribeRouteTablesInput{})
 	if err != nil {
-		log.Printf("Error on DescribeRouteTables: %s", err)
+		log.WithFields(log.Fields{
+			"err": err.Error(),
+		}).Warn("Error on DescribeRouteTables")
 		return []*ec2.RouteTable{}, err
 	}
 	return resp.RouteTables, nil

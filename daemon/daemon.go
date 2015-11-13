@@ -66,9 +66,7 @@ func setupHealthchecks(c *config.Config) error {
 }
 
 func (d *Daemon) runHealthChecks() {
-	if d.Debug {
-		log.Printf("Starting healthchecks")
-	}
+	log.Debug("Starting healthchecks")
 	for _, v := range d.Config.Healthchecks {
 		v.Run(d.Debug)
 	}
@@ -77,9 +75,7 @@ func (d *Daemon) runHealthChecks() {
 			mr.StartHealthcheckListener(d.noop)
 		}
 	}
-	if d.Debug {
-		log.Printf("Done starting healthchecks")
-	}
+	log.Debug("Started all healthchecks")
 }
 
 func (d *Daemon) stopHealthChecks() {
@@ -112,13 +108,13 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 	d.oneShot = oneShot
 	d.noop = noop
 	if err := d.Setup(); err != nil {
-		log.Printf("Error setting up: %s", err.Error())
+		log.WithFields(log.Fields{"err": err.Error()}).Error("Error in initial setup")
 		return 1
 	}
 	d.quitChan = make(chan bool, 1)
 	err := d.RunRouteTables()
 	if err != nil {
-		log.Printf("Error: %v", err)
+		log.WithFields(log.Fields{"err": err.Error()}).Error("Error in initial route table run")
 		return 1
 	}
 	d.loopQuitChan = make(chan bool, 1)
@@ -143,7 +139,7 @@ func (d *Daemon) RunSleepLoop() {
 			case <-d.loopTimerChan:
 				err := d.RunRouteTables()
 				if err != nil {
-					log.Printf("Error: %v", err)
+					log.WithFields(log.Fields{"err": err.Error()}).Warn("Error in route table poll run")
 				}
 				go func() {
 					time.Sleep(d.FetchWait)
