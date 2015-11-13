@@ -353,10 +353,6 @@ This project is currently under heavy development.
 
 Here's a list of the features that I'm planning to work on next, in approximate order:
 
-  * Better logging for create
-  * Log levels, log messages
-
-  * Docs
   * Other route table finders
 
   * Apt package from Travis release
