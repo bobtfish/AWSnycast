@@ -1,3 +1,5 @@
+  - Build a .deb package for amd64 as part of the release process
+  - Add additional methods to find route tables
   - More logging improvements
   - Fix the integration tests to not run Terrafom themselves
 
