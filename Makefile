@@ -1,3 +1,5 @@
+TRAVIS_BUILD_NUMBER?=debug0
+
 .PHONY: coverage get test clean
 
 all: get coverage AWSnycast
@@ -40,7 +42,7 @@ Gemfile.lock:
 dist: AWSnycast Gemfile.lock
 	rm -rf bin/ dist/ *.deb
 	mkdir bin ; cp AWSnycast bin/
-	bundle exec fpm -s dir -t deb --name awsnycast --iteration 1 --version 0.0.5 --prefix /usr/ ./bin/
+	bundle exec fpm -s dir -t deb --name awsnycast --iteration $(TRAVIS_BUILD_NUMBER) --version $$(./AWSnycast -version) --prefix /usr/ ./bin/
 	rm -rf bin
 	mkdir dist
 	mv *.deb dist/
