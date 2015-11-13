@@ -30,6 +30,7 @@ deploy:
     secure: Fsjtv/dMVNDEvrkwxxrZJR1dUf526nG70/SDVfCHKqEBrkTQqPHgymWloo3D9DHpWhBOvbqtRCPLIcy/TqRUCnviZ4HVYlUXER0r7uQXk2eKUoxu6N5DKn/J3BKZwSi3ZW9GicsDqdfhZlnrVweBPzmmcklBqAkBjpfIyynlE+Y=
   file:
     - AWSnycast
-    - $(ls dist/awsnycast_*.deb)
+    - $(ls dist/awsnycast*.deb)
+    - $(ls dist/awsnycast*.rpm)
   on:
     tags: true

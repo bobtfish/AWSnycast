@@ -40,9 +40,8 @@ Gemfile.lock:
 	bundle install
 
 dist: AWSnycast Gemfile.lock
-	rm -rf bin/ dist/ *.deb
-	mkdir bin ; cp AWSnycast bin/
-	bundle exec fpm -s dir -t deb --name awsnycast --iteration $(TRAVIS_BUILD_NUMBER) --version $$(./AWSnycast -version) --prefix /usr/ ./bin/
-	rm -rf bin
+	rm -rf dist/ *.deb
+	bundle exec fpm -s dir -t deb --name awsnycast --url "https://github.com/bobtfish/AWSnycast" --maintainer "Tomas Doran <bobtfish@bobtfish.net>" --description "Anycast in AWS" --license Apache2 --iteration $(TRAVIS_BUILD_NUMBER) --version $$(./AWSnycast -version) --prefix /usr/bin AWSnycast
+	bundle exec fpm -s dir -t rpm --name awsnycast --url "https://github.com/bobtfish/AWSnycast" --maintainer "Tomas Doran <bobtfish@bobtfish.net>" --description "Anycast in AWS" --license Apache2 --iteration $(TRAVIS_BUILD_NUMBER) --version $$(./AWSnycast -version) --prefix /usr/bin AWSnycast
 	mkdir dist
-	mv *.deb dist/
+	mv *.deb *.rpm dist/
