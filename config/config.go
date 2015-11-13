@@ -62,6 +62,21 @@ func init() {
 		}
 		return aws.RouteTableFilterOr{filters}, nil
 	}
+	routeFindTypes["main"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
+		return aws.RouteTableFilterMain{}, nil
+	}
+	routeFindTypes["subnet"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
+		if _, ok := spec.Config["subnet_id"]; !ok {
+			return nil, errors.New("No subnet_id in config for subnet route table finder")
+		}
+		return aws.RouteTableFilterSubnet{spec.Config["subnet_id"].(string)}, nil
+	}
+	routeFindTypes["has_route_to"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
+		if _, ok := spec.Config["cidr"]; !ok {
+			return nil, errors.New("No cidr in config for has_route_to route table finder")
+		}
+		return aws.RouteTableFilterDestinationCidrBlock{DestinationCidrBlock: spec.Config["cidr"].(string)}, nil
+	}
 }
 
 func getFiltersListForSpec(spec RouteTableFindSpec) ([]aws.RouteTableFilter, error) {
