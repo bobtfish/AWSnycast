@@ -16,8 +16,8 @@ func TestIntegration(t *testing.T) {
 	}
 	RegisterFailHandler(Fail)
 
-	RunMake()
-	RunTerraform()
+	//RunMake()
+	//RunTerraform()
 	internalIPs = InternalIPs()
 	RunSpecs(t, "Integration Suite")
 }
