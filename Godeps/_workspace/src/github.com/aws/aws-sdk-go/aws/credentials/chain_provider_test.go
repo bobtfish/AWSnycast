@@ -3,7 +3,7 @@ package credentials
 import (
 	"testing"
 
-	"github.com/bobtfish/AWSnycast/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/stretchr/testify/assert"
 )
 

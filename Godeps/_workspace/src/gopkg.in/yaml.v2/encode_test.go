@@ -8,7 +8,7 @@ import (
 	"time"
 
 	. "gopkg.in/check.v1"
-	"github.com/bobtfish/AWSnycast/Godeps/_workspace/src/gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 	"net"
 	"os"
 )

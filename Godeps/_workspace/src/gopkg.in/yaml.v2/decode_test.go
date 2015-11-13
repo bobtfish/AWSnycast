@@ -3,7 +3,7 @@ package yaml_test
 import (
 	"errors"
 	. "gopkg.in/check.v1"
-	"github.com/bobtfish/AWSnycast/Godeps/_workspace/src/gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 	"math"
 	"net"
 	"reflect"

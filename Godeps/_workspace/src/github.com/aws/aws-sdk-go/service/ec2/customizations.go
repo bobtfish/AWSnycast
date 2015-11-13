@@ -3,10 +3,10 @@ package ec2
 import (
 	"time"
 
-	"github.com/bobtfish/AWSnycast/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws"
-	"github.com/bobtfish/AWSnycast/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws/awsutil"
-	"github.com/bobtfish/AWSnycast/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws/request"
-	"github.com/bobtfish/AWSnycast/Godeps/_workspace/src/github.com/aws/aws-sdk-go/private/endpoints"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/endpoints"
 )
 
 func init() {

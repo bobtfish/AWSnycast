@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bobtfish/AWSnycast/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/stretchr/testify/assert"
 )
