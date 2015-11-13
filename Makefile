@@ -33,10 +33,3 @@ coverage.out:
 
 itest_%:
 	make -C package itest_$*
-
-dist: AWSnycast
-	mkdir bin ; cp AWSnycast bin/
-	fpm -s dir -t deb --name awsnycast --iteration 1 --version 0.0.5 --prefix /usr/ ./bin/
-	rm -rf bin
-	mkdir dist
-	mv *.deb dist/

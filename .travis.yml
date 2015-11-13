@@ -2,15 +2,12 @@ language: go
 sudo: required
 before_install:
 - sudo apt-get update -qq
-- sudo apt-get install -y iputils-ping build-essential rubygems libopenssl-ruby ruby-dev
-- sudo gem install fpm
+- sudo apt-get install -y iputils-ping
 - go get github.com/axw/gocov/gocov
 - go get github.com/mattn/goveralls
 - go get github.com/tools/godep
 - if ! go get github.com/golang/tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
 after_success:
-- make AWSnycast
-- make dist
 - make coverage.out
 - $HOME/gopath/bin/goveralls -coverprofile coverage.out -service=travis-ci
 go:
@@ -23,8 +20,6 @@ deploy:
   provider: releases
   api_key:
     secure: Fsjtv/dMVNDEvrkwxxrZJR1dUf526nG70/SDVfCHKqEBrkTQqPHgymWloo3D9DHpWhBOvbqtRCPLIcy/TqRUCnviZ4HVYlUXER0r7uQXk2eKUoxu6N5DKn/J3BKZwSi3ZW9GicsDqdfhZlnrVweBPzmmcklBqAkBjpfIyynlE+Y=
-  file:
-    - AWSnycast
-    - $(ls dist/awsnycast_*.deb)
+  file: AWSnycast
   on:
     tags: true
