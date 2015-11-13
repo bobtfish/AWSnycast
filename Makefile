@@ -3,13 +3,13 @@
 all: get coverage AWSnycast
 
 AWSnycast: *.go */*.go
-	godep go build .
+	godep go build -a -tags netgo -ldflags '-w'  .
 
 test:
 	godep go test -short ./...
 
 get:
-	go get ./... && godep go install
+	CGO_ENABLED=0 go get -a -x -installsuffix cgo -ldflags '-d -s -w' && godep go install -a -x -installsuffix cgo -ldflags '-d -s -w'
 
 coverage:
 	godep go test -cover -short ./...
@@ -34,9 +34,13 @@ coverage.out:
 itest_%:
 	make -C package itest_$*
 
-dist: AWSnycast
+Gemfile.lock:
+	bundle install
+
+dist: AWSnycast Gemfile.lock
+	rm -rf bin/ dist/ *.deb
 	mkdir bin ; cp AWSnycast bin/
-	fpm -s dir -t deb --name awsnycast --iteration 1 --version 0.0.5 --prefix /usr/ ./bin/
+	bundle exec fpm -s dir -t deb --name awsnycast --iteration 1 --version 0.0.5 --prefix /usr/ ./bin/
 	rm -rf bin
 	mkdir dist
 	mv *.deb dist/
