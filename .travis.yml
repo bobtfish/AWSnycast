@@ -8,6 +8,7 @@ before_install:
 - go get -a -x -installsuffix cgo -ldflags '-d -s -w' github.com/tools/godep
 - go get -a -x -installsuffix cgo -ldflags '-d -s -w' github.com/onsi/ginkgo/ginkgo
 - go get -a -x -installsuffix cgo -ldflags '-d -s -w' github.com/onsi/gomega
+- go get -a -x -installsuffix cgo -ldflags '-d -s -w' golang.org/x/crypto/ssh
 - if ! go get github.com/golang/tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
 - bundle install
 after_success:
