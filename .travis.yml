@@ -11,7 +11,7 @@ before_install:
 - go get -a -x -installsuffix cgo -ldflags '-d -s -w' golang.org/x/crypto/ssh
 - if ! go get github.com/golang/tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
 after_success:
-- sudo apt-get install -y build-essential rubygems libopenssl-ruby ruby-dev
+- sudo apt-get install -y build-essential rubygems libopenssl-ruby ruby-dev rpmbuild
 - bundle install
 - make AWSnycast
 - make dist
