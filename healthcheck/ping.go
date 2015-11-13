@@ -1,7 +1,7 @@
 package healthcheck
 
 import (
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"os/exec"
 )
 

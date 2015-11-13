@@ -2,8 +2,8 @@ package healthcheck
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/bobtfish/AWSnycast/instancemetadata"
-	"log"
 	"net"
 	"testing"
 )

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	log "github.com/Sirupsen/logrus"
 	"github.com/bobtfish/AWSnycast/daemon"
 	"os"
 )
@@ -16,6 +17,9 @@ var (
 func main() {
 	flag.Parse()
 	d := new(daemon.Daemon)
+	if *debug {
+		log.SetLevel(log.DebugLevel)
+	}
 	d.Debug = *debug
 	d.ConfigFile = *f
 	os.Exit(d.Run(*oneshot, *noop))

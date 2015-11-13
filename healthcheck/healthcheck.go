@@ -3,8 +3,8 @@ package healthcheck
 import (
 	"errors"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/bobtfish/AWSnycast/instancemetadata"
-	"log"
 	"net"
 	"time"
 )
