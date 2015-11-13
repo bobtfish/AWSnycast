@@ -1,3 +1,9 @@
+  - Make the logging much better, with more context to log messages
+    - Make debug mode output more verbose debug logging
+  - Add integration tests of Anycast functionality
+  - Make the integration test environment useful again
+  - Start using the 'godep' tool to freeze dependencies
+
 Version 0.0.3 - 2015-11-12
 
   - Add much better documentation
