@@ -49,7 +49,7 @@ func (h TcpHealthCheck) Healthcheck() bool {
 		return false
 	}
 	answer := string(b[:n])
-	ansLogger := ontextLogger.WithFields(log.Fields{
+	ansLogger := contextLogger.WithFields(log.Fields{
 		"answer": answer,
 		"expect": h.Expect,
 	})
