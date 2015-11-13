@@ -21,13 +21,14 @@ type TcpHealthCheck struct {
 }
 
 func (h TcpHealthCheck) Healthcheck() bool {
-	//func (TcpPlugin) Perform(req *api.StatusRequest, ch chan bool) {
-	log.Println("Probing TCP port " + h.Destination + ":" + h.Port)
-	// Connect to the remote TCP port
-	//
+	contextLogger := log.WithFields(log.Fields{
+		"destination": h.Destination,
+		"port":        h.Port,
+	})
+	contextLogger.Info("Probing TCP port")
 	c, err := net.Dial("tcp", h.Destination+":"+h.Port)
 	if err != nil {
-		log.Println(fmt.Sprintf("net.Dial: %s", err.Error()))
+		contextLogger.WithFields(log.Fields{"err": err.Error()}).Info("Failed connecting")
 		return false
 	}
 	defer c.Close()
@@ -44,13 +45,19 @@ func (h TcpHealthCheck) Healthcheck() bool {
 	b := make([]byte, 1024)
 	n, err := c.Read(b)
 	if err != nil {
-		log.Println(err)
+		contextLogger.WithFields(log.Fields{"err": err.Error()}).Debug("Could not read response")
 		return false
 	}
 	answer := string(b[:n])
+	ansLogger := ontextLogger.WithFields(log.Fields{
+		"answer": answer,
+		"expect": h.Expect,
+	})
 	if strings.Contains(answer, h.Expect) {
+		ansLogger.Debug("Healthy response")
 		return true
 	}
+	ansLogger.Debug("Unhealthy response")
 	return false
 }
 
