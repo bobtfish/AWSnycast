@@ -1,3 +1,6 @@
+  - More logging improvements
+  - Fix the integration tests to not run Terrafom themselves
+
 Version 0.0.4 - 2015-11-13
   - Make the logging much better, with more context to log messages
     - Make debug mode output more verbose debug logging
