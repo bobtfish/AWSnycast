@@ -82,7 +82,7 @@ func (r *ManageRoutesSpec) StartHealthcheckListener(noop bool) {
 			contextLogger.Info("Healthcheck status change, reevaluating current routes")
 			for _, rtb := range r.ec2RouteTables {
 				innerLogger := contextLogger.WithFields(log.Fields{
-					"vpc": *(rtb.VpcId),
+					//"vpc": *(rtb.VpcId),
 					"rtb": *(rtb.RouteTableId),
 				})
 				innerLogger.Debug("Working for one route table")
