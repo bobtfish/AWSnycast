@@ -152,7 +152,8 @@ An example IAM Policy is shown below:
                     "ec2:ReplaceRoute",
                     "ec2:CreateRoute",
                     "ec2:DeleteRoute",
-                    "ec2:DescribeRouteTables"
+                    "ec2:DescribeRouteTables",
+                    "ec2:DescribeNetworkInterfaces"
                 ],
                 "Effect": "Allow",
                 "Resource": "*"
