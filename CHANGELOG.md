@@ -1,3 +1,6 @@
+Version 0.0.6 - 2015-11-13
+  - Build .deb and .rpm packages for Linux as part of the release process
+
 Version 0.0.5 - 2015-11-13
   - Build a .deb package for amd64 as part of the release process
   - Add additional methods to find route tables
