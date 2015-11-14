@@ -96,6 +96,7 @@ func (r *ManageRoutesSpec) StartHealthcheckListener(noop bool) {
 }
 
 func (r *ManageRoutesSpec) UpdateEc2RouteTables(rt []*ec2.RouteTable) {
+	log.Debug(fmt.Sprintf("manange routes: %+v", rt))
 	r.ec2RouteTables = rt
 }
 
