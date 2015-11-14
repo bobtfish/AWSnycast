@@ -13,10 +13,11 @@ import (
 )
 
 type Config struct {
-	PollTime                   uint                                `yaml:"poll_time"`
-	Healthchecks               map[string]*healthcheck.Healthcheck `yaml:"healthchecks"`
-	RemoteHealthcheckTemplates map[string]*healthcheck.Healthcheck `yaml:"remote_healthchecks"`
-	RouteTables                map[string]*RouteTable              `yaml:"routetables"`
+	PollTime                   uint                                           `yaml:"poll_time"`
+	Healthchecks               map[string]*healthcheck.Healthcheck            `yaml:"healthchecks"`
+	RemoteHealthcheckTemplates map[string]*healthcheck.Healthcheck            `yaml:"remote_healthchecks"`
+	RemoteHealthchecks         map[string]map[string]*healthcheck.Healthcheck `yaml:"-"`
+	RouteTables                map[string]*RouteTable                         `yaml:"routetables"`
 }
 
 type RouteTable struct {
@@ -167,6 +168,7 @@ func (c *Config) Default(im instancemetadata.InstanceMetadata, manager aws.Route
 	if c.RemoteHealthcheckTemplates == nil {
 		c.RemoteHealthcheckTemplates = make(map[string]*healthcheck.Healthcheck)
 	}
+	c.RemoteHealthchecks = make(map[string]map[string]*healthcheck.Healthcheck)
 	if c.RouteTables != nil {
 		for _, v := range c.RouteTables {
 			v.Default(im.Instance, manager)
