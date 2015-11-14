@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"net"
 	"time"
 )
@@ -29,34 +28,35 @@ type CanBeHealthy interface {
 }
 
 type Healthcheck struct {
-	canPassYet    bool `yaml:"-"`
-	runCount      uint64
-	Type          string `yaml:"type"`
-	Destination   string `yaml:"destination"`
-	isHealthy     bool   `yaml:"-"`
-	Rise          uint   `yaml:"rise"`
-	Fall          uint   `yaml:"fall"`
-	Every         uint   `yaml:"every"`
-	History       []bool `yaml:"-"`
-	healthchecker HealthChecker
-	isRunning     bool
-	quitChan      chan<- bool
-	hasQuitChan   <-chan bool
-	Config        map[string]string
-	listeners     []chan<- bool
+	canPassYet    bool              `yaml:"-"`
+	runCount      uint64            `yaml:"-"`
+	Type          string            `yaml:"type"`
+	Destination   string            `yaml:"destination"`
+	isHealthy     bool              `yaml:"-"`
+	Rise          uint              `yaml:"rise"`
+	Fall          uint              `yaml:"fall"`
+	Every         uint              `yaml:"every"`
+	History       []bool            `yaml:"-"`
+	Config        map[string]string `yaml:"config"`
+	healthchecker HealthChecker     `yaml:"-"`
+	isRunning     bool              `yaml:"-"`
+	quitChan      chan<- bool       `yaml:"-"`
+	hasQuitChan   <-chan bool       `yaml:"-"`
+	listeners     []chan<- bool     `yaml:"-"`
 }
 
-func (h *Healthcheck) ChangeDestination(newDestination string) error {
-	oldDestination := h.Destination
-	h.Destination = newDestination
-	err := h.Setup()
-	if err != nil {
-		h.Destination = oldDestination
-		return err
+func (h *Healthcheck) NewWithDestination(destination string) (*Healthcheck, error) {
+	n := &Healthcheck{
+		Destination: destination,
+		Type:        h.Type,
+		Rise:        h.Rise,
+		Fall:        h.Fall,
+		Every:       h.Every,
+		Config:      h.Config,
 	}
-	h.canPassYet = false
-	h.runCount = 0
-	return nil
+	n.Default()
+	err := n.Setup()
+	return n, err
 }
 
 func (h *Healthcheck) GetListener() <-chan bool {
@@ -83,7 +83,7 @@ func (h Healthcheck) GetHealthChecker() (HealthChecker, error) {
 	return nil, errors.New(fmt.Sprintf("Healthcheck type '%s' not found in the healthcheck registry", h.Type))
 }
 
-func (h *Healthcheck) Default(instancemetadata.InstanceMetadata) {
+func (h *Healthcheck) Default() {
 	if h.Config == nil {
 		h.Config = make(map[string]string)
 	}

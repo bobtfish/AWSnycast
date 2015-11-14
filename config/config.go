@@ -175,10 +175,10 @@ func (c *Config) Default(im instancemetadata.InstanceMetadata, manager aws.Route
 		c.RouteTables = make(map[string]*RouteTable)
 	}
 	for _, v := range c.Healthchecks {
-		v.Default(im)
+		v.Default()
 	}
 	for _, v := range c.RemoteHealthcheckTemplates {
-		v.Default(im)
+		v.Default()
 	}
 }
 

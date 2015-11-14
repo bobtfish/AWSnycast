@@ -3,7 +3,6 @@ package healthcheck
 import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"net"
 	"testing"
 )
@@ -17,7 +16,7 @@ func TestHealthcheckTcpNoPort(t *testing.T) {
 		Destination: "127.0.0.1",
 		Config:      c,
 	}
-	h.Default(instancemetadata.InstanceMetadata{})
+	h.Default()
 	h.Validate("foo", false)
 	err := h.Setup()
 	if err == nil {
@@ -74,7 +73,7 @@ func TestHealthcheckTcp(t *testing.T) {
 		Destination: "127.0.0.1",
 		Config:      c,
 	}
-	h.Default(instancemetadata.InstanceMetadata{})
+	h.Default()
 	err = h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
@@ -140,7 +139,7 @@ func TestHealthcheckTcpFail(t *testing.T) {
 		Destination: "127.0.0.1",
 		Config:      c,
 	}
-	h.Default(instancemetadata.InstanceMetadata{})
+	h.Default()
 	err = h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
@@ -178,7 +177,7 @@ func TestHealthcheckTcpClosed(t *testing.T) {
 		Destination: "127.0.0.1",
 		Config:      c,
 	}
-	h.Default(instancemetadata.InstanceMetadata{})
+	h.Default()
 	err = h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
@@ -229,7 +228,7 @@ func TestHealthcheckTcpFailClientClose(t *testing.T) {
 		Destination: "127.0.0.1",
 		Config:      c,
 	}
-	h.Default(instancemetadata.InstanceMetadata{})
+	h.Default()
 	err = h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
@@ -293,7 +292,7 @@ func TestHealthcheckTcpNoExpect(t *testing.T) {
 		Destination: "127.0.0.1",
 		Config:      c,
 	}
-	h.Default(instancemetadata.InstanceMetadata{})
+	h.Default()
 	err = h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
@@ -344,7 +343,7 @@ func TestHealthcheckTcpNoSendOrExpect(t *testing.T) {
 		Destination: "127.0.0.1",
 		Config:      c,
 	}
-	h.Default(instancemetadata.InstanceMetadata{})
+	h.Default()
 	err = h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
@@ -397,7 +396,7 @@ func TestHealthcheckTcpNoSend(t *testing.T) {
 		Destination: "127.0.0.1",
 		Config:      c,
 	}
-	h.Default(instancemetadata.InstanceMetadata{})
+	h.Default()
 	err = h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
