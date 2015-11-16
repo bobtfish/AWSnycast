@@ -734,3 +734,43 @@ func TestRouteTableFindSpecMain(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestGetFiltersListForSpec(t *testing.T) {
+	d := make(map[string]interface{})
+	d["key"] = "example tag"
+	d["value"] = "foo"
+	filterStuff := make([]interface{}, 2)
+	filterStuff[0] = RouteTableFindSpec{
+		Type:   "by_tag",
+		Config: d,
+	}
+	filterStuff[1] = RouteTableFindSpec{
+		Type: "main",
+	}
+	c := make(map[string]interface{})
+	c["filters"] = filterStuff
+	spec := RouteTableFindSpec{Config: c}
+	filters, err := getFiltersListForSpec(spec)
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	if len(filters) != 2 {
+		t.Fail()
+	}
+}
+
+func TestGetFiltersListForSpecWrongType(t *testing.T) {
+	c := make(map[string]interface{})
+	c["filters"] = "foo"
+	spec := RouteTableFindSpec{Config: c}
+	_, err := getFiltersListForSpec(spec)
+	if err == nil {
+		t.Fail()
+	} else {
+		if err.Error() != "unexpected type string" {
+			t.Log(err.Error())
+			t.Fail()
+		}
+	}
+}

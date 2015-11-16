@@ -88,7 +88,7 @@ func getFiltersListForSpec(spec RouteTableFindSpec) ([]aws.RouteTableFilter, err
 	var filters []aws.RouteTableFilter
 	switch t := v.(type) {
 	default:
-		return filters, errors.New(fmt.Sprintf("unexpected type %T\n", t))
+		return filters, errors.New(fmt.Sprintf("unexpected type %T", t))
 	case []interface{}:
 		for _, filter := range t { // I REGRET NOTHING
 			filterRepacked, err := yaml.Marshal(filter)
