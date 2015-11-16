@@ -17,20 +17,22 @@ type MyEC2Conn interface {
 	ReplaceRoute(*ec2.ReplaceRouteInput) (*ec2.ReplaceRouteOutput, error)
 	DescribeRouteTables(*ec2.DescribeRouteTablesInput) (*ec2.DescribeRouteTablesOutput, error)
 	DeleteRoute(*ec2.DeleteRouteInput) (*ec2.DeleteRouteOutput, error)
+	DescribeNetworkInterfaces(*ec2.DescribeNetworkInterfacesInput) (*ec2.DescribeNetworkInterfacesOutput, error)
 }
 
 type ManageRoutesSpec struct {
-	Cidr                  string                   `yaml:"cidr"`
-	Instance              string                   `yaml:"instance"`
-	InstanceIsSelf        bool                     `yaml:"-"`
-	HealthcheckName       string                   `yaml:"healthcheck"`
-	RemoteHealthcheckName string                   `yaml:"remote_healthcheck"`
-	healthcheck           healthcheck.CanBeHealthy `yaml:"-"`
-	remotehealthcheck     healthcheck.CanBeHealthy `yaml:"-"`
-	IfUnhealthy           bool                     `yaml:"if_unhealthy"`
-	ec2RouteTables        []*ec2.RouteTable        `yaml:"-"`
-	Manager               RouteTableManager        `yaml:"-"`
-	NeverDelete           bool                     `yaml:"never_delete"`
+	Cidr                  string                              `yaml:"cidr"`
+	Instance              string                              `yaml:"instance"`
+	InstanceIsSelf        bool                                `yaml:"-"`
+	HealthcheckName       string                              `yaml:"healthcheck"`
+	RemoteHealthcheckName string                              `yaml:"remote_healthcheck"`
+	healthcheck           healthcheck.CanBeHealthy            `yaml:"-"`
+	remotehealthcheck     *healthcheck.Healthcheck            `yaml:"-"`
+	remotehealthchecks    map[string]*healthcheck.Healthcheck `yaml:"-"`
+	IfUnhealthy           bool                                `yaml:"if_unhealthy"`
+	ec2RouteTables        []*ec2.RouteTable                   `yaml:"-"`
+	Manager               RouteTableManager                   `yaml:"-"`
+	NeverDelete           bool                                `yaml:"never_delete"`
 }
 
 func (r *ManageRoutesSpec) Default(instance string, manager RouteTableManager) {
@@ -45,6 +47,7 @@ func (r *ManageRoutesSpec) Default(instance string, manager RouteTableManager) {
 		r.Instance = instance
 	}
 	r.ec2RouteTables = make([]*ec2.RouteTable, 0)
+	r.remotehealthchecks = make(map[string]*healthcheck.Healthcheck)
 	r.Manager = manager
 }
 
@@ -63,12 +66,12 @@ func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*health
 		r.healthcheck = hc
 	}
 	if r.RemoteHealthcheckName != "" {
-                hc, ok := remotehealthchecks[r.RemoteHealthcheckName]
-                if !ok {
-                        return errors.New(fmt.Sprintf("Route table %s, Valiadate %s cannot find healthcheck '%s'", name, r.Cidr, r.RemoteHealthcheckName))
-                }
-                r.remotehealthcheck = hc
-        }
+		hc, ok := remotehealthchecks[r.RemoteHealthcheckName]
+		if !ok {
+			return errors.New(fmt.Sprintf("Route table %s, Valiadate %s cannot find healthcheck '%s'", name, r.Cidr, r.RemoteHealthcheckName))
+		}
+		r.remotehealthcheck = hc
+	}
 	return nil
 }
 
@@ -111,6 +114,55 @@ func (r *ManageRoutesSpec) handleHealthcheckResult(res bool, noop bool) {
 func (r *ManageRoutesSpec) UpdateEc2RouteTables(rt []*ec2.RouteTable) {
 	log.Debug(fmt.Sprintf("manange routes: %+v", rt))
 	r.ec2RouteTables = rt
+	r.UpdateRemoteHealthchecks()
+}
+
+var eniToIP map[string]string
+
+func init() {
+	eniToIP = make(map[string]string)
+}
+
+func (r *ManageRoutesSpec) UpdateRemoteHealthchecks() {
+	eniIds := make([]*string, 0)
+	for _, rtb := range r.ec2RouteTables {
+		route := findRouteFromRouteTable(*rtb, r.Cidr)
+		if _, ok := eniToIP[*route.NetworkInterfaceId]; !ok {
+			eniIds = append(eniIds, route.NetworkInterfaceId)
+		}
+	}
+	if len(eniIds) > 0 {
+		out, err := r.Manager.(RouteTableManagerEC2).conn.DescribeNetworkInterfaces(&ec2.DescribeNetworkInterfacesInput{NetworkInterfaceIds: eniIds})
+		if err != nil {
+			log.Error("Error " + err.Error())
+			return
+		}
+		for _, iface := range out.NetworkInterfaces {
+			eniToIP[*iface.NetworkInterfaceId] = *iface.PrivateIpAddress
+		}
+	}
+	log.Debug(fmt.Sprintf("ENI %+v", eniToIP))
+	for _, eniId := range eniIds {
+		ip := eniToIP[*eniId]
+		if _, ok := r.remotehealthchecks[ip]; !ok {
+			hc, err := r.remotehealthcheck.NewWithDestination(ip)
+			if err != nil {
+				log.Error(err.Error())
+			} else {
+				r.remotehealthchecks[ip] = hc
+				r.remotehealthchecks[ip].Run(true)
+				log.Debug(fmt.Sprintf("New healthcheck being run"))
+				go func() {
+					c := r.remotehealthchecks[ip].GetListener()
+					for {
+						res := <-c
+						log.Debug("Got result from remote healthchecl")
+						r.handleHealthcheckResult(res, false)
+					}
+				}()
+			}
+		}
+	}
 }
 
 type RouteTableManager interface {

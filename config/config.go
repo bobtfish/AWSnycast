@@ -13,10 +13,10 @@ import (
 )
 
 type Config struct {
-	PollTime                   uint                                           `yaml:"poll_time"`
-	Healthchecks               map[string]*healthcheck.Healthcheck            `yaml:"healthchecks"`
-	RemoteHealthcheckTemplates map[string]*healthcheck.Healthcheck            `yaml:"remote_healthchecks"`
-	RouteTables                map[string]*RouteTable                         `yaml:"routetables"`
+	PollTime                   uint                                `yaml:"poll_time"`
+	Healthchecks               map[string]*healthcheck.Healthcheck `yaml:"healthchecks"`
+	RemoteHealthcheckTemplates map[string]*healthcheck.Healthcheck `yaml:"remote_healthchecks"`
+	RouteTables                map[string]*RouteTable              `yaml:"routetables"`
 }
 
 type RouteTable struct {
