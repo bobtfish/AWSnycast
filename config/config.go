@@ -50,16 +50,16 @@ func init() {
 		}, nil
 	}
 	routeFindTypes["and"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
-		filters, ok := getFiltersListForSpec(spec)
-		if ok != nil {
-			return nil, errors.New("No filters in config for and route table finder")
+		filters, err := getFiltersListForSpec(spec)
+		if err != nil {
+			return nil, errors.New(fmt.Sprintf("%s for and route table finder", err.Error()))
 		}
 		return aws.RouteTableFilterAnd{filters}, nil
 	}
 	routeFindTypes["or"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
-		filters, ok := getFiltersListForSpec(spec)
-		if ok != nil {
-			return nil, errors.New("No filters in config for or route table finder")
+		filters, err := getFiltersListForSpec(spec)
+		if err != nil {
+			return nil, errors.New(fmt.Sprintf("%s for or route table finder", err.Error()))
 		}
 		return aws.RouteTableFilterOr{filters}, nil
 	}
@@ -83,7 +83,7 @@ func init() {
 func getFiltersListForSpec(spec RouteTableFindSpec) ([]aws.RouteTableFilter, error) {
 	v, ok := spec.Config["filters"]
 	if !ok {
-		return nil, errors.New("No filters in config for route table finder")
+		return nil, errors.New("No filters in config")
 	}
 	var filters []aws.RouteTableFilter
 	switch t := v.(type) {

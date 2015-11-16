@@ -760,6 +760,40 @@ func TestGetFiltersListForSpec(t *testing.T) {
 	}
 }
 
+func TestTableFindSpecAndOr(t *testing.T) {
+	d := make(map[string]interface{})
+	d["key"] = "example tag"
+	d["value"] = "foo"
+	filterStuff := make([]interface{}, 2)
+	filterStuff[0] = RouteTableFindSpec{
+		Type:   "by_tag",
+		Config: d,
+	}
+	filterStuff[1] = RouteTableFindSpec{
+		Type: "main",
+	}
+	c := make(map[string]interface{})
+	c["filters"] = filterStuff
+	spec := RouteTableFindSpec{Config: c, Type: "and"}
+	f, err := spec.GetFilter()
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	if f == nil {
+		t.Fail()
+	}
+	spec2 := RouteTableFindSpec{Config: c, Type: "or"}
+	f, err = spec2.GetFilter()
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	if f == nil {
+		t.Fail()
+	}
+}
+
 func TestGetFiltersListForSpecWrongType(t *testing.T) {
 	c := make(map[string]interface{})
 	c["filters"] = "foo"
@@ -770,6 +804,26 @@ func TestGetFiltersListForSpecWrongType(t *testing.T) {
 	} else {
 		if err.Error() != "unexpected type string" {
 			t.Log(err.Error())
+			t.Fail()
+		}
+	}
+}
+func TestGetFiltersListForSpecInnerFails(t *testing.T) {
+	d := make(map[string]interface{})
+	filterStuff := make([]interface{}, 1)
+	filterStuff[0] = RouteTableFindSpec{
+		Type:   "by_tag",
+		Config: d,
+	}
+	c := make(map[string]interface{})
+	c["filters"] = filterStuff
+	spec := RouteTableFindSpec{Config: c, Type: "or"}
+	_, err := spec.GetFilter()
+	if err == nil {
+		t.Fail()
+	} else {
+		if err.Error() != "No key in config for by_tag route table finder for or route table finder" {
+			t.Log(err)
 			t.Fail()
 		}
 	}
