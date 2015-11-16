@@ -785,7 +785,7 @@ func TestManageRoutesSpecValidateBadInstance(t *testing.T) {
 		Cidr:     "127.0.0.1",
 	}
 	h := make(map[string]*healthcheck.Healthcheck)
-	err := r.Validate("foo", h)
+	err := r.Validate("foo", h, h)
 	if err == nil {
 		t.Fail()
 	}
@@ -800,7 +800,7 @@ func TestManageRoutesSpecValidateMissingCidr(t *testing.T) {
 		Instance: "SELF",
 	}
 	h := make(map[string]*healthcheck.Healthcheck)
-	err := r.Validate("foo", h)
+	err := r.Validate("foo", h, h)
 	if err == nil {
 		t.Fail()
 	}
@@ -816,7 +816,7 @@ func TestManageRoutesSpecValidateBadCidr1(t *testing.T) {
 		Instance: "SELF",
 	}
 	h := make(map[string]*healthcheck.Healthcheck)
-	err := r.Validate("foo", h)
+	err := r.Validate("foo", h, h)
 	if err == nil {
 		t.Fail()
 	}
@@ -832,7 +832,7 @@ func TestManageRoutesSpecValidateBadCidr2(t *testing.T) {
 		Instance: "SELF",
 	}
 	h := make(map[string]*healthcheck.Healthcheck)
-	err := r.Validate("foo", h)
+	err := r.Validate("foo", h, h)
 	if err == nil {
 		t.Fail()
 	}
@@ -848,7 +848,7 @@ func TestManageRoutesSpecValidateBadCidr3(t *testing.T) {
 		Instance: "SELF",
 	}
 	h := make(map[string]*healthcheck.Healthcheck)
-	err := r.Validate("bar", h)
+	err := r.Validate("bar", h, h)
 	if err == nil {
 		t.Fail()
 	}
@@ -864,7 +864,7 @@ func TestManageRoutesSpecValidate(t *testing.T) {
 		Instance: "SELF",
 	}
 	h := make(map[string]*healthcheck.Healthcheck)
-	err := r.Validate("foo", h)
+	err := r.Validate("foo", h, h)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -878,7 +878,7 @@ func TestManageRoutesSpecValidateMissingHealthcheck(t *testing.T) {
 		HealthcheckName: "test",
 	}
 	h := make(map[string]*healthcheck.Healthcheck)
-	err := r.Validate("foo", h)
+	err := r.Validate("foo", h, h)
 	if err == nil {
 		t.Fail()
 	} else {
@@ -897,7 +897,7 @@ func TestManageRoutesSpecValidateWithHealthcheck(t *testing.T) {
 	}
 	h := make(map[string]*healthcheck.Healthcheck)
 	h["test"] = &healthcheck.Healthcheck{}
-	err := r.Validate("foo", h)
+	err := r.Validate("foo", h, h)
 	if err != nil {
 		t.Log(err)
 		t.Fail()

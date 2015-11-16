@@ -407,7 +407,7 @@ func TestRouteTableDefault(t *testing.T) {
 func TestRouteTableValidateNullRoutes(t *testing.T) {
 	r := RouteTable{}
 	h := make(map[string]*healthcheck.Healthcheck)
-	err := r.Validate("foo", h)
+	err := r.Validate("foo", h, h)
 	if err == nil {
 		t.Fail()
 	}
@@ -422,7 +422,7 @@ func TestRouteTableValidateNoRoutes(t *testing.T) {
 		ManageRoutes: make([]*aws.ManageRoutesSpec, 0),
 	}
 	h := make(map[string]*healthcheck.Healthcheck)
-	err := r.Validate("foo", h)
+	err := r.Validate("foo", h, h)
 	if err == nil {
 		t.Fail()
 	}
@@ -442,7 +442,7 @@ func TestRouteTableValidate(t *testing.T) {
 	}
 	r.Default("i-1234", rtm)
 	h := make(map[string]*healthcheck.Healthcheck)
-	err := r.Validate("foo", h)
+	err := r.Validate("foo", h, h)
 	if err != nil {
 		t.Fail()
 	}

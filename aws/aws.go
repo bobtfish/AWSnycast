@@ -48,7 +48,7 @@ func (r *ManageRoutesSpec) Default(instance string, manager RouteTableManager) {
 	r.Manager = manager
 }
 
-func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck) error {
+func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck, remotehealthchecks map[string]*healthcheck.Healthcheck) error {
 	if r.Cidr == "" {
 		return errors.New(fmt.Sprintf("cidr is not defined in %s", name))
 	}
@@ -63,7 +63,7 @@ func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*health
 		r.healthcheck = hc
 	}
 	if r.RemoteHealthcheckName != "" {
-                hc, ok := healthchecks[r.RemoteHealthcheckName]
+                hc, ok := remotehealthchecks[r.RemoteHealthcheckName]
                 if !ok {
                         return errors.New(fmt.Sprintf("Route table %s, Valiadate %s cannot find healthcheck '%s'", name, r.Cidr, r.RemoteHealthcheckName))
                 }

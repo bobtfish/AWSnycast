@@ -16,7 +16,6 @@ type Config struct {
 	PollTime                   uint                                           `yaml:"poll_time"`
 	Healthchecks               map[string]*healthcheck.Healthcheck            `yaml:"healthchecks"`
 	RemoteHealthcheckTemplates map[string]*healthcheck.Healthcheck            `yaml:"remote_healthchecks"`
-	RemoteHealthchecks         map[string]map[string]*healthcheck.Healthcheck `yaml:"-"`
 	RouteTables                map[string]*RouteTable                         `yaml:"routetables"`
 }
 
@@ -168,7 +167,6 @@ func (c *Config) Default(im instancemetadata.InstanceMetadata, manager aws.Route
 	if c.RemoteHealthcheckTemplates == nil {
 		c.RemoteHealthcheckTemplates = make(map[string]*healthcheck.Healthcheck)
 	}
-	c.RemoteHealthchecks = make(map[string]map[string]*healthcheck.Healthcheck)
 	if c.RouteTables != nil {
 		for _, v := range c.RouteTables {
 			v.Default(im.Instance, manager)
@@ -199,7 +197,7 @@ func (c Config) Validate() error {
 		}
 	}
 	for k, v := range c.RouteTables {
-		if err := v.Validate(k, c.Healthchecks); err != nil {
+		if err := v.Validate(k, c.Healthchecks, c.RemoteHealthcheckTemplates); err != nil {
 			return err
 		}
 	}
@@ -236,12 +234,12 @@ func (r *RouteTable) Default(instance string, manager aws.RouteTableManager) {
 		r.ec2RouteTables = make([]*ec2.RouteTable, 0)
 	}
 }
-func (r RouteTable) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck) error {
+func (r RouteTable) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck, remotehealthchecks map[string]*healthcheck.Healthcheck) error {
 	if r.ManageRoutes == nil || len(r.ManageRoutes) == 0 {
 		return errors.New(fmt.Sprintf("No manage_routes key in route table '%s'", name))
 	}
 	for _, v := range r.ManageRoutes {
-		if err := v.Validate(name, healthchecks); err != nil {
+		if err := v.Validate(name, healthchecks, remotehealthchecks); err != nil {
 			return err
 		}
 	}
