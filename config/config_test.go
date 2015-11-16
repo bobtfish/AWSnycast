@@ -551,6 +551,12 @@ func TestUpdateEc2RouteTablesNoRouteTablesInAWS(t *testing.T) {
 			t.Fail()
 		}
 	}
+	rt.Find.NoResultsOk = true
+	err = rt.UpdateEc2RouteTables(awsRt)
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
 }
 
 func TestUpdateEc2RouteTablesFindRouteTablesInAWS(t *testing.T) {
@@ -643,5 +649,88 @@ func TestRunEc2Updates(t *testing.T) {
 			t.Log(err)
 			t.Fail()
 		}
+	}
+}
+
+func TestRouteTableFindSpecAndNoFilters(t *testing.T) {
+	c := make(map[string]interface{})
+	_, err := RouteTableFindSpec{Config: c, Type: "and"}.GetFilter()
+	if err == nil {
+		t.Fail()
+	} else {
+		if err.Error() != "No filters in config for and route table finder" {
+			t.Log(err.Error())
+			t.Fail()
+		}
+	}
+}
+
+func TestRouteTableFindSpecOrNoFilters(t *testing.T) {
+	c := make(map[string]interface{})
+	_, err := RouteTableFindSpec{Config: c, Type: "or"}.GetFilter()
+	if err == nil {
+		t.Fail()
+	} else {
+		if err.Error() != "No filters in config for or route table finder" {
+			t.Log(err.Error())
+			t.Fail()
+		}
+	}
+}
+
+func TestRouteTableFindSpecSubnetNoSubnet(t *testing.T) {
+	c := make(map[string]interface{})
+	_, err := RouteTableFindSpec{Config: c, Type: "subnet"}.GetFilter()
+	if err == nil {
+		t.Fail()
+	} else {
+		if err.Error() != "No subnet_id in config for subnet route table finder" {
+			t.Log(err.Error())
+			t.Fail()
+		}
+	}
+}
+
+func TestRouteTableFindSpecHasRouteToNoCidr(t *testing.T) {
+	c := make(map[string]interface{})
+	_, err := RouteTableFindSpec{Config: c, Type: "has_route_to"}.GetFilter()
+	if err == nil {
+		t.Fail()
+	} else {
+		if err.Error() != "No cidr in config for has_route_to route table finder" {
+			t.Log(err.Error())
+			t.Fail()
+		}
+	}
+}
+
+func TestRouteTableFindSpecSubnet(t *testing.T) {
+	c := make(map[string]interface{})
+	c["subnet_id"] = "subnet-12345"
+	_, err := RouteTableFindSpec{Config: c, Type: "subnet"}.GetFilter()
+	if err != nil {
+		t.Fail()
+	}
+}
+
+func TestRouteTableFindSpecHasRouteTo(t *testing.T) {
+	c := make(map[string]interface{})
+	c["cidr"] = "0.0.0.0/0"
+	_, err := RouteTableFindSpec{Config: c, Type: "has_route_to"}.GetFilter()
+	if err != nil {
+		t.Fail()
+	}
+}
+
+func TestRouteTableFindSpecMain(t *testing.T) {
+	c := make(map[string]interface{})
+	spec := RouteTableFindSpec{Config: c, Type: "main", Not: true}
+	f, err := spec.GetFilter()
+	if f == nil {
+		t.Fail()
+	}
+	if err != nil {
+		t.Log(err)
+		t.Fail()
 	}
 }
