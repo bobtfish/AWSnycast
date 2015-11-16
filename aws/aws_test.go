@@ -271,6 +271,17 @@ func TestRouteTableFilterNever(t *testing.T) {
 	}
 }
 
+func TestRouteTableFilterNot(t *testing.T) {
+	f := RouteTableFilterNot{Filter: RouteTableFilterAlways{}}
+	if !f.Keep(&rtb1) {
+		t.Fail()
+	}
+	f = RouteTableFilterNot{Filter: RouteTableFilterNever{}}
+	if f.Keep(&rtb1) {
+		t.Fail()
+	}
+}
+
 func TestRouteTableFilterAndTwoNever(t *testing.T) {
 	f := RouteTableFilterAnd{
 		RouteTableFilters: []RouteTableFilter{
