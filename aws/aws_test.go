@@ -998,6 +998,30 @@ func TestManageInstanceRouteDeleteInstanceRouteThisInstanceUnhealthy(t *testing.
 	}
 }
 
+func TestManageInstanceRouteDeleteInstanceRouteThisInstanceUnhealthyNeverDelete(t *testing.T) {
+	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
+	s := ManageRoutesSpec{
+		Cidr:            "0.0.0.0/0",
+		Instance:        "i-605bd2aa",
+		IfUnhealthy:     false,
+		HealthcheckName: "localhealthcheck",
+		healthcheck:     &FakeHealthCheck{isHealthy: false},
+		NeverDelete:     true,
+	}
+	err := rtf.ManageInstanceRoute(rtb2, s, false)
+	if err != nil {
+		t.Fail()
+	}
+	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput != nil {
+		t.Log("ReplaceRouteInput was called")
+		t.Fail()
+	}
+	if rtf.conn.(*FakeEC2Conn).DeleteRouteInput != nil {
+		t.Log("DeleteRouteInput was called")
+		t.Fail()
+	}
+}
+
 func TestManageInstanceRouteDeleteInstanceRouteThisInstanceUnhealthyAWSFail(t *testing.T) {
 	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	rtf.conn.(*FakeEC2Conn).DeleteRouteError = errors.New("Whoops, AWS blew up")
