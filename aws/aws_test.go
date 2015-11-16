@@ -526,6 +526,9 @@ func (f *FakeEC2Conn) DescribeRouteTables(i *ec2.DescribeRouteTablesInput) (*ec2
 	f.DescribeRouteTablesInput = i
 	return f.DescribeRouteTablesOutput, f.DescribeRouteTablesError
 }
+func (f *FakeEC2Conn) DescribeNetworkInterfaces(*ec2.DescribeNetworkInterfacesInput) (*ec2.DescribeNetworkInterfacesOutput, error) {
+	return nil, nil
+}
 
 func TestRouteTableManagerEC2ReplaceInstanceRouteNoop(t *testing.T) {
 	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}

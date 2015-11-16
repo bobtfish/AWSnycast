@@ -127,8 +127,10 @@ func (r *ManageRoutesSpec) UpdateRemoteHealthchecks() {
 	eniIds := make([]*string, 0)
 	for _, rtb := range r.ec2RouteTables {
 		route := findRouteFromRouteTable(*rtb, r.Cidr)
-		if _, ok := eniToIP[*route.NetworkInterfaceId]; !ok {
-			eniIds = append(eniIds, route.NetworkInterfaceId)
+		if route != nil {
+			if _, ok := eniToIP[*route.NetworkInterfaceId]; !ok {
+				eniIds = append(eniIds, route.NetworkInterfaceId)
+			}
 		}
 	}
 	if len(eniIds) > 0 {
