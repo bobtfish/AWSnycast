@@ -882,7 +882,7 @@ func TestManageRoutesSpecValidateMissingHealthcheck(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	} else {
-		if err.Error() != "Route table foo, upsert 0.0.0.0/0 cannot find healthcheck 'test'" {
+		if err.Error() != "Route table foo, Validate for 0.0.0.0/0 cannot find healthcheck 'test'" {
 			t.Log(err)
 			t.Fail()
 		}

@@ -49,7 +49,7 @@ func TestLoadConfigFailsValidation(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	} else {
-		if err.Error() != "Route table a, upsert 0.0.0.0/0 cannot find healthcheck 'public'" {
+		if err.Error() != "Route table a, Validate for 0.0.0.0/0 cannot find healthcheck 'public'" {
 			t.Log(err)
 			t.Fail()
 		}

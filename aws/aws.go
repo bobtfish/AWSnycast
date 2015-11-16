@@ -20,15 +20,17 @@ type MyEC2Conn interface {
 }
 
 type ManageRoutesSpec struct {
-	Cidr            string                   `yaml:"cidr"`
-	Instance        string                   `yaml:"instance"`
-	InstanceIsSelf  bool                     `yaml:"-"`
-	HealthcheckName string                   `yaml:"healthcheck"`
-	healthcheck     healthcheck.CanBeHealthy `yaml:"-"`
-	IfUnhealthy     bool                     `yaml:"if_unhealthy"`
-	ec2RouteTables  []*ec2.RouteTable        `yaml:"-"`
-	Manager         RouteTableManager        `yaml:"-"`
-	NeverDelete     bool                     `yaml:"never_delete"`
+	Cidr                  string                   `yaml:"cidr"`
+	Instance              string                   `yaml:"instance"`
+	InstanceIsSelf        bool                     `yaml:"-"`
+	HealthcheckName       string                   `yaml:"healthcheck"`
+	RemoteHealthcheckName string                   `yaml:"remote_healthcheck"`
+	healthcheck           healthcheck.CanBeHealthy `yaml:"-"`
+	remotehealthcheck     healthcheck.CanBeHealthy `yaml:"-"`
+	IfUnhealthy           bool                     `yaml:"if_unhealthy"`
+	ec2RouteTables        []*ec2.RouteTable        `yaml:"-"`
+	Manager               RouteTableManager        `yaml:"-"`
+	NeverDelete           bool                     `yaml:"never_delete"`
 }
 
 func (r *ManageRoutesSpec) Default(instance string, manager RouteTableManager) {
@@ -56,10 +58,17 @@ func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*health
 	if r.HealthcheckName != "" {
 		hc, ok := healthchecks[r.HealthcheckName]
 		if !ok {
-			return errors.New(fmt.Sprintf("Route table %s, upsert %s cannot find healthcheck '%s'", name, r.Cidr, r.HealthcheckName))
+			return errors.New(fmt.Sprintf("Route table %s, Validate for %s cannot find healthcheck '%s'", name, r.Cidr, r.HealthcheckName))
 		}
 		r.healthcheck = hc
 	}
+	if r.RemoteHealthcheckName != "" {
+                hc, ok := healthchecks[r.RemoteHealthcheckName]
+                if !ok {
+                        return errors.New(fmt.Sprintf("Route table %s, Valiadate %s cannot find healthcheck '%s'", name, r.Cidr, r.RemoteHealthcheckName))
+                }
+                r.remotehealthcheck = hc
+        }
 	return nil
 }
 
