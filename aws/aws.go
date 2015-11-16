@@ -70,29 +70,33 @@ func (r *ManageRoutesSpec) StartHealthcheckListener(noop bool) {
 	go func() {
 		c := r.healthcheck.GetListener()
 		for {
-			resText := "FAILED"
-			if <-c {
-				resText = "PASSED"
-			}
-			contextLogger := log.WithFields(log.Fields{
-				"healtcheck_status": resText,
-				"healthcheck_name":  r.HealthcheckName,
-				"route_cidr":        r.Cidr,
-			})
-			contextLogger.Info("Healthcheck status change, reevaluating current routes")
-			for _, rtb := range r.ec2RouteTables {
-				innerLogger := contextLogger.WithFields(log.Fields{
-					//"vpc": *(rtb.VpcId),
-					"rtb": *(rtb.RouteTableId),
-				})
-				innerLogger.Debug("Working for one route table")
-				if err := r.Manager.ManageInstanceRoute(*rtb, *r, noop); err != nil {
-					innerLogger.WithFields(log.Fields{"err": err.Error()}).Warn("error")
-				}
-			}
+			r.handleHealthcheckResult(<-c, noop)
 		}
 	}()
 	return
+}
+
+func (r *ManageRoutesSpec) handleHealthcheckResult(res bool, noop bool) {
+	resText := "FAILED"
+	if res {
+		resText = "PASSED"
+	}
+	contextLogger := log.WithFields(log.Fields{
+		"healtcheck_status": resText,
+		"healthcheck_name":  r.HealthcheckName,
+		"route_cidr":        r.Cidr,
+	})
+	contextLogger.Info("Healthcheck status change, reevaluating current routes")
+	for _, rtb := range r.ec2RouteTables {
+		innerLogger := contextLogger.WithFields(log.Fields{
+			//"vpc": *(rtb.VpcId),
+			"rtb": *(rtb.RouteTableId),
+		})
+		innerLogger.Debug("Working for one route table")
+		if err := r.Manager.ManageInstanceRoute(*rtb, *r, noop); err != nil {
+			innerLogger.WithFields(log.Fields{"err": err.Error()}).Warn("error")
+		}
+	}
 }
 
 func (r *ManageRoutesSpec) UpdateEc2RouteTables(rt []*ec2.RouteTable) {

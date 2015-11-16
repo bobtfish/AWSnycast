@@ -222,21 +222,27 @@ func TestMetaDataFetcher(t *testing.T) {
 }
 
 type FakeRouteTableManager struct {
-	Error  error
-	Routes []*ec2.RouteTable
+	RouteTable       *ec2.RouteTable
+	ManageRoutesSpec *ManageRoutesSpec
+	Noop             bool
+	Error            error
+	Routes           []*ec2.RouteTable
 }
 
-func (r FakeRouteTableManager) GetRouteTables() ([]*ec2.RouteTable, error) {
+func (r *FakeRouteTableManager) GetRouteTables() ([]*ec2.RouteTable, error) {
 	return r.Routes, r.Error
 }
 
-func (r FakeRouteTableManager) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageRoutesSpec, noop bool) error {
-	return nil
+func (r *FakeRouteTableManager) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageRoutesSpec, noop bool) error {
+	r.RouteTable = &rtb
+	r.ManageRoutesSpec = &rs
+	r.Noop = noop
+	return r.Error
 }
 
 func TestFakeFetcher(t *testing.T) {
 	var f RouteTableManager
-	f = FakeRouteTableManager{
+	f = &FakeRouteTableManager{
 		Routes: []*ec2.RouteTable{&rtb1},
 	}
 	rtb, err := f.GetRouteTables()
@@ -748,7 +754,7 @@ func TestManageRoutesSpecDefault(t *testing.T) {
 	u := &ManageRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
-	u.Default("i-1234", FakeRouteTableManager{})
+	u.Default("i-1234", &FakeRouteTableManager{})
 	if u.Cidr != "127.0.0.1/32" {
 		t.Log("Not canonicalized in ManageRoutesSpecDefault")
 		t.Fail()
@@ -892,12 +898,52 @@ func TestManageRoutesSpecValidateWithHealthcheck(t *testing.T) {
 	}
 }
 
+func TestManageRouteSpecStartHealthcheckListenerNoHealthcheck(t *testing.T) {
+	urs := ManageRoutesSpec{
+		Cidr:     "127.0.0.1",
+		Instance: "SELF",
+	}
+	urs.StartHealthcheckListener(false)
+}
+
+func TestHandleHealthcheckResult(t *testing.T) {
+	urs := ManageRoutesSpec{
+		Cidr:           "127.0.0.1",
+		Instance:       "SELF",
+		ec2RouteTables: []*ec2.RouteTable{&rtb1},
+		Manager:        &FakeRouteTableManager{},
+	}
+	urs.handleHealthcheckResult(true, true)
+	if urs.Manager.(*FakeRouteTableManager).RouteTable == nil {
+		t.Log("RouteTable is nil")
+		t.Fail()
+	}
+	if urs.Manager.(*FakeRouteTableManager).ManageRoutesSpec == nil {
+		t.Log("ManageRoutesSpec is nil")
+		t.Fail()
+	}
+	if urs.Manager.(*FakeRouteTableManager).Noop == false {
+		t.Log("Noop is true")
+		t.Fail()
+	}
+}
+
+func TestHandleHealthcheckResultError(t *testing.T) {
+	urs := ManageRoutesSpec{
+		Cidr:           "127.0.0.1",
+		Instance:       "SELF",
+		ec2RouteTables: []*ec2.RouteTable{&rtb1},
+		Manager:        &FakeRouteTableManager{Error: errors.New("Test")},
+	}
+	urs.handleHealthcheckResult(true, false)
+}
+
 func TestManageRouteSpecDefaultInstanceSELF(t *testing.T) {
 	urs := ManageRoutesSpec{
 		Cidr:     "127.0.0.1",
 		Instance: "SELF",
 	}
-	urs.Default("i-other", FakeRouteTableManager{})
+	urs.Default("i-other", &FakeRouteTableManager{})
 	if urs.Instance != "i-other" {
 		t.Fail()
 	}
@@ -908,7 +954,7 @@ func TestManageRouteSpecDefaultInstanceOther(t *testing.T) {
 		Cidr:     "127.0.0.1",
 		Instance: "i-foo",
 	}
-	urs.Default("i-other", FakeRouteTableManager{})
+	urs.Default("i-other", &FakeRouteTableManager{})
 	if urs.Instance != "i-foo" {
 		t.Fail()
 	}
@@ -1047,7 +1093,7 @@ func TestEc2RouteTablesDefault(t *testing.T) {
 	rs := &ManageRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
-	rs.Default("i-1234", FakeRouteTableManager{})
+	rs.Default("i-1234", &FakeRouteTableManager{})
 	if rs.ec2RouteTables == nil {
 		t.Fail()
 	}
