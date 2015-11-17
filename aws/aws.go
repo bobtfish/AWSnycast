@@ -270,9 +270,11 @@ func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *
 		DryRun:               aws.Bool(noop),
 	}
 	contextLogger := log.WithFields(log.Fields{
-		"cidr":        cidr,
-		"rtb":         *routeTableId,
-		"instance_id": instance,
+		"cidr":                cidr,
+		"rtb":                 *routeTableId,
+		"instance_id":         instance,
+		"current_route_state": *(route.State),
+		"current_instance_id": *(route.InstanceId),
 	})
 	if ifUnhealthy && *(route.State) == "active" {
 		contextLogger.Info("Not replacing route, as current route is active/healthy")
