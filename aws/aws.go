@@ -114,7 +114,7 @@ func (r *ManageRoutesSpec) handleHealthcheckResult(res bool, noop bool) {
 func (r *ManageRoutesSpec) UpdateEc2RouteTables(rt []*ec2.RouteTable) {
 	log.Debug(fmt.Sprintf("manange routes: %+v", rt))
 	r.ec2RouteTables = rt
-	r.UpdateRemoteHealthchecks()
+	//r.UpdateRemoteHealthchecks()
 }
 
 var eniToIP map[string]string
@@ -124,6 +124,9 @@ func init() {
 }
 
 func (r *ManageRoutesSpec) UpdateRemoteHealthchecks() {
+	if r.RemoteHealthcheckName == "" {
+		return
+	}
 	eniIds := make([]*string, 0)
 	for _, rtb := range r.ec2RouteTables {
 		route := findRouteFromRouteTable(*rtb, r.Cidr)
