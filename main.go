@@ -4,7 +4,9 @@ import (
 	"flag"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
+	logrus_syslog "github.com/Sirupsen/logrus/hooks/syslog"
 	"github.com/bobtfish/AWSnycast/daemon"
+	"log/syslog"
 	"os"
 )
 
@@ -14,6 +16,7 @@ var (
 	oneshot      = flag.Bool("oneshot", false, "Run route table manipulation exactly once, ignoring healthchecks, then exit")
 	noop         = flag.Bool("noop", false, "Don't actually *do* anything, just print what would be done")
 	printVersion = flag.Bool("version", false, "Print the version number")
+	syslog       = flag.Bool("syslog", false, "Log to syslog")
 )
 
 func main() {
@@ -25,6 +28,12 @@ func main() {
 	d := new(daemon.Daemon)
 	if *debug {
 		log.SetLevel(log.DebugLevel)
+	}
+	if *syslog {
+		hook, err := logrus_syslog.NewSyslogHook("", "", syslog.LOG_INFO, "")
+		if err == nil {
+			log.Hooks.Add(hook)
+		}
 	}
 	d.Debug = *debug
 	d.ConfigFile = *f
