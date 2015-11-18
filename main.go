@@ -16,7 +16,7 @@ var (
 	oneshot      = flag.Bool("oneshot", false, "Run route table manipulation exactly once, ignoring healthchecks, then exit")
 	noop         = flag.Bool("noop", false, "Don't actually *do* anything, just print what would be done")
 	printVersion = flag.Bool("version", false, "Print the version number")
-	syslog       = flag.Bool("syslog", false, "Log to syslog")
+	logToSyslog  = flag.Bool("syslog", false, "Log to syslog")
 )
 
 func main() {
@@ -29,10 +29,10 @@ func main() {
 	if *debug {
 		log.SetLevel(log.DebugLevel)
 	}
-	if *syslog {
+	if *logToSyslog {
 		hook, err := logrus_syslog.NewSyslogHook("", "", syslog.LOG_INFO, "")
 		if err == nil {
-			log.Hooks.Add(hook)
+			log.AddHook(hook)
 		}
 	}
 	d.Debug = *debug
