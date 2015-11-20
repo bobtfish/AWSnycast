@@ -18,6 +18,7 @@ type MyEC2Conn interface {
 	DescribeRouteTables(*ec2.DescribeRouteTablesInput) (*ec2.DescribeRouteTablesOutput, error)
 	DeleteRoute(*ec2.DeleteRouteInput) (*ec2.DeleteRouteOutput, error)
 	DescribeNetworkInterfaces(*ec2.DescribeNetworkInterfacesInput) (*ec2.DescribeNetworkInterfacesOutput, error)
+	DescribeInstanceAttribute(*ec2.DescribeInstanceAttributeInput) (*ec2.DescribeInstanceAttributeOutput, error)
 }
 
 type ManageRoutesSpec struct {
@@ -118,9 +119,26 @@ func (r *ManageRoutesSpec) UpdateEc2RouteTables(rt []*ec2.RouteTable) {
 }
 
 var eniToIP map[string]string
+var srcdstcheckForInstance map[string]bool
 
 func init() {
 	eniToIP = make(map[string]string)
+	srcdstcheckForInstance = make(map[string]bool)
+}
+
+func (r *ManageRoutesSpec) InstanceIsRouter(id string) bool {
+	if v, ok := srcdstcheckForInstance[id]; ok {
+		return v
+	}
+	out, err := r.Manager.(RouteTableManagerEC2).conn.DescribeInstanceAttribute(&ec2.DescribeInstanceAttributeInput{
+		Attribute:  aws.String("sourceDestCheck"),
+		InstanceId: &id,
+	})
+	if err != nil {
+		panic(err)
+	}
+	srcdstcheckForInstance[id] = *(out.SourceDestCheck.Value)
+	return srcdstcheckForInstance[id]
 }
 
 func (r *ManageRoutesSpec) UpdateRemoteHealthchecks() {

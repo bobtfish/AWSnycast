@@ -510,6 +510,10 @@ type FakeEC2Conn struct {
 	DescribeRouteTablesError  error
 }
 
+func (f *FakeEC2Conn) DescribeInstanceAttribute(i *ec2.DescribeInstanceAttributeInput) (*ec2.DescribeInstanceAttributeOutput, error) {
+	return nil, nil
+}
+
 func (f *FakeEC2Conn) CreateRoute(i *ec2.CreateRouteInput) (*ec2.CreateRouteOutput, error) {
 	f.CreateRouteInput = i
 	return f.CreateRouteOutput, f.CreateRouteError
