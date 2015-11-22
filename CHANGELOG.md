@@ -1,3 +1,15 @@
+ - Now requires the ec2:DescribeInstanceAttribute permission to run.
+ - Local instance is checked for src/destination check being disabled
+   at startup. If not disabled AWSnycast will quit with an error message
+   (as you need this disabled for either NAT boxes or those handinging
+   Anycast addresses)
+ - Add a -syslog CLI flag, which will cause the logs printed on STDOUT
+   to be duplicated to syslog.
+ - When replacing an existing route, log the old and new instance IDs,
+   and the route state.
+ - Improved unit tests.
+ - Additional work towards the remote_healthchecks feature working.
+
 Version 0.0.6 - 2015-11-13
   - Build .deb and .rpm packages for Linux as part of the release process
 
