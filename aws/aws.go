@@ -195,7 +195,7 @@ func (m RouteTableManagerEC2) InstanceIsRouter(id string) bool {
 	if err != nil {
 		panic(err)
 	}
-	srcdstcheckForInstance[id] = *(out.SourceDestCheck.Value)
+	srcdstcheckForInstance[id] = ! *(out.SourceDestCheck.Value)
 	return srcdstcheckForInstance[id]
 }
 
