@@ -34,7 +34,8 @@ resource "aws_iam_role_policy" "modify_routes" {
                 "ec2:CreateRoute",
                 "ec2:DeleteRoute",
                 "ec2:DescribeRouteTables",
-                "ec2:DescribeNetworkInterfaces"
+                "ec2:DescribeNetworkInterfaces",
+                "ec2:DescribeInstanceAttribute"
             ],
             "Effect": "Allow",
             "Resource": "*"

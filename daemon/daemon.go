@@ -111,6 +111,12 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 		log.WithFields(log.Fields{"err": err.Error()}).Error("Error in initial setup")
 		return 1
 	}
+
+	if !d.RouteTableManager.InstanceIsRouter(d.Instance) {
+		log.WithFields(log.Fields{"instance_id": d.Instance}).Error("I am not a router (do not have src/destination checking disabled)")
+		return 1
+	}
+
 	d.quitChan = make(chan bool, 1)
 	err := d.RunRouteTables()
 	if err != nil {
@@ -130,6 +136,7 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 	d.loopQuitChan <- true
 	return 0
 }
+
 func (d *Daemon) RunSleepLoop() {
 	go func() {
 		for {
