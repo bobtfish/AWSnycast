@@ -11,7 +11,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -yq \
     --no-install-recommends
 
 ENV GOPATH /go
-
+RUN go get -a -x -installsuffix cgo -ldflags '-d -s -w' github.com/tools/godep
 RUN gem install fpm --version 1.3.3
 RUN ln -s /var/lib/gems/1.8/bin/fpm /usr/local/bin/fpm
 

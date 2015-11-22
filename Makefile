@@ -1,3 +1,4 @@
+CGO_ENABLED=0
 TRAVIS_BUILD_NUMBER?=debug0
 
 .PHONY: coverage get test clean
@@ -5,7 +6,8 @@ TRAVIS_BUILD_NUMBER?=debug0
 all: get coverage AWSnycast
 
 AWSnycast: *.go */*.go
-	godep go build -a -tags netgo -ldflags '-w'  .
+	godep go build -a -tags netgo -ldflags '-w' .
+	strip AWSnycast
 
 test:
 	godep go test -short ./...
