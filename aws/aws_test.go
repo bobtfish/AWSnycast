@@ -229,6 +229,10 @@ type FakeRouteTableManager struct {
 	Routes           []*ec2.RouteTable
 }
 
+func (r *FakeRouteTableManager) InstanceIsRouter(id string) bool {
+	return true
+}
+
 func (r *FakeRouteTableManager) GetRouteTables() ([]*ec2.RouteTable, error) {
 	return r.Routes, r.Error
 }

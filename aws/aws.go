@@ -126,21 +126,6 @@ func init() {
 	srcdstcheckForInstance = make(map[string]bool)
 }
 
-func (r *ManageRoutesSpec) InstanceIsRouter(id string) bool {
-	if v, ok := srcdstcheckForInstance[id]; ok {
-		return v
-	}
-	out, err := r.Manager.(RouteTableManagerEC2).conn.DescribeInstanceAttribute(&ec2.DescribeInstanceAttributeInput{
-		Attribute:  aws.String("sourceDestCheck"),
-		InstanceId: &id,
-	})
-	if err != nil {
-		panic(err)
-	}
-	srcdstcheckForInstance[id] = *(out.SourceDestCheck.Value)
-	return srcdstcheckForInstance[id]
-}
-
 func (r *ManageRoutesSpec) UpdateRemoteHealthchecks() {
 	if r.RemoteHealthcheckName == "" {
 		return
@@ -191,11 +176,27 @@ func (r *ManageRoutesSpec) UpdateRemoteHealthchecks() {
 type RouteTableManager interface {
 	GetRouteTables() ([]*ec2.RouteTable, error)
 	ManageInstanceRoute(ec2.RouteTable, ManageRoutesSpec, bool) error
+	InstanceIsRouter(string) bool
 }
 
 type RouteTableManagerEC2 struct {
 	Region string
 	conn   MyEC2Conn
+}
+
+func (m RouteTableManagerEC2) InstanceIsRouter(id string) bool {
+	if v, ok := srcdstcheckForInstance[id]; ok {
+		return v
+	}
+	out, err := m.conn.DescribeInstanceAttribute(&ec2.DescribeInstanceAttributeInput{
+		Attribute:  aws.String("sourceDestCheck"),
+		InstanceId: &id,
+	})
+	if err != nil {
+		panic(err)
+	}
+	srcdstcheckForInstance[id] = *(out.SourceDestCheck.Value)
+	return srcdstcheckForInstance[id]
 }
 
 func getCreateRouteInput(rtb ec2.RouteTable, cidr string, instance string, noop bool) ec2.CreateRouteInput {

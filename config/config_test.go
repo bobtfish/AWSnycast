@@ -600,6 +600,10 @@ type FakeRouteTableManager struct {
 	Noop             bool
 }
 
+func (r *FakeRouteTableManager) InstanceIsRouter(id string) bool {
+	return true
+}
+
 func (r *FakeRouteTableManager) GetRouteTables() ([]*ec2.RouteTable, error) {
 	return nil, nil
 }

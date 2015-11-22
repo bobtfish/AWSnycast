@@ -37,6 +37,10 @@ func NewFakeRouteTableManager() *FakeRouteTableManager {
 	return f
 }
 
+func (r *FakeRouteTableManager) InstanceIsRouter(id string) bool {
+	return true
+}
+
 type FakeRouteTableManager struct {
 	Tables                   []*ec2.RouteTable
 	Error                    error
