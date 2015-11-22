@@ -79,8 +79,8 @@ Basic infrastructure services, like DNS (if you use your own DNS already), puppe
 repositories, etc. This is *not* a load balancing, or SOA service discovery solution.
 
 I'd *highly* recommend putting any TCP service you use AWSnycast for behind haproxy, for load balancing (as
-only one route can be active at a time), and to make AWSnycast's failover only needed when an instance dies,
-rather than an individual service instance.
+only one route can be active at a time - i.e. AWS doesn't support any form of ECMP), and to make AWSnycast's
+failover only needed when an instance dies, rather than an individual service instance.
 
 If you're building an SOA, and for 'application level' rather than 'infrastructure level' services, I'd
 recommend checking out Consul, Smartstack and similar technologies.
@@ -95,6 +95,8 @@ the example network, then _make sshnat_ to log into one of the machines,
 and _journalctl -u awsnycast_ to view the logs.
 
 Try terminating one of the machines and watch routes fail over!
+
+FIXME!! More details about how to test / curl things here..
 
 # Installing (binary)
 
@@ -161,6 +163,12 @@ An example IAM Policy is shown below:
             }
         ]
     }
+
+DescribeRouteTables + Create/Delete/ReplaceRoute are used for the core functionality,
+DescribeNetworkInterfaces is used to get the primary IP address of other instances
+which are found to be owning a route (for remote health checks), and DescribeInstanceAttribute
+is used to check that the local machine has src/dest checking disabled (and refusing
+to start if it doesn't as a safety precaution).
 
 Note that this software *does not* need root permissions, and therefore *should not* be
 run as root on your system. Please run it as a normal user (or even as nobody if you're
