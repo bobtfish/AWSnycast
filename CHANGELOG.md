@@ -7,7 +7,7 @@
    to be duplicated to syslog.
  - When replacing an existing route, log the old and new instance IDs,
    and the route state.
- - Improved unit tests.
+ - Improved unit tests - added coverage.
  - Additional work towards the remote_healthchecks feature working.
 
 Version 0.0.6 - 2015-11-13
