@@ -158,7 +158,7 @@ func TestConfigDefault(t *testing.T) {
 	c := Config{
 		RouteTables: r,
 	}
-	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"}, rtm)
+	c.Validate(tim, rtm)
 	if c.Healthchecks == nil {
 		t.Fail()
 	}
@@ -169,7 +169,7 @@ func TestConfigDefault(t *testing.T) {
 
 func TestConfigValidateNoRouteTables(t *testing.T) {
 	c := Config{}
-	err := c.Validate()
+	err := c.Validate(tim, rtm)
 	checkOneMultiError(t, err, "No route_tables key in config")
 }
 
@@ -178,7 +178,7 @@ func TestConfigValidateEmptyRouteTables(t *testing.T) {
 	c := Config{
 		RouteTables: r,
 	}
-	err := c.Validate()
+	err := c.Validate(tim, rtm)
 	checkOneMultiError(t, err, "No route_tables defined in config")
 }
 
@@ -188,7 +188,7 @@ func TestConfigValidateBadRouteTables(t *testing.T) {
 	c := Config{
 		RouteTables: r,
 	}
-	err := c.Validate()
+	err := c.Validate(tim, rtm)
 	checkOneMultiError(t, err, "No manage_routes key in route table 'foo'")
 }
 
@@ -202,7 +202,7 @@ func TestConfigValidateBadRouteTableUpserts(t *testing.T) {
 	c := Config{
 		RouteTables: r,
 	}
-	err := c.Validate()
+	err := c.Validate(tim, rtm)
 	checkOneMultiError(t, err, "cidr is not defined in foo")
 }
 
@@ -215,7 +215,7 @@ func TestConfigValidateBadHealthChecks(t *testing.T) {
 		RouteTables:  c_disk.RouteTables,
 		Healthchecks: h,
 	}
-	err := c.Validate()
+	err := c.Validate(tim, rtm)
 	if err == nil {
 		t.Fail()
 		return
@@ -249,8 +249,7 @@ func TestConfigValidateNoHealthChecks(t *testing.T) {
 	c := Config{
 		RouteTables: c_disk.RouteTables,
 	}
-	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"}, rtm)
-	err := c.Validate()
+	err := c.Validate(tim, rtm)
 	if err == nil {
 		t.Fail()
 	}
@@ -268,8 +267,7 @@ func TestConfigValidate(t *testing.T) {
 	c := Config{
 		RouteTables: r,
 	}
-	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"}, rtm)
-	err := c.Validate()
+	err := c.Validate(tim, rtm)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -283,9 +281,8 @@ func TestConfigValidate(t *testing.T) {
 
 func TestConfigValidateEmpty(t *testing.T) {
 	c := Config{}
-	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"}, rtm)
-	err := c.Validate()
-	checkOneMultiError(t, err, "No route_tables defined in config")
+	err := c.Validate(tim, rtm)
+	checkOneMultiError(t, err, "No route_tables key in config")
 }
 
 func TestRouteTableFindSpecDefault(t *testing.T) {

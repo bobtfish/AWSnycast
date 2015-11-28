@@ -37,7 +37,7 @@ type ManageRoutesSpec struct {
 }
 
 func (r *ManageRoutesSpec) Default(instance string, manager RouteTableManager) {
-	if !strings.Contains(r.Cidr, "/") {
+	if r.Cidr != "" && !strings.Contains(r.Cidr, "/") {
 		r.Cidr = fmt.Sprintf("%s/32", r.Cidr)
 	}
 	if r.Instance == "" {
@@ -195,7 +195,7 @@ func (m RouteTableManagerEC2) InstanceIsRouter(id string) bool {
 	if err != nil {
 		panic(err)
 	}
-	srcdstcheckForInstance[id] = ! *(out.SourceDestCheck.Value)
+	srcdstcheckForInstance[id] = !*(out.SourceDestCheck.Value)
 	return srcdstcheckForInstance[id]
 }
 

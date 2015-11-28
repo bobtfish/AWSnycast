@@ -119,7 +119,7 @@ func myHealthCheckConstructorFail(h healthcheck.Healthcheck) (healthcheck.Health
 func TestConfigBadHealthcheck(t *testing.T) {
 	healthcheck.RegisterHealthcheck("testconstructorfail", myHealthCheckConstructorFail)
 	c := &config.Config{}
-	c.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"}, NewFakeRouteTableManager())
+	c.Validate(instancemetadata.InstanceMetadata{Instance: "i-1234"}, NewFakeRouteTableManager())
 	c.Healthchecks["one"] = &healthcheck.Healthcheck{
 		Type:        "testconstructorfail",
 		Destination: "127.0.0.1",

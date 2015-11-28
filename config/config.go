@@ -176,31 +176,12 @@ func (r *RouteTable) RunEc2Updates(manager aws.RouteTableManager, noop bool) err
 }
 
 func (c *Config) Default(im instancemetadata.InstanceMetadata, manager aws.RouteTableManager) {
+}
+
+func (c *Config) Validate(im instancemetadata.InstanceMetadata, manager aws.RouteTableManager) error {
 	if c.PollTime == 0 {
 		c.PollTime = 300 // Default to every 5m
 	}
-	if c.Healthchecks == nil {
-		c.Healthchecks = make(map[string]*healthcheck.Healthcheck)
-	}
-	if c.RemoteHealthcheckTemplates == nil {
-		c.RemoteHealthcheckTemplates = make(map[string]*healthcheck.Healthcheck)
-	}
-	if c.RouteTables != nil {
-		for _, v := range c.RouteTables {
-			v.Default(im.Instance, manager)
-		}
-	} else {
-		c.RouteTables = make(map[string]*RouteTable)
-	}
-	for _, v := range c.Healthchecks {
-		v.Default()
-	}
-	for _, v := range c.RemoteHealthcheckTemplates {
-		v.Default()
-	}
-}
-
-func (c Config) Validate() error {
 	var result *multierror.Error
 	if c.RouteTables == nil {
 		result = multierror.Append(result, errors.New("No route_tables key in config"))
@@ -211,24 +192,34 @@ func (c Config) Validate() error {
 	}
 	if c.Healthchecks != nil {
 		for k, v := range c.Healthchecks {
+			//			v.Default()
 			if err := v.Validate(k, false); err != nil {
 				result = multierror.Append(result, err)
 			}
+			v.Default()
 		}
+	} else {
+		c.Healthchecks = make(map[string]*healthcheck.Healthcheck)
 	}
 	if c.RemoteHealthcheckTemplates != nil {
 		for k, v := range c.RemoteHealthcheckTemplates {
+			v.Default()
 			if err := v.Validate(k, true); err != nil {
 				result = multierror.Append(result, err)
 			}
 		}
+	} else {
+		c.RemoteHealthcheckTemplates = make(map[string]*healthcheck.Healthcheck)
 	}
 	if c.RouteTables != nil {
 		for k, v := range c.RouteTables {
+			v.Default(im.Instance, manager)
 			if err := v.Validate(k, c.Healthchecks, c.RemoteHealthcheckTemplates); err != nil {
 				result = multierror.Append(result, err)
 			}
 		}
+	} else { // FIXME error here?
+		c.RouteTables = make(map[string]*RouteTable)
 	}
 	return result.ErrorOrNil()
 }
@@ -284,7 +275,7 @@ func New(filename string, im instancemetadata.InstanceMetadata, manager aws.Rout
 	err = yaml.Unmarshal(data, &c)
 	if err == nil {
 		c.Default(im, manager)
-		err = c.Validate()
+		err = c.Validate(im, manager)
 	}
 	return c, err
 }
