@@ -209,7 +209,8 @@ func TestConfigValidateBadRouteTableUpserts(t *testing.T) {
 func TestConfigValidateBadHealthChecks(t *testing.T) {
 	c_disk, _ := New("../tests/awsnycast.yaml", tim, rtm)
 	h := make(map[string]*healthcheck.Healthcheck)
-	h["foo"] = &healthcheck.Healthcheck{}
+	h["foo"] = &healthcheck.Healthcheck{Type: "tcp"}
+	h["foo"].Default()
 	c := Config{
 		RouteTables:  c_disk.RouteTables,
 		Healthchecks: h,
@@ -221,7 +222,7 @@ func TestConfigValidateBadHealthChecks(t *testing.T) {
 	}
 	if merr, ok := err.(*multierror.Error); ok {
 		if len(merr.Errors) != 3 {
-			t.Log(fmt.Printf("%d not 3 errors", len(merr.Errors)))
+			t.Log(fmt.Sprintf("%d not 3 errors", len(merr.Errors)))
 			t.Fail()
 		}
 		if merr.Errors[0].Error() != "Healthcheck foo has no destination set" {

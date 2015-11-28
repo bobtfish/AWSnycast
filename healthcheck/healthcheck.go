@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"github.com/hashicorp/go-multierror"
 	"net"
 	"time"
 )
@@ -149,31 +150,34 @@ func (h *Healthcheck) PerformHealthcheck() {
 }
 
 func (h Healthcheck) Validate(name string, remote bool) error {
+	var result *multierror.Error
 	if !remote {
 		if h.Destination == "" {
-			return errors.New(fmt.Sprintf("Healthcheck %s has no destination set", name))
-		}
-		if net.ParseIP(h.Destination) == nil {
-			return errors.New(fmt.Sprintf("Healthcheck %s destination '%s' does not parse as an IP address", name, h.Destination))
+			result = multierror.Append(result, errors.New(fmt.Sprintf("Healthcheck %s has no destination set", name)))
+		} else {
+			if net.ParseIP(h.Destination) == nil {
+				result = multierror.Append(result, errors.New(fmt.Sprintf("Healthcheck %s destination '%s' does not parse as an IP address", name, h.Destination)))
+			}
 		}
 	} else {
 		if h.Destination != "" {
-			return errors.New(fmt.Sprintf("Remote healthcheck %s cannot have destination set", name))
+			result = multierror.Append(result, errors.New(fmt.Sprintf("Remote healthcheck %s cannot have destination set", name)))
 		}
 	}
 	if h.Type == "" {
-		return errors.New("No healthcheck type set")
-	}
-	if _, found := healthCheckTypes[h.Type]; !found {
-		return errors.New(fmt.Sprintf("Unknown healthcheck type '%s' in %s", h.Type, name))
+		result = multierror.Append(result, errors.New("No healthcheck type set"))
+	} else {
+		if _, found := healthCheckTypes[h.Type]; !found {
+			result = multierror.Append(result, errors.New(fmt.Sprintf("Unknown healthcheck type '%s' in %s", h.Type, name)))
+		}
 	}
 	if h.Rise == 0 {
-		return errors.New(fmt.Sprintf("rise must be > 0 in %s", name))
+		result = multierror.Append(result, errors.New(fmt.Sprintf("rise must be > 0 in %s", name)))
 	}
 	if h.Fall == 0 {
-		return errors.New(fmt.Sprintf("fall must be > 0 in %s", name))
+		result = multierror.Append(result, errors.New(fmt.Sprintf("fall must be > 0 in %s", name)))
 	}
-	return nil
+	return result.ErrorOrNil()
 }
 
 func (h *Healthcheck) Setup() error {

@@ -1,3 +1,6 @@
+ - Make the error reporting of healthcheck configuration better by
+   reporting all errors at once, rather than the first one.
+
 Version 0.0.7 - 2015-11-28
  - Make config tell you about all the errors found when dieing at startup,
    rather than just the first one found.

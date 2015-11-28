@@ -3,8 +3,29 @@ package healthcheck
 import (
 	"errors"
 	"fmt"
+	"github.com/hashicorp/go-multierror"
 	"testing"
 )
+
+func checkOneMultiError(t *testing.T, err error, validate string) {
+	if err == nil {
+		t.Fail()
+	}
+	if merr, ok := err.(*multierror.Error); ok {
+		if len(merr.Errors) != 1 {
+			t.Log(fmt.Printf("%d not 1 errors", len(merr.Errors)))
+			t.Fail()
+		}
+		if merr.Errors[0].Error() != validate {
+			t.Log("'" + merr.Errors[0].Error() + "' not '" + validate + "'")
+			t.Fail()
+		}
+	} else {
+		t.Log("Not multierror")
+		t.Log(err)
+		t.Fail()
+	}
+}
 
 func TestHealthcheckDefault(t *testing.T) {
 	h := Healthcheck{
@@ -53,14 +74,7 @@ func TestHealthcheckValidateNoType(t *testing.T) {
 	}
 	h.Default()
 	err := h.Validate("foo", false)
-	if err == nil {
-		t.Fail()
-	} else {
-		if err.Error() != "No healthcheck type set" {
-			t.Log(err)
-			t.Fail()
-		}
-	}
+	checkOneMultiError(t, err, "No healthcheck type set")
 }
 
 func TestHealthcheckValidateRemoteWithDestFails(t *testing.T) {
@@ -70,14 +84,7 @@ func TestHealthcheckValidateRemoteWithDestFails(t *testing.T) {
 	}
 	h.Default()
 	err := h.Validate("foo", true)
-	if err == nil {
-		t.Fail()
-	} else {
-		if err.Error() != "Remote healthcheck foo cannot have destination set" {
-			t.Log(err)
-			t.Fail()
-		}
-	}
+	checkOneMultiError(t, err, "Remote healthcheck foo cannot have destination set")
 }
 
 func TestHealthcheckValidate(t *testing.T) {
@@ -95,31 +102,21 @@ func TestHealthcheckValidate(t *testing.T) {
 
 func TestHealthcheckValidateFailNoDestination(t *testing.T) {
 	h := Healthcheck{
-		Type: "notping",
+		Type: "ping",
 	}
+	h.Default()
 	err := h.Validate("foo", false)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Healthcheck foo has no destination set" {
-		t.Log(err.Error())
-		t.Fail()
-	}
+	checkOneMultiError(t, err, "Healthcheck foo has no destination set")
 }
 
 func TestHealthcheckValidateFailDestination(t *testing.T) {
 	h := Healthcheck{
-		Type:        "notping",
+		Type:        "ping",
 		Destination: "www.google.com",
 	}
+	h.Default()
 	err := h.Validate("foo", false)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Healthcheck foo destination 'www.google.com' does not parse as an IP address" {
-		t.Log(err.Error())
-		t.Fail()
-	}
+	checkOneMultiError(t, err, "Healthcheck foo destination 'www.google.com' does not parse as an IP address")
 }
 
 func TestHealthcheckValidateFailType(t *testing.T) {
@@ -127,14 +124,9 @@ func TestHealthcheckValidateFailType(t *testing.T) {
 		Type:        "notping",
 		Destination: "127.0.0.1",
 	}
+	h.Default()
 	err := h.Validate("foo", false)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Unknown healthcheck type 'notping' in foo" {
-		t.Log(err.Error())
-		t.Fail()
-	}
+	checkOneMultiError(t, err, "Unknown healthcheck type 'notping' in foo")
 }
 
 func TestHealthcheckValidateFailRise(t *testing.T) {
@@ -144,13 +136,7 @@ func TestHealthcheckValidateFailRise(t *testing.T) {
 		Destination: "127.0.0.1",
 	}
 	err := h.Validate("foo", false)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "rise must be > 0 in foo" {
-		t.Log(err.Error())
-		t.Fail()
-	}
+	checkOneMultiError(t, err, "rise must be > 0 in foo")
 }
 
 func TestHealthcheckValidateFailFall(t *testing.T) {
@@ -160,13 +146,7 @@ func TestHealthcheckValidateFailFall(t *testing.T) {
 		Destination: "127.0.0.1",
 	}
 	err := h.Validate("foo", false)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "fall must be > 0 in foo" {
-		t.Log(err.Error())
-		t.Fail()
-	}
+	checkOneMultiError(t, err, "fall must be > 0 in foo")
 }
 
 func myHealthCheckConstructorFail(h Healthcheck) (HealthChecker, error) {
