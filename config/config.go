@@ -8,6 +8,7 @@ import (
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"github.com/bobtfish/AWSnycast/instancemetadata"
+	"github.com/hashicorp/go-multierror"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
@@ -37,11 +38,15 @@ var routeFindTypes map[string]func(RouteTableFindSpec) (aws.RouteTableFilter, er
 func init() {
 	routeFindTypes = make(map[string]func(RouteTableFindSpec) (aws.RouteTableFilter, error))
 	routeFindTypes["by_tag"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
+		var result *multierror.Error
 		if _, ok := spec.Config["key"]; !ok {
-			return nil, errors.New("No key in config for by_tag route table finder")
+			result = multierror.Append(result, errors.New("No key in config for by_tag route table finder"))
 		}
 		if _, ok := spec.Config["value"]; !ok {
-			return nil, errors.New("No value in config for by_tag route table finder")
+			result = multierror.Append(result, errors.New("No value in config for by_tag route table finder"))
+		}
+		if err := result.ErrorOrNil(); err != nil {
+			return nil, result
 		}
 		return aws.RouteTableFilterTagMatch{
 			Key:   spec.Config["key"].(string),
@@ -51,14 +56,14 @@ func init() {
 	routeFindTypes["and"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
 		filters, err := getFiltersListForSpec(spec)
 		if err != nil {
-			return nil, errors.New(fmt.Sprintf("%s for and route table finder", err.Error()))
+			return nil, appendMultiError(err, "for and route table finder")
 		}
 		return aws.RouteTableFilterAnd{filters}, nil
 	}
 	routeFindTypes["or"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
 		filters, err := getFiltersListForSpec(spec)
 		if err != nil {
-			return nil, errors.New(fmt.Sprintf("%s for or route table finder", err.Error()))
+			return nil, appendMultiError(err, "for or route table finder")
 		}
 		return aws.RouteTableFilterOr{filters}, nil
 	}
@@ -79,34 +84,47 @@ func init() {
 	}
 }
 
-func getFiltersListForSpec(spec RouteTableFindSpec) ([]aws.RouteTableFilter, error) {
+func appendMultiError(in *multierror.Error, a string) *multierror.Error {
+	var result *multierror.Error
+	for _, element := range in.Errors {
+		result = multierror.Append(result, errors.New(element.Error()+" "+a))
+	}
+	return result
+}
+
+func getFiltersListForSpec(spec RouteTableFindSpec) ([]aws.RouteTableFilter, *multierror.Error) {
+	var result *multierror.Error
 	v, ok := spec.Config["filters"]
 	if !ok {
-		return nil, errors.New("No filters in config")
+		result = multierror.Append(errors.New("No filters in config"))
+		return nil, result
 	}
 	var filters []aws.RouteTableFilter
 	switch t := v.(type) {
 	default:
-		return filters, errors.New(fmt.Sprintf("unexpected type %T", t))
+		result = multierror.Append(result, errors.New(fmt.Sprintf("unexpected type %T for 'filters' key", t)))
 	case []interface{}:
 		for _, filter := range t { // I REGRET NOTHING
 			filterRepacked, err := yaml.Marshal(filter)
 			if err != nil {
-				return nil, err
+				result = multierror.Append(result, err)
+				continue
 			}
 			var spec RouteTableFindSpec
 			err = yaml.Unmarshal(filterRepacked, &spec)
 			if err != nil {
-				return nil, err
+				result = multierror.Append(result, err)
+				continue
 			}
 			filter, err := spec.GetFilter()
 			if err != nil {
-				return nil, err
+				result = multierror.Append(result, err)
+				continue
 			}
 			filters = append(filters, filter)
 		} // End lack of regret
 	}
-	return filters, nil
+	return filters, result
 }
 
 func (spec RouteTableFindSpec) GetFilter() (aws.RouteTableFilter, error) {
@@ -183,25 +201,36 @@ func (c *Config) Default(im instancemetadata.InstanceMetadata, manager aws.Route
 }
 
 func (c Config) Validate() error {
+	var result *multierror.Error
 	if c.RouteTables == nil {
-		return errors.New("No route_tables key in config")
-	}
-	if len(c.RouteTables) == 0 {
-		return errors.New("No route_tables defined in config")
+		result = multierror.Append(result, errors.New("No route_tables key in config"))
+	} else {
+		if len(c.RouteTables) == 0 {
+			result = multierror.Append(result, errors.New("No route_tables defined in config"))
+		}
 	}
 	if c.Healthchecks != nil {
 		for k, v := range c.Healthchecks {
 			if err := v.Validate(k, false); err != nil {
-				return err
+				result = multierror.Append(result, err)
 			}
 		}
 	}
-	for k, v := range c.RouteTables {
-		if err := v.Validate(k, c.Healthchecks, c.RemoteHealthcheckTemplates); err != nil {
-			return err
+	if c.RemoteHealthcheckTemplates != nil {
+		for k, v := range c.RemoteHealthcheckTemplates {
+			if err := v.Validate(k, true); err != nil {
+				result = multierror.Append(result, err)
+			}
 		}
 	}
-	return nil
+	if c.RouteTables != nil {
+		for k, v := range c.RouteTables {
+			if err := v.Validate(k, c.Healthchecks, c.RemoteHealthcheckTemplates); err != nil {
+				result = multierror.Append(result, err)
+			}
+		}
+	}
+	return result.ErrorOrNil()
 }
 
 func (r *RouteTableFindSpec) Default() {

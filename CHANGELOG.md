@@ -1,3 +1,5 @@
+ - Make config tell you about all the errors found when dieing at startup,
+   rather than just the first one found.
  - Now requires the ec2:DescribeInstanceAttribute permission to run.
  - Local instance is checked for src/destination check being disabled
    at startup. If not disabled AWSnycast will quit with an error message
