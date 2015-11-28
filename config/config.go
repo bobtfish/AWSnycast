@@ -175,9 +175,6 @@ func (r *RouteTable) RunEc2Updates(manager aws.RouteTableManager, noop bool) err
 	return nil
 }
 
-func (c *Config) Default(im instancemetadata.InstanceMetadata, manager aws.RouteTableManager) {
-}
-
 func (c *Config) Validate(im instancemetadata.InstanceMetadata, manager aws.RouteTableManager) error {
 	if c.PollTime == 0 {
 		c.PollTime = 300 // Default to every 5m
@@ -274,7 +271,6 @@ func New(filename string, im instancemetadata.InstanceMetadata, manager aws.Rout
 	}
 	err = yaml.Unmarshal(data, &c)
 	if err == nil {
-		c.Default(im, manager)
 		err = c.Validate(im, manager)
 	}
 	return c, err

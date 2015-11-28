@@ -181,7 +181,7 @@ func getD(a bool) Daemon {
 		ConfigFile: "../tests/awsnycast.yaml",
 		Config:     &config.Config{},
 	}
-	d.Config.Default(instancemetadata.InstanceMetadata{Instance: "i-1234"}, NewFakeRouteTableManager())
+	d.Config.Validate(instancemetadata.InstanceMetadata{Instance: "i-1234"}, NewFakeRouteTableManager()) // FIXME error handling
 	fakeR := NewFakeRouteTableManager()
 	d.MetadataFetcher = getFakeMetadataFetcher(a)
 	d.RouteTableManager = fakeR
