@@ -9,43 +9,43 @@
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/aws",
-			"Comment": "v0.10.0-6-g83bae04",
-			"Rev": "83bae04b770b2b9aae4c946f795149d294e147d3"
+			"Comment": "v1.0.0-1-g328e030",
+			"Rev": "328e030f73f66922cb9c1357de794ee1bf0ca2b5"
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/private/endpoints",
-			"Comment": "v0.10.0-6-g83bae04",
-			"Rev": "83bae04b770b2b9aae4c946f795149d294e147d3"
+			"Comment": "v1.0.0-1-g328e030",
+			"Rev": "328e030f73f66922cb9c1357de794ee1bf0ca2b5"
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/private/protocol/ec2query",
-			"Comment": "v0.10.0-6-g83bae04",
-			"Rev": "83bae04b770b2b9aae4c946f795149d294e147d3"
+			"Comment": "v1.0.0-1-g328e030",
+			"Rev": "328e030f73f66922cb9c1357de794ee1bf0ca2b5"
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/private/protocol/query/queryutil",
-			"Comment": "v0.10.0-6-g83bae04",
-			"Rev": "83bae04b770b2b9aae4c946f795149d294e147d3"
+			"Comment": "v1.0.0-1-g328e030",
+			"Rev": "328e030f73f66922cb9c1357de794ee1bf0ca2b5"
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/private/protocol/rest",
-			"Comment": "v0.10.0-6-g83bae04",
-			"Rev": "83bae04b770b2b9aae4c946f795149d294e147d3"
+			"Comment": "v1.0.0-1-g328e030",
+			"Rev": "328e030f73f66922cb9c1357de794ee1bf0ca2b5"
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil",
-			"Comment": "v0.10.0-6-g83bae04",
-			"Rev": "83bae04b770b2b9aae4c946f795149d294e147d3"
+			"Comment": "v1.0.0-1-g328e030",
+			"Rev": "328e030f73f66922cb9c1357de794ee1bf0ca2b5"
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/private/signer/v4",
-			"Comment": "v0.10.0-6-g83bae04",
-			"Rev": "83bae04b770b2b9aae4c946f795149d294e147d3"
+			"Comment": "v1.0.0-1-g328e030",
+			"Rev": "328e030f73f66922cb9c1357de794ee1bf0ca2b5"
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/service/ec2",
-			"Comment": "v0.10.0-6-g83bae04",
-			"Rev": "83bae04b770b2b9aae4c946f795149d294e147d3"
+			"Comment": "v1.0.0-1-g328e030",
+			"Rev": "328e030f73f66922cb9c1357de794ee1bf0ca2b5"
 		},
 		{
 			"ImportPath": "github.com/vaughan0/go-ini",
