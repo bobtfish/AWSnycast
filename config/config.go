@@ -26,121 +26,6 @@ type RouteTable struct {
 	ec2RouteTables []*ec2.RouteTable
 }
 
-type RouteTableFindSpec struct {
-	NoResultsOk bool                   `yaml:"no_results_ok"`
-	Type        string                 `yaml:"type"`
-	Not         bool                   `yaml:"not"`
-	Config      map[string]interface{} `yaml:"config"`
-}
-
-var routeFindTypes map[string]func(RouteTableFindSpec) (aws.RouteTableFilter, error)
-
-func init() {
-	routeFindTypes = make(map[string]func(RouteTableFindSpec) (aws.RouteTableFilter, error))
-	routeFindTypes["by_tag"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
-		var result *multierror.Error
-		if _, ok := spec.Config["key"]; !ok {
-			result = multierror.Append(result, errors.New("No key in config for by_tag route table finder"))
-		}
-		if _, ok := spec.Config["value"]; !ok {
-			result = multierror.Append(result, errors.New("No value in config for by_tag route table finder"))
-		}
-		if err := result.ErrorOrNil(); err != nil {
-			return nil, result
-		}
-		return aws.RouteTableFilterTagMatch{
-			Key:   spec.Config["key"].(string),
-			Value: spec.Config["value"].(string),
-		}, nil
-	}
-	routeFindTypes["and"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
-		filters, err := getFiltersListForSpec(spec)
-		if err != nil {
-			return nil, appendMultiError(err, "for and route table finder")
-		}
-		return aws.RouteTableFilterAnd{filters}, nil
-	}
-	routeFindTypes["or"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
-		filters, err := getFiltersListForSpec(spec)
-		if err != nil {
-			return nil, appendMultiError(err, "for or route table finder")
-		}
-		return aws.RouteTableFilterOr{filters}, nil
-	}
-	routeFindTypes["main"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
-		return aws.RouteTableFilterMain{}, nil
-	}
-	routeFindTypes["subnet"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
-		if _, ok := spec.Config["subnet_id"]; !ok {
-			return nil, errors.New("No subnet_id in config for subnet route table finder")
-		}
-		return aws.RouteTableFilterSubnet{spec.Config["subnet_id"].(string)}, nil
-	}
-	routeFindTypes["has_route_to"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
-		if _, ok := spec.Config["cidr"]; !ok {
-			return nil, errors.New("No cidr in config for has_route_to route table finder")
-		}
-		return aws.RouteTableFilterDestinationCidrBlock{DestinationCidrBlock: spec.Config["cidr"].(string)}, nil
-	}
-}
-
-func appendMultiError(in *multierror.Error, a string) *multierror.Error {
-	var result *multierror.Error
-	for _, element := range in.Errors {
-		result = multierror.Append(result, errors.New(element.Error()+" "+a))
-	}
-	return result
-}
-
-func getFiltersListForSpec(spec RouteTableFindSpec) ([]aws.RouteTableFilter, *multierror.Error) {
-	var result *multierror.Error
-	v, ok := spec.Config["filters"]
-	if !ok {
-		result = multierror.Append(errors.New("No filters in config"))
-		return nil, result
-	}
-	var filters []aws.RouteTableFilter
-	switch t := v.(type) {
-	default:
-		result = multierror.Append(result, errors.New(fmt.Sprintf("unexpected type %T for 'filters' key", t)))
-	case []interface{}:
-		for _, filter := range t { // I REGRET NOTHING
-			filterRepacked, err := yaml.Marshal(filter)
-			if err != nil {
-				result = multierror.Append(result, err)
-				continue
-			}
-			var spec RouteTableFindSpec
-			err = yaml.Unmarshal(filterRepacked, &spec)
-			if err != nil {
-				result = multierror.Append(result, err)
-				continue
-			}
-			filter, err := spec.GetFilter()
-			if err != nil {
-				result = multierror.Append(result, err)
-				continue
-			}
-			filters = append(filters, filter)
-		} // End lack of regret
-	}
-	return filters, result
-}
-
-func (spec RouteTableFindSpec) GetFilter() (aws.RouteTableFilter, error) {
-	if genFilter, found := routeFindTypes[spec.Type]; found {
-		filter, err := genFilter(spec)
-		if err != nil {
-			return filter, err
-		}
-		if spec.Not {
-			return aws.RouteTableFilterNot{filter}, nil
-		}
-		return filter, nil
-	}
-	return nil, errors.New(fmt.Sprintf("Route table finder type '%s' not found in the registry", spec.Type))
-}
-
 func (r *RouteTable) UpdateEc2RouteTables(rt []*ec2.RouteTable) error {
 	filter, err := r.Find.GetFilter()
 	if err != nil {
@@ -185,6 +70,12 @@ func (c *Config) Validate(im instancemetadata.InstanceMetadata, manager aws.Rout
 	} else {
 		if len(c.RouteTables) == 0 {
 			result = multierror.Append(result, errors.New("No route_tables defined in config"))
+		} else {
+			for k, v := range c.RouteTables {
+				if err := v.Validate(im.Instance, manager, k, c.Healthchecks, c.RemoteHealthcheckTemplates); err != nil {
+					result = multierror.Append(result, err)
+				}
+			}
 		}
 	}
 	if c.Healthchecks != nil {
@@ -207,59 +98,31 @@ func (c *Config) Validate(im instancemetadata.InstanceMetadata, manager aws.Rout
 	} else {
 		c.RemoteHealthcheckTemplates = make(map[string]*healthcheck.Healthcheck)
 	}
-	if c.RouteTables != nil {
-		for k, v := range c.RouteTables {
-			v.Default(im.Instance, manager)
-			if err := v.Validate(k, c.Healthchecks, c.RemoteHealthcheckTemplates); err != nil {
-				result = multierror.Append(result, err)
-			}
-		}
-	} else { // FIXME error here?
-		c.RouteTables = make(map[string]*RouteTable)
-	}
 	return result.ErrorOrNil()
 }
 
-func (r *RouteTableFindSpec) Default() {
-	if r.Config == nil {
-		r.Config = make(map[string]interface{})
-	}
-}
-func (r *RouteTableFindSpec) Validate(name string) error {
-	if r.Type == "" {
-		return errors.New(fmt.Sprintf("Route find spec %s needs a type key", name))
-	}
-	if r.Type != "by_tag" {
-		return errors.New(fmt.Sprintf("Route find spec %s type '%s' not known", name, r.Type))
-	}
-	if r.Config == nil {
-		return errors.New("No config supplied")
-	}
-	return nil
-}
-
-func (r *RouteTable) Default(instance string, manager aws.RouteTableManager) {
-	r.Find.Default()
+func (r *RouteTable) Validate(instance string, manager aws.RouteTableManager, name string, healthchecks map[string]*healthcheck.Healthcheck, remotehealthchecks map[string]*healthcheck.Healthcheck) error {
 	if r.ManageRoutes == nil {
 		r.ManageRoutes = make([]*aws.ManageRoutesSpec, 0)
 	}
-	for _, v := range r.ManageRoutes {
-		v.Default(instance, manager)
+	var result *multierror.Error
+	if len(r.ManageRoutes) == 0 {
+		result = multierror.Append(result, errors.New(fmt.Sprintf("No manage_routes key in route table '%s'", name)))
+	}
+	if err := r.Find.Validate(name); err != nil {
+		result = multierror.Append(result, err)
 	}
 	if r.ec2RouteTables == nil {
 		r.ec2RouteTables = make([]*ec2.RouteTable, 0)
 	}
-}
-func (r RouteTable) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck, remotehealthchecks map[string]*healthcheck.Healthcheck) error {
-	if r.ManageRoutes == nil || len(r.ManageRoutes) == 0 {
-		return errors.New(fmt.Sprintf("No manage_routes key in route table '%s'", name))
-	}
 	for _, v := range r.ManageRoutes {
+		v.Default(instance, manager)
 		if err := v.Validate(name, healthchecks, remotehealthchecks); err != nil {
-			return err
+			result = multierror.Append(result, err)
 		}
 	}
-	return nil
+
+	return result.ErrorOrNil()
 }
 
 func New(filename string, im instancemetadata.InstanceMetadata, manager aws.RouteTableManager) (*Config, error) {
