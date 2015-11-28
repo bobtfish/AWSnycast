@@ -31,7 +31,7 @@ func TestHealthcheckDefault(t *testing.T) {
 	h := Healthcheck{
 		Type: "ping",
 	}
-	h.Default()
+	h.Validate("foo", false)
 	if h.Rise != 2 {
 		t.Fail()
 	}
@@ -51,7 +51,7 @@ func TestHealthcheckDefaultLengthRise(t *testing.T) {
 		Type: "ping",
 		Rise: 20,
 	}
-	h.Default()
+	h.Validate("foo", false)
 	if len(h.History) != 21 {
 		t.Fail()
 	}
@@ -62,7 +62,7 @@ func TestHealthcheckDefaultLengthFall(t *testing.T) {
 		Type: "ping",
 		Fall: 20,
 	}
-	h.Default()
+	h.Validate("foo", false)
 	if len(h.History) != 21 {
 		t.Fail()
 	}
@@ -72,7 +72,6 @@ func TestHealthcheckValidateNoType(t *testing.T) {
 	h := Healthcheck{
 		Destination: "127.0.0.1",
 	}
-	h.Default()
 	err := h.Validate("foo", false)
 	checkOneMultiError(t, err, "No healthcheck type set")
 }
@@ -82,7 +81,6 @@ func TestHealthcheckValidateRemoteWithDestFails(t *testing.T) {
 		Type:        "ping",
 		Destination: "127.0.0.1",
 	}
-	h.Default()
 	err := h.Validate("foo", true)
 	checkOneMultiError(t, err, "Remote healthcheck foo cannot have destination set")
 }
@@ -92,7 +90,6 @@ func TestHealthcheckValidate(t *testing.T) {
 		Type:        "ping",
 		Destination: "127.0.0.1",
 	}
-	h.Default()
 	err := h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
@@ -104,7 +101,6 @@ func TestHealthcheckValidateFailNoDestination(t *testing.T) {
 	h := Healthcheck{
 		Type: "ping",
 	}
-	h.Default()
 	err := h.Validate("foo", false)
 	checkOneMultiError(t, err, "Healthcheck foo has no destination set")
 }
@@ -114,7 +110,6 @@ func TestHealthcheckValidateFailDestination(t *testing.T) {
 		Type:        "ping",
 		Destination: "www.google.com",
 	}
-	h.Default()
 	err := h.Validate("foo", false)
 	checkOneMultiError(t, err, "Healthcheck foo destination 'www.google.com' does not parse as an IP address")
 }
@@ -124,29 +119,8 @@ func TestHealthcheckValidateFailType(t *testing.T) {
 		Type:        "notping",
 		Destination: "127.0.0.1",
 	}
-	h.Default()
 	err := h.Validate("foo", false)
 	checkOneMultiError(t, err, "Unknown healthcheck type 'notping' in foo")
-}
-
-func TestHealthcheckValidateFailRise(t *testing.T) {
-	h := Healthcheck{
-		Type:        "ping",
-		Fall:        1,
-		Destination: "127.0.0.1",
-	}
-	err := h.Validate("foo", false)
-	checkOneMultiError(t, err, "rise must be > 0 in foo")
-}
-
-func TestHealthcheckValidateFailFall(t *testing.T) {
-	h := Healthcheck{
-		Type:        "ping",
-		Rise:        1,
-		Destination: "127.0.0.1",
-	}
-	err := h.Validate("foo", false)
-	checkOneMultiError(t, err, "fall must be > 0 in foo")
 }
 
 func myHealthCheckConstructorFail(h Healthcheck) (HealthChecker, error) {
@@ -249,7 +223,7 @@ func TestHealthcheckRunSimple(t *testing.T) {
 	if fail.Healthcheck() {
 		t.Fail()
 	}
-	h_ok.Default()
+	h_ok.Validate("foo", false)
 	h_ok.Setup()
 	if h_ok.IsHealthy() {
 		t.Fail()
@@ -269,7 +243,7 @@ func TestHealthcheckRunSimple(t *testing.T) {
 func TestHealthcheckRise(t *testing.T) {
 	RegisterHealthcheck("test_ok", MyFakeHealthConstructorOk)
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
-	h_ok.Default()
+	h_ok.Validate("foo", false)
 	h_ok.Setup()
 	if h_ok.IsHealthy() {
 		t.Log("Started healthy")
@@ -328,7 +302,7 @@ func TestHealthcheckRise(t *testing.T) {
 func TestHealthcheckFall(t *testing.T) {
 	RegisterHealthcheck("test_fail", MyFakeHealthConstructorFail)
 	h_ok := Healthcheck{Type: "test_fail", Destination: "127.0.0.1", Fall: 2}
-	h_ok.Default()
+	h_ok.Validate("foo", false)
 	h_ok.Setup()
 	h_ok.History = []bool{true, true, true, true, true, true, true, true, true, true}
 	h_ok.isHealthy = true
@@ -389,7 +363,7 @@ func TestHealthcheckFall(t *testing.T) {
 func TestHealthcheckFallTen(t *testing.T) {
 	RegisterHealthcheck("test_fail", MyFakeHealthConstructorFail)
 	h_ok := Healthcheck{Type: "test_fail", Destination: "127.0.0.1", Fall: 10}
-	h_ok.Default()
+	h_ok.Validate("foo", false)
 	h_ok.Setup()
 	h_ok.History = []bool{true, true, true, true, true, true, true, true, true, true, true}
 	h_ok.isHealthy = true
@@ -452,7 +426,7 @@ func TestHealthcheckFallTen(t *testing.T) {
 func TestHealthcheckRun(t *testing.T) {
 	RegisterHealthcheck("test_ok", MyFakeHealthConstructorOk)
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
-	h_ok.Default()
+	h_ok.Validate("foo", false)
 	h_ok.Setup()
 	h_ok.Run(true)
 	if !h_ok.IsRunning() {
@@ -468,7 +442,7 @@ func TestHealthcheckRun(t *testing.T) {
 func TestHealthcheckStop(t *testing.T) {
 	RegisterHealthcheck("test_ok", MyFakeHealthConstructorOk)
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
-	h_ok.Default()
+	h_ok.Validate("foo", false)
 	h_ok.Setup()
 	if h_ok.IsRunning() {
 		t.Fail()
@@ -492,7 +466,6 @@ func TestHealthcheckListener(t *testing.T) {
 		Type:        "ping",
 		Destination: "127.0.0.1",
 	}
-	h.Default()
 	err := h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
@@ -518,7 +491,6 @@ func TestHealthcheckListenerUnhealthy(t *testing.T) {
 		Type:        "ping",
 		Destination: "127.0.0.1",
 	}
-	h.Default()
 	err := h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
@@ -544,7 +516,6 @@ func TestChangeDestination(t *testing.T) {
 		Type:        "ping",
 		Destination: "127.0.0.1",
 	}
-	h.Default()
 	err := h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)
@@ -582,7 +553,6 @@ func TestChangeDestinationFail(t *testing.T) {
 		Type:        "ping",
 		Destination: "127.0.0.1",
 	}
-	h.Default()
 	err := h.Validate("foo", false)
 	if err != nil {
 		t.Log(err)

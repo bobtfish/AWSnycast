@@ -228,7 +228,7 @@ func TestConfigValidateBadHealthChecks(t *testing.T) {
 		Healthchecks: c_disk.Healthchecks,
 	}
 	c.Healthchecks["foo"] = &healthcheck.Healthcheck{Type: "tcp"}
-	c.Healthchecks["foo"].Default()
+	c.Healthchecks["foo"].Validate("foo", false)
 	err := c.Validate(tim, rtm)
 	checkOneMultiError(t, err, "Healthcheck foo has no destination set")
 }

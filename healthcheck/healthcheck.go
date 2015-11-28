@@ -55,8 +55,10 @@ func (h *Healthcheck) NewWithDestination(destination string) (*Healthcheck, erro
 		Every:       h.Every,
 		Config:      h.Config,
 	}
-	n.Default()
-	err := n.Setup()
+	err := n.Validate(destination, false)
+	if err != nil {
+		err = n.Setup()
+	}
 	return n, err
 }
 
@@ -82,28 +84,6 @@ func (h Healthcheck) GetHealthChecker() (HealthChecker, error) {
 		return constructor(h)
 	}
 	return nil, errors.New(fmt.Sprintf("Healthcheck type '%s' not found in the healthcheck registry", h.Type))
-}
-
-func (h *Healthcheck) Default() {
-	if h.Config == nil {
-		h.Config = make(map[string]string)
-	}
-	if h.Rise == 0 {
-		h.Rise = 2
-	}
-	if h.Fall == 0 {
-		h.Fall = 3
-	}
-	max := h.Rise
-	if h.Fall > h.Rise {
-		max = h.Fall
-	}
-	max = max + 1 // Avoid integer overflow in the loop counting down by keeping 1 more check than we need.
-	if max < 10 {
-		max = 10
-	}
-	h.History = make([]bool, max)
-	h.listeners = make([]chan<- bool, 0)
 }
 
 func (h Healthcheck) IsHealthy() bool {
@@ -149,7 +129,26 @@ func (h *Healthcheck) PerformHealthcheck() {
 	}
 }
 
-func (h Healthcheck) Validate(name string, remote bool) error {
+func (h *Healthcheck) Validate(name string, remote bool) error {
+	if h.Config == nil {
+		h.Config = make(map[string]string)
+	}
+	if h.Rise == 0 {
+		h.Rise = 2
+	}
+	if h.Fall == 0 {
+		h.Fall = 3
+	}
+	max := h.Rise
+	if h.Fall > h.Rise {
+		max = h.Fall
+	}
+	max = max + 1 // Avoid integer overflow in the loop counting down by keeping 1 more check than we need.
+	if max < 10 {
+		max = 10
+	}
+	h.History = make([]bool, max)
+	h.listeners = make([]chan<- bool, 0)
 	var result *multierror.Error
 	if !remote {
 		if h.Destination == "" {
@@ -170,12 +169,6 @@ func (h Healthcheck) Validate(name string, remote bool) error {
 		if _, found := healthCheckTypes[h.Type]; !found {
 			result = multierror.Append(result, errors.New(fmt.Sprintf("Unknown healthcheck type '%s' in %s", h.Type, name)))
 		}
-	}
-	if h.Rise == 0 {
-		result = multierror.Append(result, errors.New(fmt.Sprintf("rise must be > 0 in %s", name)))
-	}
-	if h.Fall == 0 {
-		result = multierror.Append(result, errors.New(fmt.Sprintf("fall must be > 0 in %s", name)))
 	}
 	return result.ErrorOrNil()
 }
