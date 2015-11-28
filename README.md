@@ -378,13 +378,10 @@ This project is currently under heavy development.
 
 Here's a list of the features that I'm planning to work on next, in approximate order:
 
-  * Apt package from Travis release
-  * Os release
-
   * Remote healthchecks
   * Command healthcheck
-  * Inline health checks into config
-
+  * Run scripts before / after takeover of route
+  * Autodetect this machine's AZ
   * Make us autodetect the VPC this instance is running in, and refuse to adjust routing tables in other VPCs
   * Enable the use of multiple different healthchecks for a route (to only consider it down if multiple checks fail)
   * Add serf gossip between instances, to allow faster and reliable failover/STONITH
