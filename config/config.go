@@ -189,11 +189,10 @@ func (c *Config) Validate(im instancemetadata.InstanceMetadata, manager aws.Rout
 	}
 	if c.Healthchecks != nil {
 		for k, v := range c.Healthchecks {
-			//			v.Default()
+			v.Default()
 			if err := v.Validate(k, false); err != nil {
 				result = multierror.Append(result, err)
 			}
-			v.Default()
 		}
 	} else {
 		c.Healthchecks = make(map[string]*healthcheck.Healthcheck)
