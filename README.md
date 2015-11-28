@@ -9,7 +9,7 @@ extension of in-datacenter Anycast. It can also be used to provide HA NAT servic
 
 master is currently *highly* unstable.
 
-If you're crazy enough to want to use this, please use release version 0.0.6
+If you're crazy enough to want to use this, please use release version 0.0.7
 
 # NAT
 
@@ -103,7 +103,7 @@ FIXME!! More details about how to test / curl things here..
 You can install binary release versions onto x68 Linux
 directly from github, e.g.
 
-    sudo wget https://github.com/bobtfish/AWSnycast/releases/download/v0.0.6/AWSnycast -O /usr/local/bin/AWSnycast
+    sudo wget https://github.com/bobtfish/AWSnycast/releases/download/v0.0.7/AWSnycast -O /usr/local/bin/AWSnycast
     sudo chmod 700 /usr/local/bin/AWSnycast
 
 or you can install the .deb or .rpm packages found at the same location
