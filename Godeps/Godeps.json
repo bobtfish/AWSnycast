@@ -43,13 +43,32 @@
 			"Rev": "328e030f73f66922cb9c1357de794ee1bf0ca2b5"
 		},
 		{
+			"ImportPath": "github.com/aws/aws-sdk-go/private/waiter",
+			"Comment": "v1.0.0-1-g328e030",
+			"Rev": "328e030f73f66922cb9c1357de794ee1bf0ca2b5"
+		},
+		{
 			"ImportPath": "github.com/aws/aws-sdk-go/service/ec2",
 			"Comment": "v1.0.0-1-g328e030",
 			"Rev": "328e030f73f66922cb9c1357de794ee1bf0ca2b5"
 		},
 		{
-			"ImportPath": "github.com/vaughan0/go-ini",
-			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
+			"ImportPath": "github.com/go-ini/ini",
+			"Comment": "v0-54-g2e44421",
+			"Rev": "2e44421e256d82ebbf3d4d4fcabe8930b905eff3"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/errwrap",
+			"Rev": "7554cd9344cec97297fa6649b055a8c98c2a1e55"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/go-multierror",
+			"Rev": "d30f09973e19c1dfcd120b2d9c4f168e68d6b5d5"
+		},
+		{
+			"ImportPath": "github.com/jmespath/go-jmespath",
+			"Comment": "0.2.2",
+			"Rev": "3433f3ea46d9f8019119e7dd41274e112a2359a9"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
