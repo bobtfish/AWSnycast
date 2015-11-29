@@ -1,3 +1,5 @@
+ - Fix crash on route tables which don't have an instance-id
+   attached.
  - More improvements to error reporting in configuration
  - Make the error reporting of healthcheck configuration better by
    reporting all errors at once, rather than the first one.
