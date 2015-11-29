@@ -1,10 +1,11 @@
+Version 0.0.8 - 2015-11-29
  - Fix crash on route tables which don't have an instance-id
    attached.
  - More improvements to error reporting in configuration
  - Make the error reporting of healthcheck configuration better by
    reporting all errors at once, rather than the first one.
 
-Version 0.0.7 - 2015-11-28
+Version 0.0.7 - 2015-11-28 *BROKEN DO NOT USE*
  - Make config tell you about all the errors found when dieing at startup,
    rather than just the first one found.
  - Now requires the ec2:DescribeInstanceAttribute permission to run.

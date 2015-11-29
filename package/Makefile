@@ -8,7 +8,7 @@ ifdef upstream_build_number
 else
 	REAL_BUILD_NUMBER?=$(BUILD_NUMBER)
 endif
-VERSION = 0.0.7
+VERSION = 0.0.8
 ITERATION = yelp$(REAL_BUILD_NUMBER)
 ARCH := $(shell facter architecture)
 
