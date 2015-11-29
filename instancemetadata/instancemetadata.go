@@ -3,6 +3,7 @@ package instancemetadata
 import (
 	"errors"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -51,6 +52,13 @@ func FetchMetadata(mdf MetadataFetcher) (InstanceMetadata, error) {
 		return m, errors.New(fmt.Sprintf("Error getting metadata: %s", err.Error()))
 	}
 	m.Subnet = subnet
+
+	log.WithFields(log.Fields{
+		"subnet_id":         subnet,
+		"availability_zone": az,
+		"instance_id":       instanceId,
+		"region":            m.Region,
+	}).Info("Got instance metadata")
 
 	return m, nil
 }
