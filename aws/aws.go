@@ -296,8 +296,10 @@ func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *
 		"rtb":                 *routeTableId,
 		"instance_id":         instance,
 		"current_route_state": *(route.State),
-		"current_instance_id": *(route.InstanceId),
 	})
+	if route.InstanceId != nil {
+		contextLogger = log.WithFields(log.Fields{"current_instance_id": *(route.InstanceId)})
+	}
 	if ifUnhealthy && *(route.State) == "active" {
 		contextLogger.Info("Not replacing route, as current route is active/healthy")
 		return nil
