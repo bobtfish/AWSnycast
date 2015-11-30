@@ -114,8 +114,7 @@ func (r *RouteTable) Validate(instance string, manager aws.RouteTableManager, na
 		r.ec2RouteTables = make([]*ec2.RouteTable, 0)
 	}
 	for _, v := range r.ManageRoutes {
-		v.Default(instance, manager)
-		if err := v.Validate(name, healthchecks, remotehealthchecks); err != nil {
+		if err := v.Validate(instance, manager, name, healthchecks, remotehealthchecks); err != nil {
 			result = multierror.Append(result, err)
 		}
 	}

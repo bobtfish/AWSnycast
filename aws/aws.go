@@ -36,8 +36,11 @@ type ManageRoutesSpec struct {
 	NeverDelete           bool                                `yaml:"never_delete"`
 }
 
-func (r *ManageRoutesSpec) Default(instance string, manager RouteTableManager) {
-	if r.Cidr != "" && !strings.Contains(r.Cidr, "/") {
+func (r *ManageRoutesSpec) Validate(instance string, manager RouteTableManager, name string, healthchecks map[string]*healthcheck.Healthcheck, remotehealthchecks map[string]*healthcheck.Healthcheck) error {
+	if r.Cidr == "" {
+		return errors.New(fmt.Sprintf("cidr is not defined in %s", name))
+	}
+	if !strings.Contains(r.Cidr, "/") {
 		r.Cidr = fmt.Sprintf("%s/32", r.Cidr)
 	}
 	if r.Instance == "" {
@@ -50,9 +53,6 @@ func (r *ManageRoutesSpec) Default(instance string, manager RouteTableManager) {
 	r.ec2RouteTables = make([]*ec2.RouteTable, 0)
 	r.remotehealthchecks = make(map[string]*healthcheck.Healthcheck)
 	r.Manager = manager
-}
-
-func (r *ManageRoutesSpec) Validate(name string, healthchecks map[string]*healthcheck.Healthcheck, remotehealthchecks map[string]*healthcheck.Healthcheck) error {
 	if r.Cidr == "" {
 		return errors.New(fmt.Sprintf("cidr is not defined in %s", name))
 	}
