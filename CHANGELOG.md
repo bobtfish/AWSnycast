@@ -1,3 +1,5 @@
+ - More improvements to error reporting in configuration
+
 Version 0.0.8 - 2015-11-29
  - Fix crash on route tables which don't have an instance-id
    attached.
