@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/healthcheck"
+	"github.com/hashicorp/go-multierror"
 	"net"
 	"strings"
 )
@@ -37,11 +38,19 @@ type ManageRoutesSpec struct {
 }
 
 func (r *ManageRoutesSpec) Validate(instance string, manager RouteTableManager, name string, healthchecks map[string]*healthcheck.Healthcheck, remotehealthchecks map[string]*healthcheck.Healthcheck) error {
+	var result *multierror.Error
+	r.Manager = manager
+	r.ec2RouteTables = make([]*ec2.RouteTable, 0)
+	r.remotehealthchecks = make(map[string]*healthcheck.Healthcheck)
 	if r.Cidr == "" {
-		return errors.New(fmt.Sprintf("cidr is not defined in %s", name))
-	}
-	if !strings.Contains(r.Cidr, "/") {
-		r.Cidr = fmt.Sprintf("%s/32", r.Cidr)
+		result = multierror.Append(result, errors.New(fmt.Sprintf("cidr is not defined in %s", name)))
+	} else {
+		if !strings.Contains(r.Cidr, "/") {
+			r.Cidr = fmt.Sprintf("%s/32", r.Cidr)
+		}
+		if _, _, err := net.ParseCIDR(r.Cidr); err != nil {
+			result = multierror.Append(result, errors.New(fmt.Sprintf("Could not parse %s in %s", err.Error(), name)))
+		}
 	}
 	if r.Instance == "" {
 		r.Instance = "SELF"
@@ -50,30 +59,21 @@ func (r *ManageRoutesSpec) Validate(instance string, manager RouteTableManager, 
 		r.InstanceIsSelf = true
 		r.Instance = instance
 	}
-	r.ec2RouteTables = make([]*ec2.RouteTable, 0)
-	r.remotehealthchecks = make(map[string]*healthcheck.Healthcheck)
-	r.Manager = manager
-	if r.Cidr == "" {
-		return errors.New(fmt.Sprintf("cidr is not defined in %s", name))
-	}
-	if _, _, err := net.ParseCIDR(r.Cidr); err != nil {
-		return errors.New(fmt.Sprintf("Could not parse %s in %s", err.Error(), name))
-	}
 	if r.HealthcheckName != "" {
-		hc, ok := healthchecks[r.HealthcheckName]
-		if !ok {
-			return errors.New(fmt.Sprintf("Route table %s, Validate for %s cannot find healthcheck '%s'", name, r.Cidr, r.HealthcheckName))
+		if hc, ok := healthchecks[r.HealthcheckName]; ok {
+			r.healthcheck = hc
+		} else {
+			result = multierror.Append(result, errors.New(fmt.Sprintf("Route tables %s, route %s cannot find healthcheck '%s'", name, r.Cidr, r.HealthcheckName)))
 		}
-		r.healthcheck = hc
 	}
 	if r.RemoteHealthcheckName != "" {
-		hc, ok := remotehealthchecks[r.RemoteHealthcheckName]
-		if !ok {
-			return errors.New(fmt.Sprintf("Route table %s, Valiadate %s cannot find healthcheck '%s'", name, r.Cidr, r.RemoteHealthcheckName))
+		if hc, ok := remotehealthchecks[r.RemoteHealthcheckName]; ok {
+			r.remotehealthcheck = hc
+		} else {
+			result = multierror.Append(result, errors.New(fmt.Sprintf("Route table %s, route %s cannot find healthcheck '%s'", name, r.Cidr, r.RemoteHealthcheckName)))
 		}
-		r.remotehealthcheck = hc
 	}
-	return nil
+	return result.ErrorOrNil()
 }
 
 func (r *ManageRoutesSpec) StartHealthcheckListener(noop bool) {
