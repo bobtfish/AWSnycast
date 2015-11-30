@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/healthcheck"
+	"github.com/bobtfish/AWSnycast/testhelpers"
 	"os"
 	"testing"
 )
@@ -804,13 +805,7 @@ func TestManageRoutesSpecValidateMissingCidr(t *testing.T) {
 		Instance: "SELF",
 	}
 	err := r.Validate("i-1234", &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "cidr is not defined in foo" {
-		t.Log(err.Error())
-		t.Fail()
-	}
+	testhelpers.CheckOneMultiError(t, err, "cidr is not defined in foo")
 }
 
 func TestManageRoutesSpecValidateBadCidr1(t *testing.T) {
@@ -819,13 +814,7 @@ func TestManageRoutesSpecValidateBadCidr1(t *testing.T) {
 		Instance: "SELF",
 	}
 	err := r.Validate("i-1234", &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Could not parse invalid CIDR address: 300.0.0.0/16 in foo" {
-		t.Log(err.Error())
-		t.Fail()
-	}
+	testhelpers.CheckOneMultiError(t, err, "Could not parse invalid CIDR address: 300.0.0.0/16 in foo")
 }
 
 func TestManageRoutesSpecValidateBadCidr2(t *testing.T) {
@@ -834,13 +823,7 @@ func TestManageRoutesSpecValidateBadCidr2(t *testing.T) {
 		Instance: "SELF",
 	}
 	err := r.Validate("i-1234", &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Could not parse invalid CIDR address: 3.0.0.0/160 in foo" {
-		t.Log(err.Error())
-		t.Fail()
-	}
+	testhelpers.CheckOneMultiError(t, err, "Could not parse invalid CIDR address: 3.0.0.0/160 in foo")
 }
 
 func TestManageRoutesSpecValidateBadCidr3(t *testing.T) {
@@ -849,13 +832,7 @@ func TestManageRoutesSpecValidateBadCidr3(t *testing.T) {
 		Instance: "SELF",
 	}
 	err := r.Validate("i-1234", &FakeRouteTableManager{}, "bar", emptyHealthchecks, emptyHealthchecks)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Could not parse invalid CIDR address: foo/32 in bar" {
-		t.Log(err.Error())
-		t.Fail()
-	}
+	testhelpers.CheckOneMultiError(t, err, "Could not parse invalid CIDR address: foo/32 in bar")
 }
 
 func TestManageRoutesSpecValidate(t *testing.T) {
@@ -877,14 +854,7 @@ func TestManageRoutesSpecValidateMissingHealthcheck(t *testing.T) {
 		HealthcheckName: "test",
 	}
 	err := r.Validate("i-1234", &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
-	if err == nil {
-		t.Fail()
-	} else {
-		if err.Error() != "Route table foo, Validate for 0.0.0.0/0 cannot find healthcheck 'test'" {
-			t.Log(err)
-			t.Fail()
-		}
-	}
+	testhelpers.CheckOneMultiError(t, err, "Route tables foo, route 0.0.0.0/0 cannot find healthcheck 'test'")
 }
 
 func TestManageRoutesSpecValidateWithHealthcheck(t *testing.T) {

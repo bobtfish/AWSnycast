@@ -8,6 +8,7 @@ import (
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"github.com/bobtfish/AWSnycast/instancemetadata"
+	"github.com/bobtfish/AWSnycast/testhelpers"
 	"github.com/hashicorp/go-multierror"
 	"testing"
 )
@@ -47,7 +48,7 @@ func TestLoadConfigFails(t *testing.T) {
 
 func TestLoadConfigFailsValidation(t *testing.T) {
 	_, err := New("../tests/invalid.yaml", tim, rtm)
-	checkOneMultiError(t, err, "Route table a, Validate for 0.0.0.0/0 cannot find healthcheck 'public'")
+	testhelpers.CheckOneMultiError(t, err, "Route tables a, route 0.0.0.0/0 cannot find healthcheck 'public'")
 }
 
 func TestLoadConfigHealthchecks(t *testing.T) {
@@ -170,7 +171,7 @@ func TestConfigDefault(t *testing.T) {
 func TestConfigValidateNoRouteTables(t *testing.T) {
 	c := Config{}
 	err := c.Validate(tim, rtm)
-	checkOneMultiError(t, err, "No route_tables key in config")
+	testhelpers.CheckOneMultiError(t, err, "No route_tables key in config")
 }
 
 func TestConfigValidateEmptyRouteTables(t *testing.T) {
@@ -179,7 +180,7 @@ func TestConfigValidateEmptyRouteTables(t *testing.T) {
 		RouteTables: r,
 	}
 	err := c.Validate(tim, rtm)
-	checkOneMultiError(t, err, "No route_tables defined in config")
+	testhelpers.CheckOneMultiError(t, err, "No route_tables defined in config")
 }
 
 func TestConfigValidateBadRouteTables(t *testing.T) {
@@ -197,7 +198,7 @@ func TestConfigValidateBadRouteTables(t *testing.T) {
 		RouteTables: r,
 	}
 	err := c.Validate(tim, rtm)
-	checkOneMultiError(t, err, "No manage_routes key in route table 'foo'")
+	testhelpers.CheckOneMultiError(t, err, "No manage_routes key in route table 'foo'")
 }
 
 func TestConfigValidateBadRouteTableUpserts(t *testing.T) {
@@ -218,7 +219,7 @@ func TestConfigValidateBadRouteTableUpserts(t *testing.T) {
 		RouteTables: r,
 	}
 	err := conf.Validate(tim, rtm)
-	checkOneMultiError(t, err, "cidr is not defined in foo")
+	testhelpers.CheckOneMultiError(t, err, "cidr is not defined in foo")
 }
 
 func TestConfigValidateBadHealthChecks(t *testing.T) {
@@ -230,7 +231,7 @@ func TestConfigValidateBadHealthChecks(t *testing.T) {
 	c.Healthchecks["foo"] = &healthcheck.Healthcheck{Type: "tcp"}
 	c.Healthchecks["foo"].Validate("foo", false)
 	err := c.Validate(tim, rtm)
-	checkOneMultiError(t, err, "Healthcheck foo has no destination set")
+	testhelpers.CheckOneMultiError(t, err, "Healthcheck foo has no destination set")
 }
 
 func TestConfigValidateNoHealthChecks(t *testing.T) {
@@ -273,7 +274,7 @@ func TestConfigValidate(t *testing.T) {
 func TestConfigValidateEmpty(t *testing.T) {
 	c := Config{}
 	err := c.Validate(tim, rtm)
-	checkOneMultiError(t, err, "No route_tables key in config")
+	testhelpers.CheckOneMultiError(t, err, "No route_tables key in config")
 }
 
 func TestRouteTableFindSpecDefault(t *testing.T) {
@@ -306,7 +307,7 @@ func TestRouteTableFindSpecValidateNoType(t *testing.T) {
 		Config: c,
 	}
 	err := r.Validate("foo")
-	checkOneMultiError(t, err, "Route find spec foo needs a type key")
+	testhelpers.CheckOneMultiError(t, err, "Route find spec foo needs a type key")
 }
 
 func TestRouteTableFindSpecValidateUnknownType(t *testing.T) {
@@ -318,7 +319,7 @@ func TestRouteTableFindSpecValidateUnknownType(t *testing.T) {
 		Config: c,
 	}
 	err := r.Validate("foo")
-	checkOneMultiError(t, err, "Route find spec foo type 'doesnotexist' not known")
+	testhelpers.CheckOneMultiError(t, err, "Route find spec foo type 'doesnotexist' not known")
 }
 
 func TestRouteTableFindSpecValidateNoConfig(t *testing.T) {
@@ -326,7 +327,7 @@ func TestRouteTableFindSpecValidateNoConfig(t *testing.T) {
 		Type: "by_tag",
 	}
 	err := r.Validate("foo")
-	checkOneMultiError(t, err, "Route find spec foo needs config")
+	testhelpers.CheckOneMultiError(t, err, "Route find spec foo needs config")
 }
 
 func TestRouteTableDefaultEmpty(t *testing.T) {
@@ -371,7 +372,7 @@ func TestRouteTableValidateNoRoutes(t *testing.T) {
 		ManageRoutes: make([]*aws.ManageRoutesSpec, 0),
 	}
 	err := r.Validate("i-1234", rtm, "foo", emptyHealthchecks, emptyHealthchecks)
-	checkOneMultiError(t, err, "No manage_routes key in route table 'foo'")
+	testhelpers.CheckOneMultiError(t, err, "No manage_routes key in route table 'foo'")
 }
 
 var emptyHealthchecks map[string]*healthcheck.Healthcheck
@@ -413,7 +414,7 @@ func TestByTagRouteTableFindMissingKey(t *testing.T) {
 	if rtf != nil {
 		t.Fail()
 	}
-	checkOneMultiError(t, err, "No key in config for by_tag route table finder")
+	testhelpers.CheckOneMultiError(t, err, "No key in config for by_tag route table finder")
 }
 
 func TestByTagRouteTableFindMissingValue(t *testing.T) {
@@ -427,7 +428,7 @@ func TestByTagRouteTableFindMissingValue(t *testing.T) {
 	if rtf != nil {
 		t.Fail()
 	}
-	checkOneMultiError(t, err, "No value in config for by_tag route table finder")
+	testhelpers.CheckOneMultiError(t, err, "No value in config for by_tag route table finder")
 }
 
 func TestByTagRouteTableFind(t *testing.T) {
@@ -601,39 +602,16 @@ func TestRunEc2Updates(t *testing.T) {
 	}
 }
 
-func checkOneMultiError(t *testing.T, err error, validate string) {
-	if err == nil {
-		t.Fail()
-	}
-	if merr, ok := err.(*multierror.Error); ok {
-		if len(merr.Errors) != 1 {
-			t.Log(fmt.Sprintf("%v not 1 errors", len(merr.Errors)))
-			for i, err := range merr.Errors {
-				t.Log(fmt.Sprintf("Error %v is %s", i, err.Error()))
-			}
-			t.Fail()
-			return
-		}
-		if merr.Errors[0].Error() != validate {
-			t.Log("'" + merr.Errors[0].Error() + "' not '" + validate + "'")
-			t.Fail()
-		}
-	} else {
-		t.Log("Not multierror")
-		t.Log(err)
-		t.Fail()
-	}
-}
 func TestRouteTableFindSpecAndNoFilters(t *testing.T) {
 	c := make(map[string]interface{})
 	_, err := RouteTableFindSpec{Config: c, Type: "and"}.GetFilter()
-	checkOneMultiError(t, err, "No filters in config for and route table finder")
+	testhelpers.CheckOneMultiError(t, err, "No filters in config for and route table finder")
 }
 
 func TestRouteTableFindSpecOrNoFilters(t *testing.T) {
 	c := make(map[string]interface{})
 	_, err := RouteTableFindSpec{Config: c, Type: "or"}.GetFilter()
-	checkOneMultiError(t, err, "No filters in config for or route table finder")
+	testhelpers.CheckOneMultiError(t, err, "No filters in config for or route table finder")
 }
 
 func TestRouteTableFindSpecSubnetNoSubnet(t *testing.T) {
@@ -757,7 +735,7 @@ func TestGetFiltersListForSpecWrongType(t *testing.T) {
 	c["filters"] = "foo"
 	spec := RouteTableFindSpec{Config: c}
 	_, err := getFiltersListForSpec(spec)
-	checkOneMultiError(t, err, "unexpected type string for 'filters' key")
+	testhelpers.CheckOneMultiError(t, err, "unexpected type string for 'filters' key")
 }
 func TestGetFiltersListForSpecInnerFails(t *testing.T) {
 	d := make(map[string]interface{})
