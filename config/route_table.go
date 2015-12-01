@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/healthcheck"
+	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"github.com/hashicorp/go-multierror"
 )
 
@@ -50,7 +51,7 @@ func (r *RouteTable) RunEc2Updates(manager aws.RouteTableManager, noop bool) err
 	return nil
 }
 
-func (r *RouteTable) Validate(instance string, manager aws.RouteTableManager, name string, healthchecks map[string]*healthcheck.Healthcheck, remotehealthchecks map[string]*healthcheck.Healthcheck) error {
+func (r *RouteTable) Validate(meta instancemetadata.InstanceMetadata, manager aws.RouteTableManager, name string, healthchecks map[string]*healthcheck.Healthcheck, remotehealthchecks map[string]*healthcheck.Healthcheck) error {
 	if r.ManageRoutes == nil {
 		r.ManageRoutes = make([]*aws.ManageRoutesSpec, 0)
 	}
@@ -65,7 +66,7 @@ func (r *RouteTable) Validate(instance string, manager aws.RouteTableManager, na
 		r.ec2RouteTables = make([]*ec2.RouteTable, 0)
 	}
 	for _, v := range r.ManageRoutes {
-		if err := v.Validate(instance, manager, name, healthchecks, remotehealthchecks); err != nil {
+		if err := v.Validate(meta, manager, name, healthchecks, remotehealthchecks); err != nil {
 			result = multierror.Append(result, err)
 		}
 	}

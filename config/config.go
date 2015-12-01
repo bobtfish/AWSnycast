@@ -42,7 +42,7 @@ func (c *Config) Validate(im instancemetadata.InstanceMetadata, manager aws.Rout
 			result = multierror.Append(result, errors.New("No route_tables defined in config"))
 		} else {
 			for k, v := range c.RouteTables {
-				if err := v.Validate(im.Instance, manager, k, c.Healthchecks, c.RemoteHealthcheckTemplates); err != nil {
+				if err := v.Validate(im, manager, k, c.Healthchecks, c.RemoteHealthcheckTemplates); err != nil {
 					result = multierror.Append(result, err)
 				}
 			}

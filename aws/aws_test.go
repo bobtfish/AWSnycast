@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/healthcheck"
+	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"github.com/bobtfish/AWSnycast/testhelpers"
 	"os"
 	"testing"
@@ -216,10 +217,14 @@ var (
 		VpcId: aws.String("vpc-9496cffc"),
 	}
 	emptyHealthchecks map[string]*healthcheck.Healthcheck
+	im1 instancemetadata.InstanceMetadata
+	im2 instancemetadata.InstanceMetadata
 )
 
 func init() {
 	emptyHealthchecks = make(map[string]*healthcheck.Healthcheck)
+	im1 = instancemetadata.InstanceMetadata{Instance: "i-1234"}
+	im2 = instancemetadata.InstanceMetadata{Instance: "i-other"}
 }
 
 func TestMetaDataFetcher(t *testing.T) {
@@ -782,7 +787,7 @@ func TestManageRoutesSpecDefault(t *testing.T) {
 	u := &ManageRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
-	err := u.Validate("i-1234", &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
+	err := u.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -804,7 +809,7 @@ func TestManageRoutesSpecValidateMissingCidr(t *testing.T) {
 	r := ManageRoutesSpec{
 		Instance: "SELF",
 	}
-	err := r.Validate("i-1234", &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
+	err := r.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
 	testhelpers.CheckOneMultiError(t, err, "cidr is not defined in foo")
 }
 
@@ -813,7 +818,7 @@ func TestManageRoutesSpecValidateBadCidr1(t *testing.T) {
 		Cidr:     "300.0.0.0/16",
 		Instance: "SELF",
 	}
-	err := r.Validate("i-1234", &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
+	err := r.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
 	testhelpers.CheckOneMultiError(t, err, "Could not parse invalid CIDR address: 300.0.0.0/16 in foo")
 }
 
@@ -822,7 +827,7 @@ func TestManageRoutesSpecValidateBadCidr2(t *testing.T) {
 		Cidr:     "3.0.0.0/160",
 		Instance: "SELF",
 	}
-	err := r.Validate("i-1234", &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
+	err := r.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
 	testhelpers.CheckOneMultiError(t, err, "Could not parse invalid CIDR address: 3.0.0.0/160 in foo")
 }
 
@@ -831,7 +836,7 @@ func TestManageRoutesSpecValidateBadCidr3(t *testing.T) {
 		Cidr:     "foo",
 		Instance: "SELF",
 	}
-	err := r.Validate("i-1234", &FakeRouteTableManager{}, "bar", emptyHealthchecks, emptyHealthchecks)
+	err := r.Validate(im1, &FakeRouteTableManager{}, "bar", emptyHealthchecks, emptyHealthchecks)
 	testhelpers.CheckOneMultiError(t, err, "Could not parse invalid CIDR address: foo/32 in bar")
 }
 
@@ -840,7 +845,7 @@ func TestManageRoutesSpecValidate(t *testing.T) {
 		Cidr:     "0.0.0.0/0",
 		Instance: "SELF",
 	}
-	err := r.Validate("i-1234", &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
+	err := r.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -853,7 +858,7 @@ func TestManageRoutesSpecValidateMissingHealthcheck(t *testing.T) {
 		Instance:        "SELF",
 		HealthcheckName: "test",
 	}
-	err := r.Validate("i-1234", &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
+	err := r.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
 	testhelpers.CheckOneMultiError(t, err, "Route tables foo, route 0.0.0.0/0 cannot find healthcheck 'test'")
 }
 
@@ -865,7 +870,7 @@ func TestManageRoutesSpecValidateWithHealthcheck(t *testing.T) {
 	}
 	h := make(map[string]*healthcheck.Healthcheck)
 	h["test"] = &healthcheck.Healthcheck{}
-	err := r.Validate("i-1234", &FakeRouteTableManager{}, "foo", h, emptyHealthchecks)
+	err := r.Validate(im1, &FakeRouteTableManager{}, "foo", h, emptyHealthchecks)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -922,8 +927,8 @@ func TestManageRouteSpecDefaultInstanceSELF(t *testing.T) {
 		Cidr:     "127.0.0.1",
 		Instance: "SELF",
 	}
-	urs.Validate("i-other", &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
-	if urs.Instance != "i-other" {
+	urs.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
+	if urs.Instance != "i-1234" {
 		t.Log(urs.Instance)
 		t.Fail()
 	}
@@ -934,7 +939,7 @@ func TestManageRouteSpecDefaultInstanceOther(t *testing.T) {
 		Cidr:     "127.0.0.1",
 		Instance: "i-foo",
 	}
-	urs.Validate("i-other", &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
+	urs.Validate(im2, &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
 	if urs.Instance != "i-foo" {
 		t.Fail()
 	}
@@ -1073,7 +1078,7 @@ func TestEc2RouteTablesDefault(t *testing.T) {
 	rs := &ManageRoutesSpec{
 		Cidr: "127.0.0.1",
 	}
-	rs.Validate("i-1234", &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
+	rs.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
 	if rs.ec2RouteTables == nil {
 		t.Fail()
 	}

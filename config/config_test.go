@@ -332,7 +332,7 @@ func TestRouteTableFindSpecValidateNoConfig(t *testing.T) {
 
 func TestRouteTableDefaultEmpty(t *testing.T) {
 	r := RouteTable{}
-	r.Validate("i-1234", rtm, "foo", emptyHealthchecks, emptyHealthchecks)
+	r.Validate(tim, rtm, "foo", emptyHealthchecks, emptyHealthchecks)
 	if r.ManageRoutes == nil {
 		t.Fail()
 	}
@@ -349,7 +349,7 @@ func TestRouteTableDefault(t *testing.T) {
 	r := RouteTable{
 		ManageRoutes: routes,
 	}
-	r.Validate("i-1234", rtm, "foo", emptyHealthchecks, emptyHealthchecks)
+	r.Validate(tim, rtm, "foo", emptyHealthchecks, emptyHealthchecks)
 	if len(r.ManageRoutes) != 1 {
 		t.Fail()
 	}
@@ -371,7 +371,7 @@ func TestRouteTableValidateNoRoutes(t *testing.T) {
 		Find:         rfs,
 		ManageRoutes: make([]*aws.ManageRoutesSpec, 0),
 	}
-	err := r.Validate("i-1234", rtm, "foo", emptyHealthchecks, emptyHealthchecks)
+	err := r.Validate(tim, rtm, "foo", emptyHealthchecks, emptyHealthchecks)
 	testhelpers.CheckOneMultiError(t, err, "No manage_routes key in route table 'foo'")
 }
 
@@ -396,7 +396,7 @@ func TestRouteTableValidate(t *testing.T) {
 		},
 		ManageRoutes: routes,
 	}
-	err := r.Validate("i-1234", rtm, "foo", emptyHealthchecks, emptyHealthchecks)
+	err := r.Validate(tim, rtm, "foo", emptyHealthchecks, emptyHealthchecks)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -565,7 +565,7 @@ func TestRunEc2Updates(t *testing.T) {
 	rt := &RouteTable{
 		ManageRoutes: []*aws.ManageRoutesSpec{&aws.ManageRoutesSpec{Cidr: "127.0.0.1"}},
 	}
-	err := rt.Validate("i-1234", rtm, "foo", emptyHealthchecks, emptyHealthchecks)
+	err := rt.Validate(tim, rtm, "foo", emptyHealthchecks, emptyHealthchecks)
 	rt.ec2RouteTables = append(rt.ec2RouteTables, &ec2.RouteTable{
 		Associations: []*ec2.RouteTableAssociation{},
 		RouteTableId: a.String("rtb-9696cffe"),

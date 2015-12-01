@@ -27,6 +27,7 @@ type InstanceMetadata struct {
 	Instance         string
 	AvailabilityZone string
 	Region           string
+	IPAddress	 string
 }
 
 func FetchMetadata(mdf MetadataFetcher) (InstanceMetadata, error) {
@@ -34,6 +35,11 @@ func FetchMetadata(mdf MetadataFetcher) (InstanceMetadata, error) {
 	if !mdf.Available() {
 		return m, errors.New("No metadata service")
 	}
+	ip, err := mdf.GetMetadata("local-ipv4")
+	if err != nil {
+                return m, errors.New(fmt.Sprintf("Error getting IP: %s", err.Error()))
+        }
+	m.IPAddress = ip
 	az, err := mdf.GetMetadata("placement/availability-zone")
 	if err != nil {
 		return m, errors.New(fmt.Sprintf("Error getting AZ: %s", err.Error()))
@@ -58,6 +64,7 @@ func FetchMetadata(mdf MetadataFetcher) (InstanceMetadata, error) {
 		"availability_zone": az,
 		"instance_id":       instanceId,
 		"region":            m.Region,
+		"ip":		     m.IPAddress,
 	}).Info("Got instance metadata")
 
 	return m, nil

@@ -6,6 +6,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/healthcheck"
+	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"github.com/hashicorp/go-multierror"
 	"net"
 	"strings"
@@ -24,13 +25,14 @@ type ManageRoutesSpec struct {
 	ec2RouteTables            []*ec2.RouteTable        `yaml:"-"`
 	Manager                   RouteTableManager        `yaml:"-"`
 	NeverDelete               bool                     `yaml:"never_delete"`
+	myIPAddress		  string			`yaml:"-"`
 }
 
-func (r *ManageRoutesSpec) Validate(instance string, manager RouteTableManager, name string, healthchecks map[string]*healthcheck.Healthcheck, remotehealthchecks map[string]*healthcheck.Healthcheck) error {
+func (r *ManageRoutesSpec) Validate(meta instancemetadata.InstanceMetadata, manager RouteTableManager, name string, healthchecks map[string]*healthcheck.Healthcheck, remotehealthchecks map[string]*healthcheck.Healthcheck) error {
+	r.myIPAddress = meta.IPAddress
 	var result *multierror.Error
 	r.Manager = manager
 	r.ec2RouteTables = make([]*ec2.RouteTable, 0)
-	r.remotehealthchecks = make(map[string]*healthcheck.Healthcheck)
 	if r.Cidr == "" {
 		result = multierror.Append(result, errors.New(fmt.Sprintf("cidr is not defined in %s", name)))
 	} else {
@@ -46,7 +48,7 @@ func (r *ManageRoutesSpec) Validate(instance string, manager RouteTableManager, 
 	}
 	if r.Instance == "SELF" {
 		r.InstanceIsSelf = true
-		r.Instance = instance
+		r.Instance = meta.Instance
 	}
 	if r.HealthcheckName != "" {
 		if hc, ok := healthchecks[r.HealthcheckName]; ok {
@@ -147,7 +149,7 @@ func (r *ManageRoutesSpec) UpdateRemoteHealthchecks() {
 				contextLogger.Debug("Same as current healthcheck, no update needed")
 				return
 			} else {
-				contextLogger.WithFields(log.Fields{"old_ip": r.remotehealthcheck.Destinatio}).Info("Removing old remote healthcheck")
+				contextLogger.WithFields(log.Fields{"old_ip": r.remotehealthcheck.Destination}).Info("Removing old remote healthcheck")
 				r.remotehealthcheck.Stop()
 				r.remotehealthcheck = nil
 			}
@@ -160,7 +162,7 @@ func (r *ManageRoutesSpec) UpdateRemoteHealthchecks() {
 			r.remotehealthcheck.Run(true)
 			contextLogger.Debug(fmt.Sprintf("New healthcheck being run"))
 			go func() {
-				c := r.remotehealthchecks[ip].GetListener()
+				c := r.remotehealthcheck.GetListener()
 				for {
 					res := <-c
 					contextLogger.WithFields(log.Fields{"result": res}).Debug("Got result from remote healthchecl")
