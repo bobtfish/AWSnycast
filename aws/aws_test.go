@@ -217,8 +217,8 @@ var (
 		VpcId: aws.String("vpc-9496cffc"),
 	}
 	emptyHealthchecks map[string]*healthcheck.Healthcheck
-	im1 instancemetadata.InstanceMetadata
-	im2 instancemetadata.InstanceMetadata
+	im1               instancemetadata.InstanceMetadata
+	im2               instancemetadata.InstanceMetadata
 )
 
 func init() {

@@ -13,19 +13,19 @@ import (
 )
 
 type ManageRoutesSpec struct {
-	Cidr                      string                   `yaml:"cidr"`
-	Instance                  string                   `yaml:"instance"`
-	InstanceIsSelf            bool                     `yaml:"-"`
-	HealthcheckName           string                   `yaml:"healthcheck"`
-	RemoteHealthcheckName     string                   `yaml:"remote_healthcheck"`
-	healthcheck               healthcheck.CanBeHealthy `yaml:"-"`
-	remotehealthchecktemplate *healthcheck.Healthcheck `yaml:"-"`
-	remotehealthcheck         *healthcheck.Healthcheck `yaml:"-"`
-	IfUnhealthy               bool                     `yaml:"if_unhealthy"`
-	ec2RouteTables            []*ec2.RouteTable        `yaml:"-"`
-	Manager                   RouteTableManager        `yaml:"-"`
-	NeverDelete               bool                     `yaml:"never_delete"`
-	myIPAddress		  string			`yaml:"-"`
+	Cidr                      string                              `yaml:"cidr"`
+	Instance                  string                              `yaml:"instance"`
+	InstanceIsSelf            bool                                `yaml:"-"`
+	HealthcheckName           string                              `yaml:"healthcheck"`
+	RemoteHealthcheckName     string                              `yaml:"remote_healthcheck"`
+	healthcheck               healthcheck.CanBeHealthy            `yaml:"-"`
+	remotehealthchecktemplate *healthcheck.Healthcheck            `yaml:"-"`
+	remotehealthchecks        map[string]*healthcheck.Healthcheck `yaml:"-"`
+	IfUnhealthy               bool                                `yaml:"if_unhealthy"`
+	ec2RouteTables            []*ec2.RouteTable                   `yaml:"-"`
+	Manager                   RouteTableManager                   `yaml:"-"`
+	NeverDelete               bool                                `yaml:"never_delete"`
+	myIPAddress               string                              `yaml:"-"`
 }
 
 func (r *ManageRoutesSpec) Validate(meta instancemetadata.InstanceMetadata, manager RouteTableManager, name string, healthchecks map[string]*healthcheck.Healthcheck, remotehealthchecks map[string]*healthcheck.Healthcheck) error {
@@ -33,6 +33,7 @@ func (r *ManageRoutesSpec) Validate(meta instancemetadata.InstanceMetadata, mana
 	var result *multierror.Error
 	r.Manager = manager
 	r.ec2RouteTables = make([]*ec2.RouteTable, 0)
+	r.remotehealthchecks = make(map[string]*healthcheck.Healthcheck)
 	if r.Cidr == "" {
 		result = multierror.Append(result, errors.New(fmt.Sprintf("cidr is not defined in %s", name)))
 	} else {
@@ -121,17 +122,19 @@ func (r *ManageRoutesSpec) UpdateRemoteHealthchecks() {
 	if r.RemoteHealthcheckName == "" {
 		return
 	}
-	eniIds := make([]*string, 0)
+	eniIdsToFetch := make([]*string, 0)
+	routeEnis := make([]string, 0)
 	for _, rtb := range r.ec2RouteTables {
 		route := findRouteFromRouteTable(*rtb, r.Cidr)
 		if route != nil {
+			routeEnis = append(routeEnis, *route.NetworkInterfaceId)
 			if _, ok := eniToIP[*route.NetworkInterfaceId]; !ok {
-				eniIds = append(eniIds, route.NetworkInterfaceId)
+				eniIdsToFetch = append(eniIdsToFetch, route.NetworkInterfaceId)
 			}
 		}
 	}
-	if len(eniIds) > 0 {
-		out, err := r.Manager.(RouteTableManagerEC2).conn.DescribeNetworkInterfaces(&ec2.DescribeNetworkInterfacesInput{NetworkInterfaceIds: eniIds})
+	if len(eniIdsToFetch) > 0 {
+		out, err := r.Manager.(RouteTableManagerEC2).conn.DescribeNetworkInterfaces(&ec2.DescribeNetworkInterfacesInput{NetworkInterfaceIds: eniIdsToFetch})
 		if err != nil {
 			log.Error("Error " + err.Error())
 			return
@@ -141,34 +144,43 @@ func (r *ManageRoutesSpec) UpdateRemoteHealthchecks() {
 		}
 	}
 	log.Debug(fmt.Sprintf("ENI %+v", eniToIP))
-	for _, eniId := range eniIds {
-		ip := eniToIP[*eniId]
-		contextLogger := log.WithFields(log.Fields{"current_ip": ip})
-		if r.remotehealthcheck != nil {
-			if r.remotehealthcheck.Destination == ip {
-				contextLogger.Debug("Same as current healthcheck, no update needed")
-				return
+	healthchecks := make(map[string]bool)
+	for ip, _ := range r.remotehealthchecks {
+		healthchecks[ip] = false
+	}
+	for _, eniId := range routeEnis {
+		ip := eniToIP[eniId]
+		contextLogger := log.WithFields(log.Fields{"ip": ip})
+		healthchecks[ip] = true
+		if ip == r.myIPAddress {
+			contextLogger.Debug("Skipping starting a remote healthcheck on myself")
+			continue
+		}
+		if _, ok := r.remotehealthchecks[ip]; !ok {
+			hc, err := r.remotehealthchecktemplate.NewWithDestination(ip)
+			if err != nil {
+				contextLogger.Error(err.Error())
 			} else {
-				contextLogger.WithFields(log.Fields{"old_ip": r.remotehealthcheck.Destination}).Info("Removing old remote healthcheck")
-				r.remotehealthcheck.Stop()
-				r.remotehealthcheck = nil
+				r.remotehealthchecks[ip] = hc
+				r.remotehealthchecks[ip].Run(true)
+				contextLogger.Debug(fmt.Sprintf("New healthcheck being run"))
+				go func() {
+					c := hc.GetListener()
+					for {
+						res := <-c
+						contextLogger.WithFields(log.Fields{"result": res}).Debug("Got result from remote healthchecl")
+						r.handleHealthcheckResult(res, true, false)
+					}
+				}()
 			}
 		}
-		hc, err := r.remotehealthchecktemplate.NewWithDestination(ip)
-		if err != nil {
-			contextLogger.Error(err.Error())
-		} else {
-			r.remotehealthcheck = hc
-			r.remotehealthcheck.Run(true)
-			contextLogger.Debug(fmt.Sprintf("New healthcheck being run"))
-			go func() {
-				c := r.remotehealthcheck.GetListener()
-				for {
-					res := <-c
-					contextLogger.WithFields(log.Fields{"result": res}).Debug("Got result from remote healthchecl")
-					r.handleHealthcheckResult(res, true, false)
-				}
-			}()
+	}
+	for ip, v := range healthchecks {
+		if v {
+			continue
 		}
+		log.WithFields(log.Fields{"ip": ip}).Debug("Stopping healthcheck")
+		r.remotehealthchecks[ip].Stop()
+		delete(r.remotehealthchecks, ip)
 	}
 }
