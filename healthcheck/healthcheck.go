@@ -60,10 +60,10 @@ func (h *Healthcheck) NewWithDestination(destination string) (*Healthcheck, erro
 		err = n.Setup()
 	}
 	log.WithFields(log.Fields{
-                "destination": n.Destination,
-                "type":        n.Type,
-		"err": err,
-        }).Info("Made new remote healthcheck")
+		"destination": n.Destination,
+		"type":        n.Type,
+		"err":         err,
+	}).Info("Made new remote healthcheck")
 	return n, err
 }
 

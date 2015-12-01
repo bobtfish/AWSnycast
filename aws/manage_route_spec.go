@@ -12,18 +12,18 @@ import (
 )
 
 type ManageRoutesSpec struct {
-	Cidr                  string                              `yaml:"cidr"`
-	Instance              string                              `yaml:"instance"`
-	InstanceIsSelf        bool                                `yaml:"-"`
-	HealthcheckName       string                              `yaml:"healthcheck"`
-	RemoteHealthcheckName string                              `yaml:"remote_healthcheck"`
-	healthcheck           healthcheck.CanBeHealthy            `yaml:"-"`
-	remotehealthcheck     *healthcheck.Healthcheck            `yaml:"-"`
-	remotehealthchecks    map[string]*healthcheck.Healthcheck `yaml:"-"`
-	IfUnhealthy           bool                                `yaml:"if_unhealthy"`
-	ec2RouteTables        []*ec2.RouteTable                   `yaml:"-"`
-	Manager               RouteTableManager                   `yaml:"-"`
-	NeverDelete           bool                                `yaml:"never_delete"`
+	Cidr                      string                   `yaml:"cidr"`
+	Instance                  string                   `yaml:"instance"`
+	InstanceIsSelf            bool                     `yaml:"-"`
+	HealthcheckName           string                   `yaml:"healthcheck"`
+	RemoteHealthcheckName     string                   `yaml:"remote_healthcheck"`
+	healthcheck               healthcheck.CanBeHealthy `yaml:"-"`
+	remotehealthchecktemplate *healthcheck.Healthcheck `yaml:"-"`
+	remotehealthcheck         *healthcheck.Healthcheck `yaml:"-"`
+	IfUnhealthy               bool                     `yaml:"if_unhealthy"`
+	ec2RouteTables            []*ec2.RouteTable        `yaml:"-"`
+	Manager                   RouteTableManager        `yaml:"-"`
+	NeverDelete               bool                     `yaml:"never_delete"`
 }
 
 func (r *ManageRoutesSpec) Validate(instance string, manager RouteTableManager, name string, healthchecks map[string]*healthcheck.Healthcheck, remotehealthchecks map[string]*healthcheck.Healthcheck) error {
@@ -57,7 +57,7 @@ func (r *ManageRoutesSpec) Validate(instance string, manager RouteTableManager, 
 	}
 	if r.RemoteHealthcheckName != "" {
 		if hc, ok := remotehealthchecks[r.RemoteHealthcheckName]; ok {
-			r.remotehealthcheck = hc
+			r.remotehealthchecktemplate = hc
 		} else {
 			result = multierror.Append(result, errors.New(fmt.Sprintf("Route table %s, route %s cannot find healthcheck '%s'", name, r.Cidr, r.RemoteHealthcheckName)))
 		}
@@ -141,23 +141,32 @@ func (r *ManageRoutesSpec) UpdateRemoteHealthchecks() {
 	log.Debug(fmt.Sprintf("ENI %+v", eniToIP))
 	for _, eniId := range eniIds {
 		ip := eniToIP[*eniId]
-		if _, ok := r.remotehealthchecks[ip]; !ok {
-			hc, err := r.remotehealthcheck.NewWithDestination(ip)
-			if err != nil {
-				log.Error(err.Error())
+		contextLogger := log.WithFields(log.Fields{"current_ip": ip})
+		if r.remotehealthcheck != nil {
+			if r.remotehealthcheck.Destination == ip {
+				contextLogger.Debug("Same as current healthcheck, no update needed")
+				return
 			} else {
-				r.remotehealthchecks[ip] = hc
-				r.remotehealthchecks[ip].Run(true)
-				log.Debug(fmt.Sprintf("New healthcheck being run"))
-				go func() {
-					c := r.remotehealthchecks[ip].GetListener()
-					for {
-						res := <-c
-						log.Debug("Got result from remote healthchecl")
-						r.handleHealthcheckResult(res, true, false)
-					}
-				}()
+				contextLogger.WithFields(log.Fields{"old_ip": r.remotehealthcheck.Destinatio}).Info("Removing old remote healthcheck")
+				r.remotehealthcheck.Stop()
+				r.remotehealthcheck = nil
 			}
+		}
+		hc, err := r.remotehealthchecktemplate.NewWithDestination(ip)
+		if err != nil {
+			contextLogger.Error(err.Error())
+		} else {
+			r.remotehealthcheck = hc
+			r.remotehealthcheck.Run(true)
+			contextLogger.Debug(fmt.Sprintf("New healthcheck being run"))
+			go func() {
+				c := r.remotehealthchecks[ip].GetListener()
+				for {
+					res := <-c
+					contextLogger.WithFields(log.Fields{"result": res}).Debug("Got result from remote healthchecl")
+					r.handleHealthcheckResult(res, true, false)
+				}
+			}()
 		}
 	}
 }
