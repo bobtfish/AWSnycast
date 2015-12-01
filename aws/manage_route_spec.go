@@ -72,13 +72,13 @@ func (r *ManageRoutesSpec) StartHealthcheckListener(noop bool) {
 	go func() {
 		c := r.healthcheck.GetListener()
 		for {
-			r.handleHealthcheckResult(<-c, noop)
+			r.handleHealthcheckResult(<-c, false, noop)
 		}
 	}()
 	return
 }
 
-func (r *ManageRoutesSpec) handleHealthcheckResult(res bool, noop bool) {
+func (r *ManageRoutesSpec) handleHealthcheckResult(res bool, remote bool, noop bool) {
 	resText := "FAILED"
 	if res {
 		resText = "PASSED"
@@ -154,7 +154,7 @@ func (r *ManageRoutesSpec) UpdateRemoteHealthchecks() {
 					for {
 						res := <-c
 						log.Debug("Got result from remote healthchecl")
-						r.handleHealthcheckResult(res, false)
+						r.handleHealthcheckResult(res, true, false)
 					}
 				}()
 			}

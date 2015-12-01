@@ -892,7 +892,7 @@ func TestHandleHealthcheckResult(t *testing.T) {
 		ec2RouteTables: []*ec2.RouteTable{&rtb1},
 		Manager:        &FakeRouteTableManager{},
 	}
-	urs.handleHealthcheckResult(true, true)
+	urs.handleHealthcheckResult(true, false, true)
 	if urs.Manager.(*FakeRouteTableManager).RouteTable == nil {
 		t.Log("RouteTable is nil")
 		t.Fail()
@@ -914,7 +914,7 @@ func TestHandleHealthcheckResultError(t *testing.T) {
 		ec2RouteTables: []*ec2.RouteTable{&rtb1},
 		Manager:        &FakeRouteTableManager{Error: errors.New("Test")},
 	}
-	urs.handleHealthcheckResult(true, false)
+	urs.handleHealthcheckResult(true, false, false)
 }
 
 func TestManageRouteSpecDefaultInstanceSELF(t *testing.T) {
