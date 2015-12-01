@@ -56,9 +56,14 @@ func (h *Healthcheck) NewWithDestination(destination string) (*Healthcheck, erro
 		Config:      h.Config,
 	}
 	err := n.Validate(destination, false)
-	if err != nil {
+	if err == nil {
 		err = n.Setup()
 	}
+	log.WithFields(log.Fields{
+                "destination": n.Destination,
+                "type":        n.Type,
+		"err": err,
+        }).Info("Made new remote healthcheck")
 	return n, err
 }
 
