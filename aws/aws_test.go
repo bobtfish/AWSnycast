@@ -555,7 +555,8 @@ func TestRouteTableManagerEC2ReplaceInstanceRouteNoop(t *testing.T) {
 	if route == nil {
 		t.Fail()
 	}
-	err := rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, "0.0.0.0/0", "i-1234", false, true)
+	rs := ManageRoutesSpec{Cidr: "0.0.0.0/0", Instance: "i-1234", IfUnhealthy: false}
+	err := rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, rs, true)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -576,7 +577,8 @@ func TestRouteTableManagerEC2ReplaceInstanceRoute(t *testing.T) {
 	if route == nil {
 		t.Fail()
 	}
-	err := rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, "0.0.0.0/0", "i-1234", false, false)
+	rs := ManageRoutesSpec{Cidr: "0.0.0.0/0", Instance: "i-1234", IfUnhealthy: false}
+	err := rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, rs, false)
 	if err != nil {
 		t.Fail()
 	}
@@ -603,7 +605,8 @@ func TestRouteTableManagerEC2ReplaceInstanceRouteFails(t *testing.T) {
 	if route == nil {
 		t.Fail()
 	}
-	err := rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, "0.0.0.0/0", "i-1234", false, false)
+	rs := ManageRoutesSpec{Cidr: "0.0.0.0/0", Instance: "i-1234", IfUnhealthy: false}
+	err := rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, rs, false)
 	if err == nil {
 		t.Fail()
 	}
@@ -623,7 +626,8 @@ func TestRouteTableManagerEC2ReplaceInstanceRouteNotIfHealthy(t *testing.T) {
 	if route == nil {
 		t.Fail()
 	}
-	err := rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, "0.0.0.0/0", "i-1234", true, false)
+	rs := ManageRoutesSpec{Cidr: "0.0.0.0/0", Instance: "i-1234", IfUnhealthy: true}
+	err := rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, rs, false)
 	if err != nil {
 		t.Fail()
 	}
