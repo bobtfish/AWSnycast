@@ -86,15 +86,19 @@ func (r *ManageRoutesSpec) handleHealthcheckResult(res bool, remote bool, noop b
 	if res {
 		resText = "PASSED"
 	}
+	typeText := "local"
+	if remote {
+		typeText = "remote"
+	}
 	contextLogger := log.WithFields(log.Fields{
 		"healtcheck_status": resText,
 		"healthcheck_name":  r.HealthcheckName,
+		"healthcheck_type":  typeText,
 		"route_cidr":        r.Cidr,
 	})
 	contextLogger.Info("Healthcheck status change, reevaluating current routes")
 	for _, rtb := range r.ec2RouteTables {
 		innerLogger := contextLogger.WithFields(log.Fields{
-			//"vpc": *(rtb.VpcId),
 			"rtb": *(rtb.RouteTableId),
 		})
 		innerLogger.Debug("Working for one route table")
