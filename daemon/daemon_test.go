@@ -148,6 +148,7 @@ func TestSetupNormal(t *testing.T) {
 	fakeM.Meta["placement/availability-zone"] = "us-west-1a"
 	fakeM.Meta["instance-id"] = "i-1234"
 	fakeM.Meta["mac"] = "06:1d:ea:6f:8c:6e"
+	fakeM.Meta["local-ipv4"] = "127.0.0.1"
 	fakeM.Meta["network/interfaces/macs/06:1d:ea:6f:8c:6e/subnet-id"] = "subnet-28b0e940"
 	d := Daemon{
 		ConfigFile: "../tests/awsnycast.yaml",
@@ -172,6 +173,7 @@ func getFakeMetadataFetcher(a bool) aws.MetadataFetcher {
 	fakeM.Meta["placement/availability-zone"] = "us-west-1a"
 	fakeM.Meta["instance-id"] = "i-1234"
 	fakeM.Meta["mac"] = "06:1d:ea:6f:8c:6e"
+	fakeM.Meta["local-ipv4"] = "127.0.0.1"
 	fakeM.Meta["network/interfaces/macs/06:1d:ea:6f:8c:6e/subnet-id"] = "subnet-28b0e940"
 	return fakeM
 }
