@@ -1,3 +1,5 @@
+ - Fix various crash cases
+ - Almost working remote_healthchecks
  - More improvements to error reporting in configuration
 
 Version 0.0.8 - 2015-11-29
