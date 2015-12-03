@@ -21,18 +21,24 @@ func init() {
 	routeFindTypes = make(map[string]func(RouteTableFindSpec) (aws.RouteTableFilter, error))
 	routeFindTypes["by_tag"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
 		var result *multierror.Error
-		if _, ok := spec.Config["key"]; !ok {
+		var key string
+		var value string
+		if v, ok := spec.Config["key"]; !ok {
 			result = multierror.Append(result, errors.New("No key in config for by_tag route table finder"))
+		} else {
+			key = v.(string)
 		}
-		if _, ok := spec.Config["value"]; !ok {
+		if v, ok := spec.Config["value"]; !ok {
 			result = multierror.Append(result, errors.New("No value in config for by_tag route table finder"))
+		} else {
+			value = v.(string)
 		}
 		if err := result.ErrorOrNil(); err != nil {
-			return nil, result
+			return nil, err
 		}
 		return aws.RouteTableFilterTagMatch{
-			Key:   spec.Config["key"].(string),
-			Value: spec.Config["value"].(string),
+			Key:   key,
+			Value: value,
 		}, nil
 	}
 	routeFindTypes["and"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
