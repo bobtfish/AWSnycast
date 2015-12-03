@@ -549,6 +549,22 @@ func (f *FakeEC2Conn) DescribeNetworkInterfaces(*ec2.DescribeNetworkInterfacesIn
 	return nil, nil
 }
 
+func TestFindRouteFromRouteTableNoCidr(t *testing.T) {
+	findRouteFromRouteTable(ec2.RouteTable{
+		RouteTableId: aws.String("rtb-f0ea3b95"),
+		Routes: []*ec2.Route{
+			&ec2.Route{
+				// Note no DestinationCidrBlock
+				GatewayId: aws.String("local"),
+				Origin:    aws.String("CreateRouteTable"),
+				State:     aws.String("active"),
+			},
+		},
+		Tags:  []*ec2.Tag{},
+		VpcId: aws.String("vpc-9496cffc"),
+	}, "0.0.0.0/0")
+}
+
 func TestRouteTableManagerEC2ReplaceInstanceRouteNoop(t *testing.T) {
 	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")

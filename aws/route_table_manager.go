@@ -120,7 +120,7 @@ func (r RouteTableManagerEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageR
 
 func findRouteFromRouteTable(rtb ec2.RouteTable, cidr string) *ec2.Route {
 	for _, route := range rtb.Routes {
-		if *(route.DestinationCidrBlock) == cidr {
+		if route.DestinationCidrBlock != nil && *(route.DestinationCidrBlock) == cidr {
 			return route
 		}
 	}
