@@ -100,7 +100,7 @@ FIXME!! More details about how to test / curl things here..
 
 # Installing (binary)
 
-You can install binary release versions onto x68 Linux
+You can install binary release versions onto x86 Linux
 directly from github, e.g.
 
     sudo wget https://github.com/bobtfish/AWSnycast/releases/download/v0.0.8/AWSnycast -O /usr/local/bin/AWSnycast
