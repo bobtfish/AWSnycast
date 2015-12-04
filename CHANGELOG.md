@@ -1,3 +1,4 @@
+Version 0.0.9 - 2015-12-04
  - Fix various crash cases
  - Almost working remote_healthchecks
  - More improvements to error reporting in configuration
