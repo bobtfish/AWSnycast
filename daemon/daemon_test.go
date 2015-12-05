@@ -182,33 +182,17 @@ func TestSetupHealthChecks(t *testing.T) {
 	d := getD(true)
 	d.Debug = true
 	err := d.Setup()
-	if err != nil {
-		t.Log("Setup failed")
-		t.Log(err)
-		t.Fail()
-		return
-	}
-	if d.Config.Healthchecks["public"].IsRunning() {
-		t.Log("HealthChecks already running")
-		t.Fail()
-	}
+	assert.Nil(t, err, "Setup failed")
+	assert.Equal(t, d.Config.Healthchecks["public"].IsRunning(), false, "HealthChecks already running")
 	d.runHealthChecks()
-	if !d.Config.Healthchecks["public"].IsRunning() {
-		t.Log("HealthChecks did not start running")
-		t.Fail()
-	}
+	assert.Equal(t, d.Config.Healthchecks["public"].IsRunning(), true, "HealthChecks did not start running")
 	d.stopHealthChecks()
-	if d.Config.Healthchecks["public"].IsRunning() {
-		t.Log("HealthChecks still running")
-		t.Fail()
-	}
+	assert.Equal(t, d.Config.Healthchecks["public"].IsRunning(), false, "HealthChecks still running")
 }
 
 func TestRunOneShotFail(t *testing.T) {
 	d := getD(true)
-	if d.Run(true, true) != 1 {
-		t.Fail()
-	}
+	assert.Equal(t, d.Run(true, true), 1)
 }
 
 func TestRunOneShot(t *testing.T) {
@@ -241,9 +225,7 @@ func TestRunOneShot(t *testing.T) {
 		},
 	}
 	d.RouteTableManager.(*FakeRouteTableManager).Tables = awsRt
-	if d.Run(true, true) != 0 {
-		t.Fail()
-	}
+	assert.Equal(t, d.Run(true, true), 0)
 }
 
 func TestRunOneRouteTableGetFilterFail(t *testing.T) {
