@@ -312,11 +312,7 @@ func TestRunOneRouteTable(t *testing.T) {
 		},
 		ManageRoutes: u,
 	}
-	err := d.RunOneRouteTable(awsRt, "public", rt)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	assert.Nil(t, d.RunOneRouteTable(awsRt, "public", rt))
 }
 
 func TestRunOneRouteTableUpsertRouteFail(t *testing.T) {
@@ -358,11 +354,7 @@ func TestRunOneRouteTableUpsertRouteFail(t *testing.T) {
 
 func TestRunSleepLoop(t *testing.T) {
 	d := getD(true)
-	err := d.Setup()
-	if err != nil {
-		t.Fail()
-		return
-	}
+	assert.Nil(t, d.Setup())
 	d.FetchWait = time.Nanosecond
 	d.loopQuitChan = make(chan bool, 10)
 	d.loopTimerChan = make(chan bool, 10)
