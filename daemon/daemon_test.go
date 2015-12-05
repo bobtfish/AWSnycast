@@ -233,13 +233,8 @@ func TestRunOneRouteTableGetFilterFail(t *testing.T) {
 	awsRt := make([]*ec2.RouteTable, 0)
 	rt := &config.RouteTable{}
 	err := d.RunOneRouteTable(awsRt, "public", rt)
-	if err == nil {
-		t.Fail()
-	} else {
-		if err.Error() != "Route table finder type '' not found in the registry" {
-			t.Log(err)
-			t.Fail()
-		}
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "Route table finder type '' not found in the registry")
 	}
 }
 
@@ -256,13 +251,8 @@ func TestRunOneRouteTableNoRouteTablesInAWS(t *testing.T) {
 		},
 	}
 	err := d.RunOneRouteTable(awsRt, "public", rt)
-	if err == nil {
-		t.Fail()
-	} else {
-		if err.Error() != "No route table in AWS matched filter spec" {
-			t.Log(err)
-			t.Fail()
-		}
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "No route table in AWS matched filter spec")
 	}
 }
 
@@ -290,10 +280,7 @@ func TestRunOneRouteTableNoManageRoutes(t *testing.T) {
 		},
 	}
 	err := d.RunOneRouteTable(awsRt, "public", rt)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	assert.Nil(t, err)
 }
 
 func TestRunOneRouteTable(t *testing.T) {
