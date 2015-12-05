@@ -9,6 +9,7 @@ import (
 	"github.com/bobtfish/AWSnycast/config"
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"github.com/bobtfish/AWSnycast/instancemetadata"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 	"time"
@@ -65,21 +66,44 @@ func (f *FakeRouteTableManager) ManageInstanceRoute(rtb ec2.RouteTable, rs aws.M
 	return f.ManageInstanceRouteError
 }
 
+func getFakeMetadataFetcher(a bool) aws.MetadataFetcher {
+	fakeM := FakeMetadataFetcher{
+		FAvailable: a,
+	}
+	fakeM.Meta = make(map[string]string)
+	fakeM.Meta["placement/availability-zone"] = "us-west-1a"
+	fakeM.Meta["instance-id"] = "i-1234"
+	fakeM.Meta["mac"] = "06:1d:ea:6f:8c:6e"
+	fakeM.Meta["local-ipv4"] = "127.0.0.1"
+	fakeM.Meta["network/interfaces/macs/06:1d:ea:6f:8c:6e/subnet-id"] = "subnet-28b0e940"
+	return fakeM
+}
+
+func getD(a bool) Daemon {
+	d := Daemon{
+		ConfigFile: "../tests/awsnycast.yaml",
+		Config:     &config.Config{},
+	}
+	d.Config.Validate(instancemetadata.InstanceMetadata{Instance: "i-1234"}, NewFakeRouteTableManager()) // FIXME error handling
+	fakeR := NewFakeRouteTableManager()
+	d.MetadataFetcher = getFakeMetadataFetcher(a)
+	d.RouteTableManager = fakeR
+	return d
+}
+
 func TestRunRouteTablesFailGetRouteTables(t *testing.T) {
+	assert := assert.New(t)
 	d := getD(true)
 	rtf := d.RouteTableManager.(*FakeRouteTableManager)
 	rtf.Error = errors.New("Route table get fail")
 	err := d.RunRouteTables()
-	if err == nil {
-		t.Fail()
-	} else {
-		if err.Error() != "Route table get fail" {
-			t.Fail()
-		}
+	if assert.NotNil(err) {
+		assert.Equal(err.Error(), "Route table get fail")
 	}
 }
 
 func TestSetupNoMetadataService(t *testing.T) {
+	assert := assert.New(t)
 	fakeM := FakeMetadataFetcher{
 		FAvailable: false,
 	}
@@ -92,24 +116,19 @@ func TestSetupNoMetadataService(t *testing.T) {
 	d.MetadataFetcher = fakeM
 
 	err := d.Setup()
-	if err == nil {
-		t.Log(err)
-		t.Fail()
-		return
-	}
-	if err.Error() != "No metadata service" {
-		t.Fail()
+
+	if assert.NotNil(err) {
+		assert.Equal(err.Error(), "No metadata service")
 	}
 }
 
 func TestSetupNormalMetadataService(t *testing.T) {
+	assert := assert.New(t)
 	d := Daemon{
 		ConfigFile: "../tests/awsnycast.yaml",
 	}
 	d.setupMetadataFetcher()
-	if d.MetadataFetcher == nil {
-		t.Fail()
-	}
+	assert.NotNil(d.MetadataFetcher)
 }
 
 func myHealthCheckConstructorFail(h healthcheck.Healthcheck) (healthcheck.HealthChecker, error) {
@@ -117,6 +136,7 @@ func myHealthCheckConstructorFail(h healthcheck.Healthcheck) (healthcheck.Health
 }
 
 func TestConfigBadHealthcheck(t *testing.T) {
+	assert := assert.New(t)
 	healthcheck.RegisterHealthcheck("testconstructorfail", myHealthCheckConstructorFail)
 	c := &config.Config{}
 	c.Validate(instancemetadata.InstanceMetadata{Instance: "i-1234"}, NewFakeRouteTableManager())
@@ -125,12 +145,8 @@ func TestConfigBadHealthcheck(t *testing.T) {
 		Destination: "127.0.0.1",
 	}
 	err := setupHealthchecks(c)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Test" {
-		t.Log(err.Error())
-		t.Fail()
+	if assert.NotNil(err) {
+		assert.Equal(err.Error(), "Test")
 	}
 }
 
@@ -163,31 +179,6 @@ func TestSetupNormal(t *testing.T) {
 		t.Fail()
 		return
 	}
-}
-
-func getFakeMetadataFetcher(a bool) aws.MetadataFetcher {
-	fakeM := FakeMetadataFetcher{
-		FAvailable: a,
-	}
-	fakeM.Meta = make(map[string]string)
-	fakeM.Meta["placement/availability-zone"] = "us-west-1a"
-	fakeM.Meta["instance-id"] = "i-1234"
-	fakeM.Meta["mac"] = "06:1d:ea:6f:8c:6e"
-	fakeM.Meta["local-ipv4"] = "127.0.0.1"
-	fakeM.Meta["network/interfaces/macs/06:1d:ea:6f:8c:6e/subnet-id"] = "subnet-28b0e940"
-	return fakeM
-}
-
-func getD(a bool) Daemon {
-	d := Daemon{
-		ConfigFile: "../tests/awsnycast.yaml",
-		Config:     &config.Config{},
-	}
-	d.Config.Validate(instancemetadata.InstanceMetadata{Instance: "i-1234"}, NewFakeRouteTableManager()) // FIXME error handling
-	fakeR := NewFakeRouteTableManager()
-	d.MetadataFetcher = getFakeMetadataFetcher(a)
-	d.RouteTableManager = fakeR
-	return d
 }
 
 func TestSetupBadConfigFile(t *testing.T) {
@@ -412,12 +403,8 @@ func TestRunOneRouteTableUpsertRouteFail(t *testing.T) {
 		ManageRoutes: u,
 	}
 	err := d.RunOneRouteTable(awsRt, "public", rt)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Test" {
-		t.Log(err)
-		t.Fail()
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "Test")
 	}
 }
 
@@ -470,31 +457,11 @@ func TestRunOneReal(t *testing.T) {
 	d.RouteTableManager.(*FakeRouteTableManager).Tables = awsRt
 	hasFinishedRunLoop := make(chan bool, 1)
 	go func() {
-		if d.Run(false, true) != 0 {
-			t.Log("Run was not successful")
-			t.Fail()
-		}
+		assert.Equal(t, d.Run(false, true), 0, "Run was not successful")
 		hasFinishedRunLoop <- true
 	}()
 	time.Sleep(time.Millisecond)
 	d.quitChan <- true
 	finished := <-hasFinishedRunLoop
-	if finished != true {
-		t.Fail()
-	}
+	assert.Equal(t, finished, true)
 }
-
-/*
-func TestHealthCheckOneUpsertRouteHealthcheckFail(t *testing.T) {
-	d := getD(true)
-	if d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{HealthcheckName: "foo"}) {
-		t.Fail()
-	}
-}
-
-func TestHealthCheckOneUpsertRouteHealthcheckSuceed(t *testing.T) {
-	d := getD(true)
-	if !d.HealthCheckOneUpsertRoute("foo", &aws.ManageRoutesSpec{HealthcheckName: "foo"}) {
-		t.Fail()
-	}
-} */
