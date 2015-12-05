@@ -3,6 +3,7 @@ package instancemetadata
 import (
 	"errors"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -48,40 +49,28 @@ func TestGetSubnetIdMacFail(t *testing.T) {
 	mdf := getFakeMetadataFetcher(true)
 	delete(mdf.(FakeMetadataFetcher).Meta, "mac")
 	_, err := getSubnetId(mdf)
-	if err == nil {
-		t.Fail()
-	}
+	assert.NotNil(t, err)
 }
 
 func TestGetSubnetIdMacFail2(t *testing.T) {
 	mdf := getFakeMetadataFetcher(true)
 	delete(mdf.(FakeMetadataFetcher).Meta, "network/interfaces/macs/06:1d:ea:6f:8c:6e/subnet-id")
 	_, err := getSubnetId(mdf)
-	if err == nil {
-		t.Fail()
-	}
+	assert.NotNil(t, err)
 }
 
 func TestGetSubnetIdMacOk(t *testing.T) {
 	mdf := getFakeMetadataFetcher(true)
 	val, err := getSubnetId(mdf)
-	if err != nil {
-		t.Fail()
-	}
-	if val != "subnet-28b0e940" {
-		t.Fail()
+	if assert.Nil(t, err) {
+		assert.Equal(t, val, "subnet-28b0e940")
 	}
 }
 
 func TestFetchMetadataFail(t *testing.T) {
 	_, err := FetchMetadata(getFakeMetadataFetcher(false))
-	if err == nil {
-		t.Fail()
-	} else {
-		if err.Error() != "No metadata service" {
-			t.Log(err)
-			t.Fail()
-		}
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "No metadata service")
 	}
 }
 
@@ -89,46 +78,28 @@ func TestFetchMetadataAzFail(t *testing.T) {
 	mdf := getFakeMetadataFetcher(true)
 	delete(mdf.(FakeMetadataFetcher).Meta, "placement/availability-zone")
 	_, err := FetchMetadata(mdf)
-	if err == nil {
-		t.Fail()
-	}
+	assert.NotNil(t, err)
 }
 
 func TestFetchMetadataInstanceFail(t *testing.T) {
 	mdf := getFakeMetadataFetcher(true)
 	delete(mdf.(FakeMetadataFetcher).Meta, "instance-id")
 	_, err := FetchMetadata(mdf)
-	if err == nil {
-		t.Fail()
-	}
+	assert.NotNil(t, err)
 }
 
 func TestFetchMetadataMacFail(t *testing.T) {
 	mdf := getFakeMetadataFetcher(true)
 	delete(mdf.(FakeMetadataFetcher).Meta, "mac")
 	_, err := FetchMetadata(mdf)
-	if err == nil {
-		t.Fail()
-	}
+	assert.NotNil(t, err)
 }
 
 func TestFetchMetadata(t *testing.T) {
 	m, err := FetchMetadata(getFakeMetadataFetcher(true))
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-	if m.Instance != "i-1234" {
-		t.Log(m.Instance)
-		t.Fail()
-	}
-	if m.Subnet != "subnet-28b0e940" {
-		t.Fail()
-	}
-	if m.AvailabilityZone != "us-west-1a" {
-		t.Fail()
-	}
-	if m.Region != "us-west-1" {
-		t.Fail()
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, m.Instance, "i-1234")
+	assert.Equal(t, m.Subnet, "subnet-28b0e940")
+	assert.Equal(t, m.AvailabilityZone, "us-west-1a")
+	assert.Equal(t, m.Region, "us-west-1")
 }
