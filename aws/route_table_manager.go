@@ -192,6 +192,9 @@ func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *
 							} else {
 								contextLogger.Debug("Replacing route as remote healthcheck is unhealthy")
 							}
+						} else {
+							contextLogger.Debug("Not replacing route as remote healthcheck cannot pass yet")
+							return nil
 						}
 					} else {
 						contextLogger.Error("Cannot find healthcheck")
