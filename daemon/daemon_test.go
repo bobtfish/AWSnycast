@@ -110,9 +110,7 @@ func TestSetupNoMetadataService(t *testing.T) {
 	d := Daemon{
 		ConfigFile: "../tests/awsnycast.yaml",
 	}
-	if d.RouteTableManager != nil {
-		t.Fail()
-	}
+	assert.NotNil(t, d.RouteTableManager)
 	d.MetadataFetcher = fakeM
 
 	err := d.Setup()
@@ -136,7 +134,6 @@ func myHealthCheckConstructorFail(h healthcheck.Healthcheck) (healthcheck.Health
 }
 
 func TestConfigBadHealthcheck(t *testing.T) {
-	assert := assert.New(t)
 	healthcheck.RegisterHealthcheck("testconstructorfail", myHealthCheckConstructorFail)
 	c := &config.Config{}
 	c.Validate(instancemetadata.InstanceMetadata{Instance: "i-1234"}, NewFakeRouteTableManager())
@@ -145,18 +142,14 @@ func TestConfigBadHealthcheck(t *testing.T) {
 		Destination: "127.0.0.1",
 	}
 	err := setupHealthchecks(c)
-	if assert.NotNil(err) {
-		assert.Equal(err.Error(), "Test")
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "Test")
 	}
 }
 
 func TestSetupNormal(t *testing.T) {
-	if os.Setenv("AWS_ACCESS_KEY_ID", "AKIAJRYDH3TP2D3WKRNQ") != nil {
-		t.Fail()
-	}
-	if os.Setenv("AWS_SECRET_ACCESS_KEY", "8Dbur5oqKACVDzpE/CA6g+XXAmyxmYEShVG7w4XF") != nil {
-		t.Fail()
-	}
+	assert.Nil(t, os.Setenv("AWS_ACCESS_KEY_ID", "AKIAJRYDH3TP2D3WKRNQ"))
+	assert.Nil(t, os.Setenv("AWS_SECRET_ACCESS_KEY", "8Dbur5oqKACVDzpE/CA6g+XXAmyxmYEShVG7w4XF"))
 	fakeM := FakeMetadataFetcher{
 		FAvailable: true,
 	}
@@ -169,34 +162,20 @@ func TestSetupNormal(t *testing.T) {
 	d := Daemon{
 		ConfigFile: "../tests/awsnycast.yaml",
 	}
-	if d.RouteTableManager != nil {
-		t.Fail()
-	}
+	assert.Nil(t, d.RouteTableManager)
 	d.MetadataFetcher = fakeM
 	err := d.Setup()
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-		return
-	}
+	assert.Nil(t, err)
 }
 
 func TestSetupBadConfigFile(t *testing.T) {
 	d := getD(true)
 	d.ConfigFile = "../tests/doesnotexist.yaml"
 	err := d.Setup()
-	if err == nil {
-		t.Fail()
-		return
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "open ../tests/doesnotexist.yaml: no such file or directory")
 	}
-	if err.Error() != "open ../tests/doesnotexist.yaml: no such file or directory" {
-		t.Log(err)
-		t.Fail()
-	}
-	success := d.Run(true, false)
-	if success != 1 {
-		t.Fail()
-	}
+	assert.Equal(t, d.Run(true, false), 1)
 }
 
 func TestSetupHealthChecks(t *testing.T) {
