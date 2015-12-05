@@ -1,3 +1,6 @@
+Version 0.0.10 - 2015-12-05
+ - First version with working remote_healthchecks
+
 Version 0.0.9 - 2015-12-04
  - Fix various crash cases
  - Almost working remote_healthchecks
