@@ -228,6 +228,22 @@ func init() {
 	im2 = instancemetadata.InstanceMetadata{Instance: "i-other"}
 }
 
+type FakeHealthCheck struct {
+	isHealthy bool
+}
+
+func (h *FakeHealthCheck) IsHealthy() bool {
+	return h.isHealthy
+}
+
+func (h *FakeHealthCheck) GetListener() <-chan bool {
+	return make(chan bool)
+}
+
+func (h *FakeHealthCheck) CanPassYet() bool {
+	return true
+}
+
 func NewFakeEC2Conn() *FakeEC2Conn {
 	return &FakeEC2Conn{
 		DescribeRouteTablesOutput: &ec2.DescribeRouteTablesOutput{
@@ -704,11 +720,7 @@ func TestManageRoutesSpecValidate(t *testing.T) {
 		Cidr:     "0.0.0.0/0",
 		Instance: "SELF",
 	}
-	err := r.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	assert.Nil(t, r.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks))
 }
 
 func TestManageRoutesSpecValidateMissingHealthcheck(t *testing.T) {
@@ -730,15 +742,8 @@ func TestManageRoutesSpecValidateWithHealthcheck(t *testing.T) {
 	h := make(map[string]*healthcheck.Healthcheck)
 	h["test"] = &healthcheck.Healthcheck{}
 	err := r.Validate(im1, &FakeRouteTableManager{}, "foo", h, emptyHealthchecks)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	} else {
-		if h["test"] != r.healthcheck {
-			t.Log("r.healthcheck not set")
-			t.Fail()
-		}
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, h["test"], r.healthcheck, "r.healthcheck not set")
 }
 
 func TestManageRouteSpecStartHealthcheckListenerNoHealthcheck(t *testing.T) {
@@ -757,18 +762,9 @@ func TestHandleHealthcheckResult(t *testing.T) {
 		Manager:        &FakeRouteTableManager{},
 	}
 	urs.handleHealthcheckResult(true, false, true)
-	if urs.Manager.(*FakeRouteTableManager).RouteTable == nil {
-		t.Log("RouteTable is nil")
-		t.Fail()
-	}
-	if urs.Manager.(*FakeRouteTableManager).ManageRoutesSpec == nil {
-		t.Log("ManageRoutesSpec is nil")
-		t.Fail()
-	}
-	if urs.Manager.(*FakeRouteTableManager).Noop == false {
-		t.Log("Noop is true")
-		t.Fail()
-	}
+	assert.NotNil(t, urs.Manager.(*FakeRouteTableManager).RouteTable)
+	assert.NotNil(t, urs.Manager.(*FakeRouteTableManager).ManageRoutesSpec)
+	assert.Equal(t, urs.Manager.(*FakeRouteTableManager).Noop, true)
 }
 
 func TestHandleHealthcheckResultError(t *testing.T) {
@@ -787,10 +783,7 @@ func TestManageRouteSpecDefaultInstanceSELF(t *testing.T) {
 		Instance: "SELF",
 	}
 	urs.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
-	if urs.Instance != "i-1234" {
-		t.Log(urs.Instance)
-		t.Fail()
-	}
+	assert.Equal(t, urs.Instance, "i-1234")
 }
 
 func TestManageRouteSpecDefaultInstanceOther(t *testing.T) {
@@ -799,25 +792,7 @@ func TestManageRouteSpecDefaultInstanceOther(t *testing.T) {
 		Instance: "i-foo",
 	}
 	urs.Validate(im2, &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
-	if urs.Instance != "i-foo" {
-		t.Fail()
-	}
-}
-
-type FakeHealthCheck struct {
-	isHealthy bool
-}
-
-func (h *FakeHealthCheck) IsHealthy() bool {
-	return h.isHealthy
-}
-
-func (h *FakeHealthCheck) GetListener() <-chan bool {
-	return make(chan bool)
-}
-
-func (h *FakeHealthCheck) CanPassYet() bool {
-	return true
+	assert.Equal(t, urs.Instance, "i-foo")
 }
 
 func TestManageInstanceRouteNoCreateRouteBadHealthcheck(t *testing.T) {
@@ -830,13 +805,8 @@ func TestManageInstanceRouteNoCreateRouteBadHealthcheck(t *testing.T) {
 		healthcheck:     &FakeHealthCheck{isHealthy: false},
 	}
 	err := rtf.ManageInstanceRoute(rtb1, s, false)
-	if err != nil {
-		t.Fail()
-	}
-	if rtf.conn.(*FakeEC2Conn).CreateRouteInput != nil {
-		t.Log("rtf.conn.(*FakeEC2Conn).CreateRoute was called")
-		t.Fail()
-	}
+	assert.Nil(t, err)
+	assert.Nil(t, rtf.conn.(*FakeEC2Conn).CreateRouteInput, "rtf.conn.(*FakeEC2Conn).CreateRoute was called")
 }
 
 func TestManageInstanceRouteCreateRouteGoodHealthcheck(t *testing.T) {
@@ -849,13 +819,8 @@ func TestManageInstanceRouteCreateRouteGoodHealthcheck(t *testing.T) {
 		healthcheck:     &FakeHealthCheck{isHealthy: true},
 	}
 	err := rtf.ManageInstanceRoute(rtb1, s, false)
-	if err != nil {
-		t.Fail()
-	}
-	if rtf.conn.(*FakeEC2Conn).CreateRouteInput == nil {
-		t.Log("rtf.conn.(*FakeEC2Conn).CreateRoute was not called")
-		t.Fail()
-	}
+	assert.Nil(t, err)
+	assert.NotNil(t, rtf.conn.(*FakeEC2Conn).CreateRouteInput, "rtf.conn.(*FakeEC2Conn).CreateRoute was not called")
 }
 
 func TestManageInstanceRouteDeleteInstanceRouteThisInstanceUnhealthy(t *testing.T) {
@@ -868,23 +833,12 @@ func TestManageInstanceRouteDeleteInstanceRouteThisInstanceUnhealthy(t *testing.
 		healthcheck:     &FakeHealthCheck{isHealthy: false},
 	}
 	err := rtf.ManageInstanceRoute(rtb2, s, false)
-	if err != nil {
-		t.Fail()
-	}
-	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput != nil {
-		t.Log("ReplaceRouteInput was called")
-		t.Fail()
-	}
-	if rtf.conn.(*FakeEC2Conn).DeleteRouteInput == nil {
-		t.Log("DeleteRouteInput was never called")
-		t.Fail()
-	}
-	r := rtf.conn.(*FakeEC2Conn).DeleteRouteInput
-	if *(r.DestinationCidrBlock) != "0.0.0.0/0" {
-		t.Fail()
-	}
-	if *(r.RouteTableId) != *(rtb2.RouteTableId) {
-		t.Fail()
+	assert.Nil(t, err)
+	assert.Nil(t, rtf.conn.(*FakeEC2Conn).ReplaceRouteInput, "ReplaceRouteInput was called")
+	if assert.NotNil(t, rtf.conn.(*FakeEC2Conn).DeleteRouteInput, "DeleteRouteInput was never called") {
+		r := rtf.conn.(*FakeEC2Conn).DeleteRouteInput
+		assert.Equal(t, *(r.DestinationCidrBlock), "0.0.0.0/0")
+		assert.Equal(t, *(r.RouteTableId), *(rtb2.RouteTableId))
 	}
 }
 
@@ -899,17 +853,9 @@ func TestManageInstanceRouteDeleteInstanceRouteThisInstanceUnhealthyNeverDelete(
 		NeverDelete:     true,
 	}
 	err := rtf.ManageInstanceRoute(rtb2, s, false)
-	if err != nil {
-		t.Fail()
-	}
-	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput != nil {
-		t.Log("ReplaceRouteInput was called")
-		t.Fail()
-	}
-	if rtf.conn.(*FakeEC2Conn).DeleteRouteInput != nil {
-		t.Log("DeleteRouteInput was called")
-		t.Fail()
-	}
+	assert.Nil(t, err)
+	assert.Nil(t, rtf.conn.(*FakeEC2Conn).ReplaceRouteInput, "ReplaceRouteInput was called")
+	assert.Nil(t, rtf.conn.(*FakeEC2Conn).DeleteRouteInput, "DeleteRouteInput was called")
 }
 
 func TestManageInstanceRouteDeleteInstanceRouteThisInstanceUnhealthyAWSFail(t *testing.T) {
