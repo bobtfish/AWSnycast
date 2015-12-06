@@ -10,6 +10,7 @@ import (
 	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"github.com/bobtfish/AWSnycast/testhelpers"
 	"github.com/hashicorp/go-multierror"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -25,24 +26,14 @@ func init() {
 
 func TestLoadConfig(t *testing.T) {
 	c, err := New("../tests/awsnycast.yaml", tim, rtm)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-	if c == nil {
-		t.Fail()
-	}
+	assert.Nil(t, err)
+	assert.NotNil(t, c)
 }
 
 func TestLoadConfigFails(t *testing.T) {
 	_, err := New("../tests/doesnotexist.yaml", tim, rtm)
-	if err == nil {
-		t.Fail()
-	} else {
-		if err.Error() != "open ../tests/doesnotexist.yaml: no such file or directory" {
-			t.Log(err)
-			t.Fail()
-		}
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "open ../tests/doesnotexist.yaml: no such file or directory")
 	}
 }
 
@@ -53,102 +44,45 @@ func TestLoadConfigFailsValidation(t *testing.T) {
 
 func TestLoadConfigHealthchecks(t *testing.T) {
 	c, err := New("../tests/awsnycast.yaml", tim, rtm)
-	if err != nil {
-		t.Log("Loading config failed")
-		t.Log(err)
-		t.Fail()
-		return
+	assert.Nil(t, err, "Loading config failed")
+	if assert.NotNil(t, c.Healthchecks) {
+		h, ok := c.Healthchecks["public"]
+		assert.Equal(t, ok, true, "c.Healthchecks['public'] not ok")
+		assert.Equal(t, h.Type, "ping")
+		assert.Equal(t, h.Destination, "8.8.8.8")
+		assert.Equal(t, h.Rise, uint(2))
+		assert.Equal(t, h.Fall, uint(10))
+		assert.Equal(t, h.Every, uint(1))
 	}
-	if c.Healthchecks == nil {
-		t.Log("c.Healthchecks == nil")
-		t.Fail()
-	}
-	h, ok := c.Healthchecks["public"]
-	if !ok {
-		t.Log("c.Healthchecks['public'] not ok")
-		t.Fail()
-	}
-	if h.Type != "ping" {
-		t.Log("type not ping")
-		t.Fail()
-	}
-	if h.Destination != "8.8.8.8" {
-		t.Log("Destination not 8.8.8.8")
-		t.Fail()
-	}
-	if h.Rise != 2 {
-		t.Log("Rise not 2")
-		t.Fail()
-	}
-	if h.Fall != 10 {
-		t.Log("fall not 10")
-		t.Fail()
-	}
-	if h.Every != 1 {
-		t.Log("every not 1")
-		t.Fail()
-	}
-	a, ok := c.RouteTables["a"]
-	if !ok {
-		t.Log("RouteTables a not ok")
-		t.Fail()
-	}
-	if a.Find.Type != "by_tag" {
-		t.Log("Not by_tag")
-		t.Fail()
-	}
-	if v, ok := a.Find.Config["key"]; ok {
-		if v != "Name" {
-			t.Log("Config key Name not found")
-			t.Fail()
-		}
-	} else {
-		t.Log(fmt.Sprintf("Config key not found: %+v", a.Find.Config))
-		t.Fail()
-	}
-	if v, ok := a.Find.Config["value"]; ok {
-		if v != "private a" {
-			t.Log("Config value not private a")
-			t.Fail()
-		}
-	} else {
-		t.Log("Config value not present")
-		t.Fail()
-	}
-	routes := a.ManageRoutes
-	if len(routes) != 2 {
-		t.Log("Route len not 2")
-		t.Fail()
-	}
-	for _, route := range routes {
-		if route.Cidr == "0.0.0.0/0" || route.Cidr == "192.168.1.1/32" {
-			if route.Instance != "i-1234" {
-				t.Log("route.Instance not SELF")
-				t.Fail()
-			}
-			if route.Cidr == "0.0.0.0/0" {
-				if route.HealthcheckName != "public" {
-					t.Log("Healthcheck not public")
-					t.Fail()
+	if assert.NotNil(t, c.RouteTables) {
+		a, ok := c.RouteTables["a"]
+		assert.Equal(t, ok, true, "RouteTables a not ok")
+		assert.Equal(t, a.Find.Type, "by_tag")
+		v, ok := a.Find.Config["key"]
+		assert.Equal(t, ok, true)
+		assert.Equal(t, v, "Name")
+		v, ok = a.Find.Config["value"]
+		assert.Equal(t, ok, true)
+		assert.Equal(t, v, "private a")
+		routes := a.ManageRoutes
+		assert.Equal(t, len(routes), 2)
+		for _, route := range routes {
+			if route.Cidr == "0.0.0.0/0" || route.Cidr == "192.168.1.1/32" {
+				assert.Equal(t, route.Instance, "i-1234")
+				if route.Cidr == "0.0.0.0/0" {
+					assert.Equal(t, route.HealthcheckName, "public")
+				} else {
+					assert.Equal(t, route.HealthcheckName, "localservice")
 				}
 			} else {
-				if route.HealthcheckName != "localservice" {
-					t.Log("HealthcheckName is not localservice")
-					t.Fail()
-				}
+				t.Log("CIDR unknown")
+				t.Fail()
 			}
-		} else {
-			t.Log("CIDR unknown")
-			t.Fail()
 		}
 	}
 	b, ok := c.RouteTables["b"]
-	if !ok {
-		t.Fail()
-	}
-	if b.Find.Type != "and" {
-		t.Fail()
-	}
+	assert.Equal(t, ok, true)
+	assert.Equal(t, b.Find.Type, "and")
 }
 
 func TestConfigDefault(t *testing.T) {
