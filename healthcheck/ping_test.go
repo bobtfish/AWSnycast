@@ -1,6 +1,7 @@
 package healthcheck
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -11,15 +12,9 @@ func TestHealthcheckPing(t *testing.T) {
 	}
 	h.Validate("foo", false)
 	err := h.Validate("foo", false)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	assert.Nil(t, err)
 	h.Setup()
-	res := h.healthchecker.Healthcheck()
-	if !res {
-		t.Fail()
-	}
+	assert.Equal(t, h.healthchecker.Healthcheck(), true)
 }
 
 func TestHealthcheckPingFail(t *testing.T) {
@@ -30,14 +25,8 @@ func TestHealthcheckPingFail(t *testing.T) {
 	}
 	h.Validate("foo", false)
 	err := h.Validate("foo", false)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	assert.Nil(t, err)
 	h.Setup()
-	res := h.healthchecker.Healthcheck()
-	if res {
-		t.Fail()
-	}
+	assert.Equal(t, h.healthchecker.Healthcheck(), false)
 	pingCmd = "ping"
 }

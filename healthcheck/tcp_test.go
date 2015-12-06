@@ -265,21 +265,12 @@ func TestHealthcheckTcpNoSendOrExpect(t *testing.T) {
 		Config:      c,
 	}
 	err = h.Validate("foo", false)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	assert.Nil(t, err)
 	err = h.Setup()
-	if err != nil {
-		t.Log("Setup failed: %s", err.Error())
-		t.Fail()
-	} else {
+
+	if assert.Nil(t, err) {
 		log.Printf("%+v", h)
-		res := h.healthchecker.Healthcheck()
-		if !res {
-			t.Log("h.healthchecker.Healthcheck() returned FAIL for client close no send")
-			t.Fail()
-		}
+		assert.Equal(t, h.healthchecker.Healthcheck(), true, "h.healthchecker.Healthcheck() returned FAIL for client close no send")
 	}
 	quit = true
 	ln.Close()
@@ -287,52 +278,42 @@ func TestHealthcheckTcpNoSendOrExpect(t *testing.T) {
 
 func TestHealthcheckTcpNoSend(t *testing.T) {
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(err)
-	}
-	port := ln.Addr().(*net.TCPAddr).Port
-	ready := make(chan bool, 1)
-	quit := false
-	go func() {
-		for {
-			ready <- true
-			conn, err := ln.Accept()
-			if err != nil {
-				if quit {
-					return
+	if assert.Nil(t, err) {
+		port := ln.Addr().(*net.TCPAddr).Port
+		ready := make(chan bool, 1)
+		quit := false
+		go func() {
+			for {
+				ready <- true
+				conn, err := ln.Accept()
+				if err != nil {
+					if quit {
+						return
+					}
+					t.Fatal(fmt.Printf("Error accepting: %s", err.Error()))
 				}
-				t.Fatal(fmt.Printf("Error accepting: %s", err.Error()))
+				conn.Write([]byte("200 OK"))
+				conn.Close()
 			}
-			conn.Write([]byte("200 OK"))
-			conn.Close()
+		}()
+		<-ready
+		c := make(map[string]string)
+		c["port"] = fmt.Sprintf("%d", port)
+		c["expect"] = "200 OK"
+		h := Healthcheck{
+			Type:        "tcp",
+			Destination: "127.0.0.1",
+			Config:      c,
 		}
-	}()
-	<-ready
-	c := make(map[string]string)
-	c["port"] = fmt.Sprintf("%d", port)
-	c["expect"] = "200 OK"
-	h := Healthcheck{
-		Type:        "tcp",
-		Destination: "127.0.0.1",
-		Config:      c,
-	}
-	err = h.Validate("foo", false)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-	err = h.Setup()
-	if err != nil {
-		t.Log("Setup failed: %s", err.Error())
-		t.Fail()
-	} else {
-		log.Printf("%+v", h)
-		res := h.healthchecker.Healthcheck()
-		if !res {
-			t.Log("h.healthchecker.Healthcheck() returned false")
-			t.Fail()
+		err = h.Validate("foo", false)
+		assert.Nil(t, err)
+		err = h.Setup()
+
+		if assert.Nil(t, err) {
+			log.Printf("%+v", h)
+			assert.Equal(t, h.healthchecker.Healthcheck(), true, "h.healthchecker.Healthcheck() returned false")
 		}
+		quit = true
+		ln.Close()
 	}
-	quit = true
-	ln.Close()
 }
