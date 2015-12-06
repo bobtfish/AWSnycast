@@ -8,6 +8,7 @@ import (
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"github.com/bobtfish/AWSnycast/testhelpers"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 )
@@ -261,40 +262,26 @@ func TestFakeFetcher(t *testing.T) {
 		Routes: []*ec2.RouteTable{&rtb1},
 	}
 	rtb, err := f.GetRouteTables()
-	if err != nil {
-		t.Fail()
-	}
-	if len(rtb) != 1 {
-		t.Fail()
-	}
-	if rtb[0] != &rtb1 {
-		t.Fail()
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, len(rtb), 1)
+	assert.Equal(t, rtb[0], &rtb1)
 }
 
 func TestRouteTableFilterAlways(t *testing.T) {
 	f := RouteTableFilterAlways{}
-	if f.Keep(&rtb1) {
-		t.Fail()
-	}
+	assert.Equal(t, f.Keep(&rtb1), false)
 }
 
 func TestRouteTableFilterNever(t *testing.T) {
 	f := RouteTableFilterNever{}
-	if !f.Keep(&rtb1) {
-		t.Fail()
-	}
+	assert.Equal(t, f.Keep(&rtb1), true)
 }
 
 func TestRouteTableFilterNot(t *testing.T) {
 	f := RouteTableFilterNot{Filter: RouteTableFilterAlways{}}
-	if !f.Keep(&rtb1) {
-		t.Fail()
-	}
+	assert.Equal(t, f.Keep(&rtb1), true)
 	f = RouteTableFilterNot{Filter: RouteTableFilterNever{}}
-	if f.Keep(&rtb1) {
-		t.Fail()
-	}
+	assert.Equal(t, f.Keep(&rtb1), false)
 }
 
 func TestRouteTableFilterAndTwoNever(t *testing.T) {
@@ -304,9 +291,7 @@ func TestRouteTableFilterAndTwoNever(t *testing.T) {
 			RouteTableFilterNever{},
 		},
 	}
-	if !f.Keep(&rtb1) {
-		t.Fail()
-	}
+	assert.Equal(t, f.Keep(&rtb1), true)
 }
 
 func TestRouteTableFilterAndOneNever(t *testing.T) {
@@ -316,9 +301,7 @@ func TestRouteTableFilterAndOneNever(t *testing.T) {
 			RouteTableFilterAlways{},
 		},
 	}
-	if f.Keep(&rtb1) {
-		t.Fail()
-	}
+	assert.Equal(t, f.Keep(&rtb1), false)
 }
 
 func TestRouteTableFilterOrOneNever(t *testing.T) {
@@ -328,9 +311,7 @@ func TestRouteTableFilterOrOneNever(t *testing.T) {
 			RouteTableFilterAlways{},
 		},
 	}
-	if !f.Keep(&rtb1) {
-		t.Fail()
-	}
+	assert.Equal(t, f.Keep(&rtb1), true)
 }
 
 func TestRouteTableFilterOrOneNever2(t *testing.T) {
@@ -340,9 +321,7 @@ func TestRouteTableFilterOrOneNever2(t *testing.T) {
 			RouteTableFilterNever{},
 		},
 	}
-	if !f.Keep(&rtb1) {
-		t.Fail()
-	}
+	assert.Equal(t, f.Keep(&rtb1), true)
 }
 
 func TestRouteTableFilterOrAlways(t *testing.T) {
@@ -352,68 +331,53 @@ func TestRouteTableFilterOrAlways(t *testing.T) {
 			RouteTableFilterAlways{},
 		},
 	}
-	if f.Keep(&rtb1) {
-		t.Fail()
-	}
+	assert.Equal(t, f.Keep(&rtb1), false)
 }
 
 func TestFilterRouteTables(t *testing.T) {
 	rtb := FilterRouteTables(RouteTableFilterNever{}, []*ec2.RouteTable{&rtb1})
-	if len(rtb) != 1 {
-		t.Fail()
-	}
-	if rtb[0] != &rtb1 {
-		t.Fail()
-	}
+	assert.Equal(t, len(rtb), 1)
+	assert.Equal(t, rtb[0], &rtb1)
 }
 
 func TestRouteTableFilterMain(t *testing.T) {
 	f := RouteTableFilterMain{}
-	if f.Keep(&rtb1) {
-		t.Fail()
-	}
-	if !f.Keep(&rtb2) {
-		t.Fail()
-	}
+	assert.Equal(t, f.Keep(&rtb1), false)
+	assert.Equal(t, f.Keep(&rtb2), true)
 }
 
 func TestRoutTableFilterSubnet(t *testing.T) {
 	f := RouteTableFilterSubnet{
 		SubnetId: "subnet-28b0e940",
 	}
-	if f.Keep(&rtb1) {
-		t.Fail()
-	}
-	if !f.Keep(&rtb2) {
-		t.Fail()
-	}
+	assert.Equal(t, f.Keep(&rtb1), false)
+	assert.Equal(t, f.Keep(&rtb2), true)
 }
 
 func TestRouteTableForSubnetExplicitAssociation(t *testing.T) {
 	rt := RouteTableForSubnet("subnet-37b0e95f", []*ec2.RouteTable{&rtb1, &rtb2, &rtb3, &rtb4})
-	if rt == nil || rt != &rtb3 {
-		t.Fail()
+	if assert.NotNil(t, rt) {
+		assert.Equal(t, rt, &rtb3)
 	}
 }
 
 func TestRouteTableForSubnetDefaultMain(t *testing.T) {
 	rt := RouteTableForSubnet("subnet-38b0e95f", []*ec2.RouteTable{&rtb1, &rtb2, &rtb3, &rtb4})
-	if rt == nil || rt != &rtb2 {
-		t.Fail()
+	if assert.NotNil(t, rt) {
+		assert.Equal(t, rt, &rtb2)
 	}
 }
 
 func TestRouteTableForSubnetNone(t *testing.T) {
 	rt := RouteTableForSubnet("subnet-38b0e95f", []*ec2.RouteTable{&rtb1, &rtb3, &rtb4})
-	if rt != nil {
-		t.Fail()
-	}
+	assert.Nil(t, rt)
 }
 
 func TestRouteTableFilterDestinationCidrBlock(t *testing.T) {
 	f := RouteTableFilterDestinationCidrBlock{
 		DestinationCidrBlock: "0.0.0.0/0",
 	}
+
 	if f.Keep(&rtb1) {
 		t.Fail()
 	}
