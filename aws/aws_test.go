@@ -515,27 +515,16 @@ func TestRouteTableManagerEC2ReplaceInstanceRouteNoop(t *testing.T) {
 func TestRouteTableManagerEC2ReplaceInstanceRoute(t *testing.T) {
 	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")
-	if route == nil {
-		t.Fail()
-	}
-	rs := ManageRoutesSpec{Cidr: "0.0.0.0/0", Instance: "i-1234", IfUnhealthy: false}
-	err := rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, rs, false)
-	if err != nil {
-		t.Fail()
-	}
-	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput == nil {
-		t.Log("ReplaceRouteInput == nil")
-		t.Fail()
-	}
-	r := rtf.conn.(*FakeEC2Conn).ReplaceRouteInput
-	if *(r.DestinationCidrBlock) != "0.0.0.0/0" {
-		t.Fail()
-	}
-	if *(r.RouteTableId) != *(rtb2.RouteTableId) {
-		t.Fail()
-	}
-	if *(r.InstanceId) != "i-1234" {
-		t.Fail()
+	if assert.NotNil(t, route) {
+		rs := ManageRoutesSpec{Cidr: "0.0.0.0/0", Instance: "i-1234", IfUnhealthy: false}
+		if assert.Nil(t, rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, rs, false)) {
+			if assert.NotNil(t, rtf.conn.(*FakeEC2Conn).ReplaceRouteInput) {
+				r := rtf.conn.(*FakeEC2Conn).ReplaceRouteInput
+				assert.Equal(t, *(r.DestinationCidrBlock), "0.0.0.0/0")
+				assert.Equal(t, *(r.RouteTableId), *(rtb2.RouteTableId))
+				assert.Equal(t, *(r.InstanceId), "i-1234")
+			}
+		}
 	}
 }
 
