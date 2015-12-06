@@ -501,22 +501,14 @@ func TestFindRouteFromRouteTableNoCidr(t *testing.T) {
 func TestRouteTableManagerEC2ReplaceInstanceRouteNoop(t *testing.T) {
 	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")
-	if route == nil {
-		t.Fail()
-	}
-	rs := ManageRoutesSpec{Cidr: "0.0.0.0/0", Instance: "i-1234", IfUnhealthy: false}
-	err := rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, rs, true)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput == nil {
-		t.Fail()
-	}
-	// Should *not* have actually tried to replace the route - dry run mode
-	r := rtf.conn.(*FakeEC2Conn).ReplaceRouteInput
-	if *(r.DryRun) != true {
-		t.Fail()
+	if assert.NotNil(t, route) {
+		rs := ManageRoutesSpec{Cidr: "0.0.0.0/0", Instance: "i-1234", IfUnhealthy: false}
+		assert.Nil(t, rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, rs, true))
+		if assert.NotNil(t, rtf.conn.(*FakeEC2Conn).ReplaceRouteInput) {
+			// Should *not* have actually tried to replace the route - dry run mode
+			r := rtf.conn.(*FakeEC2Conn).ReplaceRouteInput
+			assert.Equal(t, *(r.DryRun), true)
+		}
 	}
 }
 
