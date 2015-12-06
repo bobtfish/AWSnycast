@@ -27,6 +27,28 @@ func init() {
 	rtm = &FakeRouteTableManager{}
 }
 
+type FakeRouteTableManager struct {
+	Error            error
+	RouteTable       ec2.RouteTable
+	ManageRoutesSpec aws.ManageRoutesSpec
+	Noop             bool
+}
+
+func (r *FakeRouteTableManager) InstanceIsRouter(id string) bool {
+	return true
+}
+
+func (r *FakeRouteTableManager) GetRouteTables() ([]*ec2.RouteTable, error) {
+	return nil, nil
+}
+
+func (r *FakeRouteTableManager) ManageInstanceRoute(rtb ec2.RouteTable, rs aws.ManageRoutesSpec, noop bool) error {
+	r.RouteTable = rtb
+	r.ManageRoutesSpec = rs
+	r.Noop = noop
+	return r.Error
+}
+
 func TestLoadConfig(t *testing.T) {
 	c, err := New("../tests/awsnycast.yaml", tim, rtm)
 	assert.Nil(t, err)
@@ -408,33 +430,7 @@ func TestUpdateEc2RouteTablesFindRouteTablesInAWS(t *testing.T) {
 			},
 		},
 	}
-	err := rt.UpdateEc2RouteTables(awsRt)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-}
-
-type FakeRouteTableManager struct {
-	Error            error
-	RouteTable       ec2.RouteTable
-	ManageRoutesSpec aws.ManageRoutesSpec
-	Noop             bool
-}
-
-func (r *FakeRouteTableManager) InstanceIsRouter(id string) bool {
-	return true
-}
-
-func (r *FakeRouteTableManager) GetRouteTables() ([]*ec2.RouteTable, error) {
-	return nil, nil
-}
-
-func (r *FakeRouteTableManager) ManageInstanceRoute(rtb ec2.RouteTable, rs aws.ManageRoutesSpec, noop bool) error {
-	r.RouteTable = rtb
-	r.ManageRoutesSpec = rs
-	r.Noop = noop
-	return r.Error
+	assert.Nil(t, rt.UpdateEc2RouteTables(awsRt))
 }
 
 func TestRunEc2Updates(t *testing.T) {
