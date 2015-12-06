@@ -532,38 +532,24 @@ func TestRouteTableManagerEC2ReplaceInstanceRouteFails(t *testing.T) {
 	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	rtf.conn.(*FakeEC2Conn).ReplaceRouteError = errors.New("Whoops, AWS blew up")
 	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")
-	if route == nil {
-		t.Fail()
-	}
-	rs := ManageRoutesSpec{Cidr: "0.0.0.0/0", Instance: "i-1234", IfUnhealthy: false}
-	err := rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, rs, false)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Whoops, AWS blew up" {
-		t.Log(err)
-		t.Fail()
-	}
-	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput == nil {
-		t.Log("ReplaceRouteInput == nil")
-		t.Fail()
+	if assert.NotNil(t, route) {
+		rs := ManageRoutesSpec{Cidr: "0.0.0.0/0", Instance: "i-1234", IfUnhealthy: false}
+		err := rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, rs, false)
+		if assert.NotNil(t, err) {
+			assert.Equal(t, err.Error(), "Whoops, AWS blew up")
+			assert.NotNil(t, rtf.conn.(*FakeEC2Conn).ReplaceRouteInput)
+		}
 	}
 }
 
 func TestRouteTableManagerEC2ReplaceInstanceRouteNotIfHealthy(t *testing.T) {
 	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	route := findRouteFromRouteTable(rtb2, "0.0.0.0/0")
-	if route == nil {
-		t.Fail()
-	}
-	rs := ManageRoutesSpec{Cidr: "0.0.0.0/0", Instance: "i-1234", IfUnhealthy: true}
-	err := rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, rs, false)
-	if err != nil {
-		t.Fail()
-	}
-	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput != nil {
-		t.Log("ReplaceRouteInput != nil")
-		t.Fail()
+	if assert.NotNil(t, route) {
+		rs := ManageRoutesSpec{Cidr: "0.0.0.0/0", Instance: "i-1234", IfUnhealthy: true}
+		err := rtf.ReplaceInstanceRoute(rtb2.RouteTableId, route, rs, false)
+		assert.Nil(t, err)
+		assert.Nil(t, rtf.conn.(*FakeEC2Conn).ReplaceRouteInput)
 	}
 }
 
@@ -575,13 +561,8 @@ func TestRouteTableManagerEC2ManageInstanceRouteAlreadyThisInstance(t *testing.T
 		IfUnhealthy: false,
 	}
 	err := rtf.ManageInstanceRoute(rtb2, s, false)
-	if err != nil {
-		t.Fail()
-	}
-	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput != nil {
-		t.Log("ReplaceRouteInput != nil")
-		t.Fail()
-	}
+	assert.Nil(t, err)
+	assert.Nil(t, rtf.conn.(*FakeEC2Conn).ReplaceRouteInput)
 }
 
 func TestManageInstanceRoute(t *testing.T) {
@@ -592,22 +573,12 @@ func TestManageInstanceRoute(t *testing.T) {
 		IfUnhealthy: false,
 	}
 	err := rtf.ManageInstanceRoute(rtb2, s, false)
-	if err != nil {
-		t.Fail()
-	}
-	if rtf.conn.(*FakeEC2Conn).ReplaceRouteInput == nil {
-		t.Log("ReplaceRouteInput == nil")
-		t.Fail()
-	}
-	r := rtf.conn.(*FakeEC2Conn).ReplaceRouteInput
-	if *(r.DestinationCidrBlock) != "0.0.0.0/0" {
-		t.Fail()
-	}
-	if *(r.RouteTableId) != *(rtb2.RouteTableId) {
-		t.Fail()
-	}
-	if *(r.InstanceId) != "i-1234" {
-		t.Fail()
+	assert.Nil(t, err)
+	if assert.NotNil(t, rtf.conn.(*FakeEC2Conn).ReplaceRouteInput) {
+		r := rtf.conn.(*FakeEC2Conn).ReplaceRouteInput
+		assert.Equal(t, *(r.DestinationCidrBlock), "0.0.0.0/0")
+		assert.Equal(t, *(r.RouteTableId), *(rtb2.RouteTableId))
+		assert.Equal(t, *(r.InstanceId), "i-1234")
 	}
 }
 
@@ -620,11 +591,8 @@ func TestManageInstanceRouteAWSFailOnReplace(t *testing.T) {
 		IfUnhealthy: false,
 	}
 	err := rtf.ManageInstanceRoute(rtb2, s, false)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Whoops, AWS blew up" {
-		t.Fail()
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "Whoops, AWS blew up")
 	}
 }
 
@@ -637,11 +605,8 @@ func TestManageInstanceRouteAWSFailOnCreate(t *testing.T) {
 		IfUnhealthy: false,
 	}
 	err := rtf.ManageInstanceRoute(rtb1, s, false)
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Whoops, AWS blew up" {
-		t.Fail()
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "Whoops, AWS blew up")
 	}
 }
 
@@ -653,67 +618,38 @@ func TestManageInstanceRouteCreateRoute(t *testing.T) {
 		IfUnhealthy: false,
 	}
 	err := rtf.ManageInstanceRoute(rtb1, s, false)
-	if err != nil {
-		t.Fail()
-	}
-	if rtf.conn.(*FakeEC2Conn).CreateRouteInput == nil {
-		t.Log("rtf.conn.(*FakeEC2Conn).CreateRoute was never called")
-		t.Fail()
-	}
-	in := rtf.conn.(*FakeEC2Conn).CreateRouteInput
-	if *(in.RouteTableId) != *(rtb1.RouteTableId) {
-		t.Fail()
-	}
-	if *(in.DestinationCidrBlock) != "0.0.0.0/0" {
-		t.Fail()
-	}
-	if *(in.InstanceId) != "i-1234" {
-		t.Fail()
+	assert.Nil(t, err)
+	if assert.NotNil(t, rtf.conn.(*FakeEC2Conn).CreateRouteInput) {
+		in := rtf.conn.(*FakeEC2Conn).CreateRouteInput
+		assert.Equal(t, *(in.RouteTableId), *(rtb1.RouteTableId))
+		assert.Equal(t, *(in.DestinationCidrBlock), "0.0.0.0/0")
+		assert.Equal(t, *(in.InstanceId), "i-1234")
 	}
 }
 
 func TestGetRouteTables(t *testing.T) {
 	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	_, err := rtf.GetRouteTables()
-	if err != nil {
-		t.Fail()
-	}
-	if rtf.conn.(*FakeEC2Conn).DescribeRouteTablesInput == nil {
-		t.Log("rtf.conn.(*FakeEC2Conn).DescribeRouteTablesInput was never set")
-		t.Fail()
-	}
+	assert.Nil(t, err)
+	assert.NotNil(t, rtf.conn.(*FakeEC2Conn).DescribeRouteTablesInput)
 }
 
 func TestGetRouteTablesAWSFail(t *testing.T) {
 	rtf := RouteTableManagerEC2{conn: NewFakeEC2Conn()}
 	rtf.conn.(*FakeEC2Conn).DescribeRouteTablesError = errors.New("Whoops, AWS blew up")
 	_, err := rtf.GetRouteTables()
-	if err == nil {
-		t.Fail()
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "Whoops, AWS blew up")
 	}
-	if err.Error() != "Whoops, AWS blew up" {
-		t.Log(err)
-		t.Fail()
-	}
-	if rtf.conn.(*FakeEC2Conn).DescribeRouteTablesInput == nil {
-		t.Log("rtf.conn.(*FakeEC2Conn).DescribeRouteTablesInput was never called")
-		t.Fail()
-	}
+	assert.NotNil(t, rtf.conn.(*FakeEC2Conn).DescribeRouteTablesInput, "rtf.conn.(*FakeEC2Conn).DescribeRouteTablesInput was never called")
 }
 
 func TestNewRouteTableManager(t *testing.T) {
-	if os.Setenv("AWS_ACCESS_KEY_ID", "AKIAJRYDH3TP2D3WKRNQ") != nil {
-		t.Fail()
-	}
-	if os.Setenv("AWS_SECRET_ACCESS_KEY", "8Dbur5oqKACVDzpE/CA6g+XXAmyxmYEShVG7w4XF") != nil {
-		t.Fail()
-	}
+	assert.Nil(t, os.Setenv("AWS_ACCESS_KEY_ID", "AKIAJRYDH3TP2D3WKRNQ"))
+	assert.Nil(t, os.Setenv("AWS_SECRET_ACCESS_KEY", "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"))
 	rtf := NewRouteTableManager("us-west-1", false)
-	if rtf == nil {
-		t.Fail()
-	}
-	if rtf.(RouteTableManagerEC2).conn == nil {
-		t.Fail()
+	if assert.NotNil(t, rtf) {
+		assert.NotNil(t, rtf.(RouteTableManagerEC2).conn)
 	}
 }
 
@@ -722,21 +658,10 @@ func TestManageRoutesSpecDefault(t *testing.T) {
 		Cidr: "127.0.0.1",
 	}
 	err := u.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-	if u.Cidr != "127.0.0.1/32" {
-		t.Log("Not canonicalized in ManageRoutesSpecDefault")
-		t.Fail()
-	}
-	if u.Instance != "i-1234" {
-		t.Log(fmt.Sprintf("Instance not defaulted to SELF (i-1234), is '%s'", u.Instance))
-		t.Fail()
-	}
-	if u.Manager == nil {
-		t.Fail()
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, u.Cidr, "127.0.0.1/32", "Not canonicalized in ManageRoutesSpecDefault")
+	assert.Equal(t, u.Instance, "i-1234", fmt.Sprintf("Instance not defaulted to SELF (i-1234), is '%s'", u.Instance))
+	assert.NotNil(t, u.Manager)
 }
 
 func TestManageRoutesSpecValidateMissingCidr(t *testing.T) {
