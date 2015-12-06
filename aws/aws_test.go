@@ -869,13 +869,8 @@ func TestManageInstanceRouteDeleteInstanceRouteThisInstanceUnhealthyAWSFail(t *t
 		healthcheck:     &FakeHealthCheck{isHealthy: false},
 	}
 	err := rtf.ManageInstanceRoute(rtb2, s, false)
-	if err == nil {
-		t.Fail()
-	} else {
-		if err.Error() != "Whoops, AWS blew up" {
-			t.Log(err)
-			t.Fail()
-		}
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "Whoops, AWS blew up")
 	}
 }
 
@@ -884,17 +879,13 @@ func TestEc2RouteTablesDefault(t *testing.T) {
 		Cidr: "127.0.0.1",
 	}
 	rs.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
-	if rs.ec2RouteTables == nil {
-		t.Fail()
-	}
+	assert.NotNil(t, rs.ec2RouteTables)
 }
 
 func TestUpdateEc2RouteTables(t *testing.T) {
 	rs := &ManageRoutesSpec{}
 	rs.UpdateEc2RouteTables([]*ec2.RouteTable{})
-	if rs.ec2RouteTables == nil {
-		t.Fail()
-	}
+	assert.NotNil(t, rs.ec2RouteTables)
 }
 
 func TestStartHealthcheckListenerNoHealthcheck(t *testing.T) {
