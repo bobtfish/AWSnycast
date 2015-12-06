@@ -450,27 +450,14 @@ func TestRunEc2Updates(t *testing.T) {
 		},
 	})
 	frtm := &FakeRouteTableManager{}
-	err = rt.RunEc2Updates(frtm, true)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-	if *(frtm.RouteTable.RouteTableId) != "rtb-9696cffe" {
-		t.Log(*(frtm.RouteTable.RouteTableId))
-		t.Fail()
-	}
-	if frtm.ManageRoutesSpec.Cidr != "127.0.0.1/32" {
-		t.Fail()
+	if assert.Nil(t, rt.RunEc2Updates(frtm, true)) {
+		assert.Equal(t, *(frtm.RouteTable.RouteTableId), "rtb-9696cffe")
+		assert.Equal(t, frtm.ManageRoutesSpec.Cidr, "127.0.0.1/32")
 	}
 	frtm.Error = errors.New("Test error")
 	err = rt.RunEc2Updates(frtm, true)
-	if err == nil {
-		t.Fail()
-	} else {
-		if err.Error() != "Test error" {
-			t.Log(err)
-			t.Fail()
-		}
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "Test error")
 	}
 }
 
@@ -489,26 +476,16 @@ func TestRouteTableFindSpecOrNoFilters(t *testing.T) {
 func TestRouteTableFindSpecSubnetNoSubnet(t *testing.T) {
 	c := make(map[string]interface{})
 	_, err := RouteTableFindSpec{Config: c, Type: "subnet"}.GetFilter()
-	if err == nil {
-		t.Fail()
-	} else {
-		if err.Error() != "No subnet_id in config for subnet route table finder" {
-			t.Log(err.Error())
-			t.Fail()
-		}
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "No subnet_id in config for subnet route table finder")
 	}
 }
 
 func TestRouteTableFindSpecHasRouteToNoCidr(t *testing.T) {
 	c := make(map[string]interface{})
 	_, err := RouteTableFindSpec{Config: c, Type: "has_route_to"}.GetFilter()
-	if err == nil {
-		t.Fail()
-	} else {
-		if err.Error() != "No cidr in config for has_route_to route table finder" {
-			t.Log(err.Error())
-			t.Fail()
-		}
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "No cidr in config for has_route_to route table finder")
 	}
 }
 
@@ -516,31 +493,22 @@ func TestRouteTableFindSpecSubnet(t *testing.T) {
 	c := make(map[string]interface{})
 	c["subnet_id"] = "subnet-12345"
 	_, err := RouteTableFindSpec{Config: c, Type: "subnet"}.GetFilter()
-	if err != nil {
-		t.Fail()
-	}
+	assert.Nil(t, err)
 }
 
 func TestRouteTableFindSpecHasRouteTo(t *testing.T) {
 	c := make(map[string]interface{})
 	c["cidr"] = "0.0.0.0/0"
 	_, err := RouteTableFindSpec{Config: c, Type: "has_route_to"}.GetFilter()
-	if err != nil {
-		t.Fail()
-	}
+	assert.Nil(t, err)
 }
 
 func TestRouteTableFindSpecMain(t *testing.T) {
 	c := make(map[string]interface{})
 	spec := RouteTableFindSpec{Config: c, Type: "main", Not: true}
 	f, err := spec.GetFilter()
-	if f == nil {
-		t.Fail()
-	}
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	assert.Nil(t, err)
+	assert.NotNil(t, f)
 }
 
 func TestGetFiltersListForSpec(t *testing.T) {
@@ -559,13 +527,8 @@ func TestGetFiltersListForSpec(t *testing.T) {
 	c["filters"] = filterStuff
 	spec := RouteTableFindSpec{Config: c}
 	filters, err := getFiltersListForSpec(spec)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-	if len(filters) != 2 {
-		t.Fail()
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, len(filters), 2)
 }
 
 func TestTableFindSpecAndOr(t *testing.T) {
@@ -584,22 +547,12 @@ func TestTableFindSpecAndOr(t *testing.T) {
 	c["filters"] = filterStuff
 	spec := RouteTableFindSpec{Config: c, Type: "and"}
 	f, err := spec.GetFilter()
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-	if f == nil {
-		t.Fail()
-	}
+	assert.Nil(t, err)
+	assert.NotNil(t, f)
 	spec2 := RouteTableFindSpec{Config: c, Type: "or"}
 	f, err = spec2.GetFilter()
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-	if f == nil {
-		t.Fail()
-	}
+	assert.Nil(t, err)
+	assert.NotNil(t, f)
 }
 
 func TestGetFiltersListForSpecWrongType(t *testing.T) {
@@ -609,6 +562,7 @@ func TestGetFiltersListForSpecWrongType(t *testing.T) {
 	_, err := getFiltersListForSpec(spec)
 	testhelpers.CheckOneMultiError(t, err, "unexpected type string for 'filters' key")
 }
+
 func TestGetFiltersListForSpecInnerFails(t *testing.T) {
 	d := make(map[string]interface{})
 	filterStuff := make([]interface{}, 1)
@@ -620,22 +574,11 @@ func TestGetFiltersListForSpecInnerFails(t *testing.T) {
 	c["filters"] = filterStuff
 	spec := RouteTableFindSpec{Config: c, Type: "or"}
 	_, err := spec.GetFilter()
-	if err == nil {
-		t.Fail()
-	} else {
-		if merr, ok := err.(*multierror.Error); ok {
-			if len(merr.Errors) != 2 {
-				t.Log(fmt.Printf("%d not 2 errors", len(merr.Errors)))
-				t.Fail()
-			}
-			if merr.Errors[1].Error() != "No value in config for by_tag route table finder for or route table finder" {
-				t.Log(merr.Errors[1])
-				t.Fail()
-			}
-		} else {
-			t.Log("Not multierror")
-			t.Log(err)
-			t.Fail()
+	if assert.NotNil(t, err) {
+		merr, ok := err.(*multierror.Error)
+		if assert.Equal(t, ok, true) {
+			assert.Equal(t, len(merr.Errors), 2, fmt.Sprintf("%d not 2 errors", len(merr.Errors)))
+			assert.Equal(t, merr.Errors[1].Error(), "No value in config for by_tag route table finder for or route table finder")
 		}
 	}
 }
