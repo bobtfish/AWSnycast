@@ -116,12 +116,8 @@ func TestHealthcheckRegisterNew(t *testing.T) {
 		Destination: "127.0.0.1",
 	}
 	_, err := h.GetHealthChecker()
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Test" {
-		t.Log(err.Error())
-		t.Fail()
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "Test")
 	}
 }
 
@@ -164,9 +160,7 @@ func TestHealthcheckRunSimple(t *testing.T) {
 	RegisterHealthcheck("test_fail", MyFakeHealthConstructorFail)
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 1}
 	ok, err := h_ok.GetHealthChecker()
-	if err != nil {
-		t.Fail()
-	}
+	assert.Nil(t, err)
 	h_fail := Healthcheck{Type: "test_fail", Destination: "127.0.0.1"}
 	fail, err := h_fail.GetHealthChecker()
 	assert.Nil(t, err)
@@ -282,39 +276,27 @@ func TestHealthcheckFallTen(t *testing.T) {
 func TestHealthcheckRun(t *testing.T) {
 	RegisterHealthcheck("test_ok", MyFakeHealthConstructorOk)
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
-	h_ok.Validate("foo", false)
+	assert.Nil(t, h_ok.Validate("foo", false))
 	h_ok.Setup()
 	h_ok.Run(true)
-	if !h_ok.IsRunning() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsRunning(), true)
 	h_ok.Run(true)
-	if !h_ok.IsRunning() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsRunning(), true)
 	h_ok.Stop()
 }
 
 func TestHealthcheckStop(t *testing.T) {
 	RegisterHealthcheck("test_ok", MyFakeHealthConstructorOk)
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
-	h_ok.Validate("foo", false)
+	assert.Nil(t, h_ok.Validate("foo", false))
 	h_ok.Setup()
-	if h_ok.IsRunning() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsRunning(), false)
 	h_ok.Stop()
-	if h_ok.IsRunning() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsRunning(), false)
 	h_ok.Run(false)
-	if !h_ok.IsRunning() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsRunning(), true)
 	h_ok.Stop()
-	if h_ok.IsRunning() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsRunning(), false)
 }
 
 func TestHealthcheckListener(t *testing.T) {
@@ -322,23 +304,12 @@ func TestHealthcheckListener(t *testing.T) {
 		Type:        "ping",
 		Destination: "127.0.0.1",
 	}
-	err := h.Validate("foo", false)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-	err = h.Setup()
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	assert.Nil(t, h.Validate("foo", false))
+	assert.Nil(t, h.Setup())
 	c := h.GetListener()
 	h.PerformHealthcheck()
 	h.PerformHealthcheck()
-	val := <-c
-	if val != true {
-		t.Fail()
-	}
+	assert.Equal(t, <-c, true)
 }
 
 func TestHealthcheckListenerUnhealthy(t *testing.T) {
@@ -347,23 +318,12 @@ func TestHealthcheckListenerUnhealthy(t *testing.T) {
 		Type:        "ping",
 		Destination: "127.0.0.1",
 	}
-	err := h.Validate("foo", false)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-	err = h.Setup()
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	assert.Nil(t, h.Validate("foo", false))
+	assert.Nil(t, h.Setup())
 	c := h.GetListener()
 	h.PerformHealthcheck()
 	h.PerformHealthcheck()
-	val := <-c
-	if val != false {
-		t.Fail()
-	}
+	assert.Equal(t, <-c, false)
 	pingCmd = "ping"
 }
 
@@ -372,35 +332,17 @@ func TestChangeDestination(t *testing.T) {
 		Type:        "ping",
 		Destination: "127.0.0.1",
 	}
-	err := h.Validate("foo", false)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-	err = h.Setup()
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	assert.Nil(t, h.Validate("foo", false))
+	assert.Nil(t, h.Setup())
 	h.PerformHealthcheck()
 	h.PerformHealthcheck()
 	pingCmd = "false"
-	if h.canPassYet == false {
-		t.Fail()
-	}
-	if h.runCount != 2 {
-		t.Fail()
-	}
+	assert.Equal(t, h.canPassYet, true)
+	assert.Equal(t, h.runCount, uint64(2))
 	n, err := h.NewWithDestination("127.0.0.2")
-	if err != nil {
-		t.Fail()
-	}
-	if n.canPassYet == true {
-		t.Fail()
-	}
-	if n.runCount != 0 {
-		t.Fail()
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, n.canPassYet, false)
+	assert.Equal(t, n.runCount, uint64(0))
 	pingCmd = "ping"
 }
 
@@ -409,30 +351,14 @@ func TestChangeDestinationFail(t *testing.T) {
 		Type:        "ping",
 		Destination: "127.0.0.1",
 	}
-	err := h.Validate("foo", false)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-	err = h.Setup()
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	assert.Nil(t, h.Validate("foo", false))
+	assert.Nil(t, h.Setup())
 	h.PerformHealthcheck()
 	h.PerformHealthcheck()
-	if h.canPassYet == false {
-		t.Fail()
-	}
-	if h.runCount != 2 {
-		t.Fail()
-	}
+	assert.Equal(t, h.canPassYet, true)
+	assert.Equal(t, h.runCount, uint64(2))
 	h.Type = "test_this_healthcheck_does_not_exist"
 	n, err := h.NewWithDestination("127.0.0.2")
-	if err == nil {
-		t.Fail()
-	}
-	if n.canPassYet == true {
-		t.Fail()
-	}
+	assert.NotNil(t, err)
+	assert.Equal(t, n.canPassYet, false)
 }
