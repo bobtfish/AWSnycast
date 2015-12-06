@@ -17,7 +17,10 @@ import (
 var tim instancemetadata.InstanceMetadata
 var rtm *FakeRouteTableManager
 
+var emptyHealthchecks map[string]*healthcheck.Healthcheck
+
 func init() {
+	emptyHealthchecks = make(map[string]*healthcheck.Healthcheck)
 	tim = instancemetadata.InstanceMetadata{
 		Instance: "i-1234",
 	}
@@ -93,13 +96,9 @@ func TestConfigDefault(t *testing.T) {
 	c := Config{
 		RouteTables: r,
 	}
-	c.Validate(tim, rtm)
-	if c.Healthchecks == nil {
-		t.Fail()
-	}
-	if c.RouteTables["a"].ManageRoutes[0].Cidr != "127.0.0.1/32" {
-		t.Fail()
-	}
+	assert.NotNil(t, c.Validate(tim, rtm))
+	assert.NotNil(t, c.Healthchecks)
+	assert.Equal(t, c.RouteTables["a"].ManageRoutes[0].Cidr, "127.0.0.1/32")
 }
 
 func TestConfigValidateNoRouteTables(t *testing.T) {
@@ -174,9 +173,7 @@ func TestConfigValidateNoHealthChecks(t *testing.T) {
 		RouteTables: c_disk.RouteTables,
 	}
 	err := c.Validate(tim, rtm)
-	if err == nil {
-		t.Fail()
-	}
+	assert.NotNil(t, err)
 }
 
 func TestConfigValidate(t *testing.T) {
@@ -193,16 +190,10 @@ func TestConfigValidate(t *testing.T) {
 	c := Config{
 		RouteTables: r,
 	}
-	err := c.Validate(tim, rtm)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	assert.Nil(t, c.Validate(tim, rtm))
 	rt := c.RouteTables["a"]
 	ur := rt.ManageRoutes[0]
-	if ur.Cidr != "127.0.0.1/32" {
-		t.Fail()
-	}
+	assert.Equal(t, ur.Cidr, "127.0.0.1/32")
 }
 
 func TestConfigValidateEmpty(t *testing.T) {
@@ -214,9 +205,7 @@ func TestConfigValidateEmpty(t *testing.T) {
 func TestRouteTableFindSpecDefault(t *testing.T) {
 	r := RouteTableFindSpec{}
 	r.Validate("foo")
-	if r.Config == nil {
-		t.Fail()
-	}
+	assert.NotNil(t, r.Config)
 }
 func TestRouteTableFindSpecValidate(t *testing.T) {
 	c := make(map[string]interface{})
@@ -226,11 +215,7 @@ func TestRouteTableFindSpecValidate(t *testing.T) {
 		Type:   "by_tag",
 		Config: c,
 	}
-	err := r.Validate("foo")
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	assert.Nil(t, r.Validate("foo"))
 }
 
 func TestRouteTableFindSpecValidateNoType(t *testing.T) {
@@ -267,12 +252,8 @@ func TestRouteTableFindSpecValidateNoConfig(t *testing.T) {
 func TestRouteTableDefaultEmpty(t *testing.T) {
 	r := RouteTable{}
 	r.Validate(tim, rtm, "foo", emptyHealthchecks, emptyHealthchecks)
-	if r.ManageRoutes == nil {
-		t.Fail()
-	}
-	if r.ec2RouteTables == nil {
-		t.Fail()
-	}
+	assert.NotNil(t, r.ManageRoutes)
+	assert.NotNil(t, r.ec2RouteTables)
 }
 
 func TestRouteTableDefault(t *testing.T) {
@@ -284,13 +265,9 @@ func TestRouteTableDefault(t *testing.T) {
 		ManageRoutes: routes,
 	}
 	r.Validate(tim, rtm, "foo", emptyHealthchecks, emptyHealthchecks)
-	if len(r.ManageRoutes) != 1 {
-		t.Fail()
-	}
+	assert.Equal(t, len(r.ManageRoutes), 1)
 	routeSpec := r.ManageRoutes[0]
-	if routeSpec.Cidr != "127.0.0.1/32" {
-		t.Fail()
-	}
+	assert.Equal(t, routeSpec.Cidr, "127.0.0.1/32")
 }
 
 func TestRouteTableValidateNoRoutes(t *testing.T) {
@@ -309,12 +286,6 @@ func TestRouteTableValidateNoRoutes(t *testing.T) {
 	testhelpers.CheckOneMultiError(t, err, "No manage_routes key in route table 'foo'")
 }
 
-var emptyHealthchecks map[string]*healthcheck.Healthcheck
-
-func init() {
-	emptyHealthchecks = make(map[string]*healthcheck.Healthcheck)
-}
-
 func TestRouteTableValidate(t *testing.T) {
 	routes := make([]*aws.ManageRoutesSpec, 1)
 	routes[0] = &aws.ManageRoutesSpec{
@@ -330,11 +301,7 @@ func TestRouteTableValidate(t *testing.T) {
 		},
 		ManageRoutes: routes,
 	}
-	err := r.Validate(tim, rtm, "foo", emptyHealthchecks, emptyHealthchecks)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	assert.Nil(t, r.Validate(tim, rtm, "foo", emptyHealthchecks, emptyHealthchecks))
 }
 
 func TestByTagRouteTableFindMissingKey(t *testing.T) {
@@ -345,9 +312,7 @@ func TestByTagRouteTableFindMissingKey(t *testing.T) {
 		Config: c,
 	}
 	rtf, err := rts.GetFilter()
-	if rtf != nil {
-		t.Fail()
-	}
+	assert.Nil(t, rtf)
 	testhelpers.CheckOneMultiError(t, err, "No key in config for by_tag route table finder")
 }
 
@@ -359,9 +324,7 @@ func TestByTagRouteTableFindMissingValue(t *testing.T) {
 		Config: c,
 	}
 	rtf, err := rts.GetFilter()
-	if rtf != nil {
-		t.Fail()
-	}
+	assert.Nil(t, rtf)
 	testhelpers.CheckOneMultiError(t, err, "No value in config for by_tag route table finder")
 }
 
@@ -374,12 +337,8 @@ func TestByTagRouteTableFind(t *testing.T) {
 		Config: c,
 	}
 	rtf, err := rts.GetFilter()
-	if rtf == nil {
-		t.Fail()
-	}
-	if err != nil {
-		t.Fail()
-	}
+	assert.NotNil(t, rtf)
+	assert.Nil(t, err)
 }
 
 func TestRouteTableFindUnknownType(t *testing.T) {
@@ -389,25 +348,16 @@ func TestRouteTableFindUnknownType(t *testing.T) {
 		Config: c,
 	}
 	rtf, err := rts.GetFilter()
-	if rtf != nil {
-		t.Fail()
-	}
-	if err == nil {
-		t.Fail()
-	}
+	assert.Nil(t, rtf)
+	assert.NotNil(t, err)
 }
 
 func TestUpdateEc2RouteTablesRouteTablesGetFilterFail(t *testing.T) {
 	awsRt := make([]*ec2.RouteTable, 0)
 	rt := &RouteTable{}
 	err := rt.UpdateEc2RouteTables(awsRt)
-	if err == nil {
-		t.Fail()
-	} else {
-		if err.Error() != "Route table finder type '' not found in the registry" {
-			t.Log(err)
-			t.Fail()
-		}
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "Route table finder type '' not found in the registry")
 	}
 }
 
@@ -423,20 +373,12 @@ func TestUpdateEc2RouteTablesNoRouteTablesInAWS(t *testing.T) {
 		},
 	}
 	err := rt.UpdateEc2RouteTables(awsRt)
-	if err == nil {
-		t.Fail()
-	} else {
-		if err.Error() != "No route table in AWS matched filter spec" {
-			t.Log(err)
-			t.Fail()
-		}
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "No route table in AWS matched filter spec")
 	}
 	rt.Find.NoResultsOk = true
 	err = rt.UpdateEc2RouteTables(awsRt)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	assert.Nil(t, err)
 }
 
 func TestUpdateEc2RouteTablesFindRouteTablesInAWS(t *testing.T) {
