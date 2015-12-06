@@ -10,9 +10,7 @@ import (
 func TestNew(t *testing.T) {
 	var mdf MetadataFetcher
 	mdf = New(true)
-	if mdf == nil {
-		t.Fail()
-	}
+	assert.NotNil(t, mdf)
 }
 
 type FakeMetadataFetcher struct {
