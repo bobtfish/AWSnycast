@@ -4,26 +4,35 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bobtfish/AWSnycast/testhelpers"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
+
+type MyFakeHealthCheck struct {
+	Healthy bool
+}
+
+func (h MyFakeHealthCheck) Healthcheck() bool {
+	return h.Healthy
+}
+
+func MyFakeHealthConstructorOk(h Healthcheck) (HealthChecker, error) {
+	return MyFakeHealthCheck{Healthy: true}, nil
+}
+
+func MyFakeHealthConstructorFail(h Healthcheck) (HealthChecker, error) {
+	return MyFakeHealthCheck{Healthy: false}, nil
+}
 
 func TestHealthcheckDefault(t *testing.T) {
 	h := Healthcheck{
 		Type: "ping",
 	}
 	h.Validate("foo", false)
-	if h.Rise != 2 {
-		t.Fail()
-	}
-	if h.Fall != 3 {
-		t.Fail()
-	}
-	if h.Config == nil {
-		t.Fail()
-	}
-	if h.listeners == nil {
-		t.Fail()
-	}
+	assert.Equal(t, h.Rise, uint(2))
+	assert.Equal(t, h.Fall, uint(3))
+	assert.NotNil(t, h.Config)
+	assert.NotNil(t, h.listeners)
 }
 
 func TestHealthcheckDefaultLengthRise(t *testing.T) {
@@ -32,9 +41,7 @@ func TestHealthcheckDefaultLengthRise(t *testing.T) {
 		Rise: 20,
 	}
 	h.Validate("foo", false)
-	if len(h.History) != 21 {
-		t.Fail()
-	}
+	assert.Equal(t, len(h.History), 21)
 }
 
 func TestHealthcheckDefaultLengthFall(t *testing.T) {
@@ -43,9 +50,7 @@ func TestHealthcheckDefaultLengthFall(t *testing.T) {
 		Fall: 20,
 	}
 	h.Validate("foo", false)
-	if len(h.History) != 21 {
-		t.Fail()
-	}
+	assert.Equal(t, len(h.History), 21)
 }
 
 func TestHealthcheckValidateNoType(t *testing.T) {
@@ -71,10 +76,7 @@ func TestHealthcheckValidate(t *testing.T) {
 		Destination: "127.0.0.1",
 	}
 	err := h.Validate("foo", false)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	assert.Nil(t, err)
 }
 
 func TestHealthcheckValidateFailNoDestination(t *testing.T) {
@@ -129,12 +131,8 @@ func TestHealthcheckGetHealthcheckNotExist(t *testing.T) {
 		Destination: "127.0.0.1",
 	}
 	_, err := h.GetHealthChecker()
-	if err == nil {
-		t.Fail()
-	}
-	if err.Error() != "Healthcheck type 'test_this_healthcheck_does_not_exist' not found in the healthcheck registry" {
-		t.Log(err.Error())
-		t.Fail()
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "Healthcheck type 'test_this_healthcheck_does_not_exist' not found in the healthcheck registry")
 	}
 }
 
@@ -144,29 +142,9 @@ func TestHealthcheckGetHealthcheckNotExistSetup(t *testing.T) {
 		Destination: "127.0.0.1",
 	}
 	err := h.Setup()
-	if err == nil {
-		t.Fail()
+	if assert.NotNil(t, err) {
+		assert.Equal(t, err.Error(), "Healthcheck type 'test_this_healthcheck_does_not_exist' not found in the healthcheck registry")
 	}
-	if err.Error() != "Healthcheck type 'test_this_healthcheck_does_not_exist' not found in the healthcheck registry" {
-		t.Log(err.Error())
-		t.Fail()
-	}
-}
-
-type MyFakeHealthCheck struct {
-	Healthy bool
-}
-
-func (h MyFakeHealthCheck) Healthcheck() bool {
-	return h.Healthy
-}
-
-func MyFakeHealthConstructorOk(h Healthcheck) (HealthChecker, error) {
-	return MyFakeHealthCheck{Healthy: true}, nil
-}
-
-func MyFakeHealthConstructorFail(h Healthcheck) (HealthChecker, error) {
-	return MyFakeHealthCheck{Healthy: false}, nil
 }
 
 func TestPerformHealthcheckNotSetup(t *testing.T) {
@@ -174,11 +152,8 @@ func TestPerformHealthcheckNotSetup(t *testing.T) {
 	defer func() {
 		// recover from panic if one occured. Set err to nil otherwise.
 		err := recover()
-		if err == nil {
-			t.Fail()
-		}
-		if err.(string) != "Setup() never called for healthcheck before Run" {
-			t.Fail()
+		if assert.NotNil(t, err) {
+			assert.Equal(t, err.(string), "Setup() never called for healthcheck before Run")
 		}
 	}()
 	h.PerformHealthcheck()
@@ -194,30 +169,16 @@ func TestHealthcheckRunSimple(t *testing.T) {
 	}
 	h_fail := Healthcheck{Type: "test_fail", Destination: "127.0.0.1"}
 	fail, err := h_fail.GetHealthChecker()
-	if err != nil {
-		t.Fail()
-	}
-	if !ok.Healthcheck() {
-		t.Fail()
-	}
-	if fail.Healthcheck() {
-		t.Fail()
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, ok.Healthcheck(), true)
+	assert.Equal(t, fail.Healthcheck(), false)
 	h_ok.Validate("foo", false)
 	h_ok.Setup()
-	if h_ok.IsHealthy() {
-		t.Fail()
-	}
-	if h_ok.CanPassYet() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), false)
+	assert.Equal(t, h_ok.CanPassYet(), false)
 	h_ok.PerformHealthcheck()
-	if !h_ok.IsHealthy() {
-		t.Fail()
-	}
-	if !h_ok.CanPassYet() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true)
+	assert.Equal(t, h_ok.CanPassYet(), true)
 }
 
 func TestHealthcheckRise(t *testing.T) {
@@ -225,57 +186,29 @@ func TestHealthcheckRise(t *testing.T) {
 	h_ok := Healthcheck{Type: "test_ok", Destination: "127.0.0.1", Rise: 2}
 	h_ok.Validate("foo", false)
 	h_ok.Setup()
-	if h_ok.IsHealthy() {
-		t.Log("Started healthy")
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), false, "Started healthy")
 	h_ok.PerformHealthcheck()
-	if h_ok.IsHealthy() {
-		t.Log("Became healthy after 1")
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), false, "Became healthy after 1")
 	h_ok.PerformHealthcheck()
-	if !h_ok.IsHealthy() {
-		t.Log("Never became healthy")
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true, "Never became healthy")
 	h_ok.PerformHealthcheck() // 3
-	if !h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true)
 	h_ok.PerformHealthcheck()
-	if !h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true)
 	h_ok.PerformHealthcheck()
-	if !h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true)
 	h_ok.PerformHealthcheck()
-	if !h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true)
 	h_ok.PerformHealthcheck()
-	if !h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true)
 	h_ok.PerformHealthcheck()
-	if !h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true)
 	h_ok.PerformHealthcheck()
-	if !h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true)
 	h_ok.PerformHealthcheck() // 10
-	if !h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true)
 	for i, v := range h_ok.History {
-		if !v {
-			t.Log(fmt.Printf("Index %d was unhealthy", i))
-			t.Fail()
-		}
+		assert.Equal(t, v, true, fmt.Sprintf("Index %d was unhealthy", i))
 	}
 }
 
@@ -286,57 +219,29 @@ func TestHealthcheckFall(t *testing.T) {
 	h_ok.Setup()
 	h_ok.History = []bool{true, true, true, true, true, true, true, true, true, true}
 	h_ok.isHealthy = true
-	if !h_ok.IsHealthy() {
-		t.Log("Started unhealthy")
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true, "Started unhealthy")
 	h_ok.PerformHealthcheck()
-	if !h_ok.IsHealthy() {
-		t.Log("Became unhealthy after 1 (expected 2)")
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true, "Became unhealthy after 1 (expected 2)")
 	h_ok.PerformHealthcheck()
-	if h_ok.IsHealthy() {
-		t.Log("Never became unhealthy")
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), false, "Never became unhealthy")
 	h_ok.PerformHealthcheck() // 3
-	if h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), false)
 	h_ok.PerformHealthcheck()
-	if h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), false)
 	h_ok.PerformHealthcheck()
-	if h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), false)
 	h_ok.PerformHealthcheck()
-	if h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), false)
 	h_ok.PerformHealthcheck()
-	if h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), false)
 	h_ok.PerformHealthcheck()
-	if h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), false)
 	h_ok.PerformHealthcheck()
-	if h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), false)
 	h_ok.PerformHealthcheck() // 10
-	if h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), false)
 	for i, v := range h_ok.History {
-		if v {
-			t.Log(fmt.Printf("Index %d was healthy", i))
-			t.Fail()
-		}
+		assert.Equal(t, v, false, fmt.Sprintf("Index %d was healthy", i))
 	}
 }
 
@@ -347,59 +252,30 @@ func TestHealthcheckFallTen(t *testing.T) {
 	h_ok.Setup()
 	h_ok.History = []bool{true, true, true, true, true, true, true, true, true, true, true}
 	h_ok.isHealthy = true
-	if !h_ok.IsHealthy() {
-		t.Log("Started unhealthy")
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true, "Started unhealthy")
 	h_ok.PerformHealthcheck()
-	if !h_ok.IsHealthy() {
-		t.Log("Became unhealthy after 1 (expected 2)")
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true, "Became unhealthy after 1 (expected 2)")
 	h_ok.PerformHealthcheck()
-	if !h_ok.IsHealthy() {
-		t.Log("Never unhealthy")
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true, "Never unhealthy")
 	h_ok.PerformHealthcheck() // 3
-	if !h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true)
 	h_ok.PerformHealthcheck()
-	if !h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true)
 	h_ok.PerformHealthcheck()
-	if !h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true)
 	h_ok.PerformHealthcheck()
-	if !h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true)
 	h_ok.PerformHealthcheck()
-	if !h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true)
 	h_ok.PerformHealthcheck()
-	if !h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true)
 	h_ok.PerformHealthcheck()
-	if !h_ok.IsHealthy() {
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), true)
 	h_ok.PerformHealthcheck() // 10
-	if h_ok.IsHealthy() {
-		t.Log("Didn't become unhealthy after 10")
-		t.Fail()
-	}
+	assert.Equal(t, h_ok.IsHealthy(), false, "Didn't become unhealthy after 10")
 	h_ok.PerformHealthcheck() // 11 to get false all through history
 	for i, v := range h_ok.History {
-		if v {
-			t.Log(fmt.Printf("Index %d was healthy", i))
-			t.Fail()
-		}
+		assert.Equal(t, v, false, fmt.Sprintf("Index %d was healthy", i))
 	}
 }
 
