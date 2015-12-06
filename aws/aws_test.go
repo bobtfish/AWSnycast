@@ -228,6 +228,53 @@ func init() {
 	im2 = instancemetadata.InstanceMetadata{Instance: "i-other"}
 }
 
+func NewFakeEC2Conn() *FakeEC2Conn {
+	return &FakeEC2Conn{
+		DescribeRouteTablesOutput: &ec2.DescribeRouteTablesOutput{
+			RouteTables: make([]*ec2.RouteTable, 0),
+		},
+	}
+}
+
+type FakeEC2Conn struct {
+	CreateRouteOutput         *ec2.CreateRouteOutput
+	CreateRouteError          error
+	CreateRouteInput          *ec2.CreateRouteInput
+	ReplaceRouteOutput        *ec2.ReplaceRouteOutput
+	ReplaceRouteError         error
+	ReplaceRouteInput         *ec2.ReplaceRouteInput
+	DeleteRouteInput          *ec2.DeleteRouteInput
+	DeleteRouteOutput         *ec2.DeleteRouteOutput
+	DeleteRouteError          error
+	DescribeRouteTablesInput  *ec2.DescribeRouteTablesInput
+	DescribeRouteTablesOutput *ec2.DescribeRouteTablesOutput
+	DescribeRouteTablesError  error
+}
+
+func (f *FakeEC2Conn) DescribeInstanceAttribute(i *ec2.DescribeInstanceAttributeInput) (*ec2.DescribeInstanceAttributeOutput, error) {
+	return nil, nil
+}
+
+func (f *FakeEC2Conn) CreateRoute(i *ec2.CreateRouteInput) (*ec2.CreateRouteOutput, error) {
+	f.CreateRouteInput = i
+	return f.CreateRouteOutput, f.CreateRouteError
+}
+func (f *FakeEC2Conn) ReplaceRoute(i *ec2.ReplaceRouteInput) (*ec2.ReplaceRouteOutput, error) {
+	f.ReplaceRouteInput = i
+	return f.ReplaceRouteOutput, f.ReplaceRouteError
+}
+func (f *FakeEC2Conn) DeleteRoute(i *ec2.DeleteRouteInput) (*ec2.DeleteRouteOutput, error) {
+	f.DeleteRouteInput = i
+	return f.DeleteRouteOutput, f.DeleteRouteError
+}
+func (f *FakeEC2Conn) DescribeRouteTables(i *ec2.DescribeRouteTablesInput) (*ec2.DescribeRouteTablesOutput, error) {
+	f.DescribeRouteTablesInput = i
+	return f.DescribeRouteTablesOutput, f.DescribeRouteTablesError
+}
+func (f *FakeEC2Conn) DescribeNetworkInterfaces(*ec2.DescribeNetworkInterfacesInput) (*ec2.DescribeNetworkInterfacesOutput, error) {
+	return nil, nil
+}
+
 func TestMetaDataFetcher(t *testing.T) {
 	_ = NewMetadataFetcher(false)
 	_ = NewMetadataFetcher(true)
@@ -377,13 +424,8 @@ func TestRouteTableFilterDestinationCidrBlock(t *testing.T) {
 	f := RouteTableFilterDestinationCidrBlock{
 		DestinationCidrBlock: "0.0.0.0/0",
 	}
-
-	if f.Keep(&rtb1) {
-		t.Fail()
-	}
-	if !f.Keep(&rtb2) {
-		t.Fail()
-	}
+	assert.Equal(t, f.Keep(&rtb1), false)
+	assert.Equal(t, f.Keep(&rtb2), true)
 }
 
 func TestRouteTableFilterDestinationCidrBlockViaIGW(t *testing.T) {
@@ -391,12 +433,8 @@ func TestRouteTableFilterDestinationCidrBlockViaIGW(t *testing.T) {
 		DestinationCidrBlock: "0.0.0.0/0",
 		ViaIGW:               true,
 	}
-	if f.Keep(&rtb2) {
-		t.Fail()
-	}
-	if !f.Keep(&rtb4) {
-		t.Fail()
-	}
+	assert.Equal(t, f.Keep(&rtb2), false)
+	assert.Equal(t, f.Keep(&rtb4), true)
 }
 
 func TestRouteTableFilterDestinationCidrBlockViaInstance(t *testing.T) {
@@ -405,13 +443,9 @@ func TestRouteTableFilterDestinationCidrBlockViaInstance(t *testing.T) {
 		ViaInstance:          true,
 	}
 	/* Via IGW */
-	if f.Keep(&rtb4) {
-		t.Fail()
-	}
+	assert.Equal(t, f.Keep(&rtb4), false)
 	/* Via instance */
-	if !f.Keep(&rtb2) {
-		t.Fail()
-	}
+	assert.Equal(t, f.Keep(&rtb2), true)
 }
 
 func TestRouteTableFilterDestinationCidrBlockViaInstanceInactive(t *testing.T) {
@@ -420,12 +454,8 @@ func TestRouteTableFilterDestinationCidrBlockViaInstanceInactive(t *testing.T) {
 		ViaInstance:          true,
 		InstanceNotActive:    true,
 	}
-	if f.Keep(&rtb2) {
-		t.Fail()
-	}
-	if !f.Keep(&rtb5) {
-		t.Fail()
-	}
+	assert.Equal(t, f.Keep(&rtb2), false)
+	assert.Equal(t, f.Keep(&rtb5), true)
 }
 
 func TestRouteTableFilterTagMatch(t *testing.T) {
@@ -433,84 +463,23 @@ func TestRouteTableFilterTagMatch(t *testing.T) {
 		Key:   "Name",
 		Value: "uswest1 devb private insecure",
 	}
-	if f.Keep(&rtb2) {
-		t.Fail()
-	}
-	if !f.Keep(&rtb1) {
-		t.Fail()
-	}
+	assert.Equal(t, f.Keep(&rtb2), false)
+	assert.Equal(t, f.Keep(&rtb1), true)
 }
 
 func TestGetCreateRouteInput(t *testing.T) {
 	rtb := ec2.RouteTable{RouteTableId: aws.String("rtb-1234")}
 	in := getCreateRouteInput(rtb, "0.0.0.0/0", "i-12345", false)
-	if *(in.RouteTableId) != "rtb-1234" {
-		t.Fail()
-	}
-	if *(in.DestinationCidrBlock) != "0.0.0.0/0" {
-		t.Fail()
-	}
-	if *(in.InstanceId) != "i-12345" {
-		t.Fail()
-	}
-	if *(in.DryRun) != false {
-		t.Fail()
-	}
+	assert.Equal(t, *(in.RouteTableId), "rtb-1234")
+	assert.Equal(t, *(in.DestinationCidrBlock), "0.0.0.0/0")
+	assert.Equal(t, *(in.InstanceId), "i-12345")
+	assert.Equal(t, *(in.DryRun), false)
 }
 
 func TestGetCreateRouteInputDryRun(t *testing.T) {
 	rtb := ec2.RouteTable{RouteTableId: aws.String("rtb-1234")}
 	in := getCreateRouteInput(rtb, "0.0.0.0/0", "i-12345", true)
-	if *(in.DryRun) != true {
-		t.Fail()
-	}
-}
-
-func NewFakeEC2Conn() *FakeEC2Conn {
-	return &FakeEC2Conn{
-		DescribeRouteTablesOutput: &ec2.DescribeRouteTablesOutput{
-			RouteTables: make([]*ec2.RouteTable, 0),
-		},
-	}
-}
-
-type FakeEC2Conn struct {
-	CreateRouteOutput         *ec2.CreateRouteOutput
-	CreateRouteError          error
-	CreateRouteInput          *ec2.CreateRouteInput
-	ReplaceRouteOutput        *ec2.ReplaceRouteOutput
-	ReplaceRouteError         error
-	ReplaceRouteInput         *ec2.ReplaceRouteInput
-	DeleteRouteInput          *ec2.DeleteRouteInput
-	DeleteRouteOutput         *ec2.DeleteRouteOutput
-	DeleteRouteError          error
-	DescribeRouteTablesInput  *ec2.DescribeRouteTablesInput
-	DescribeRouteTablesOutput *ec2.DescribeRouteTablesOutput
-	DescribeRouteTablesError  error
-}
-
-func (f *FakeEC2Conn) DescribeInstanceAttribute(i *ec2.DescribeInstanceAttributeInput) (*ec2.DescribeInstanceAttributeOutput, error) {
-	return nil, nil
-}
-
-func (f *FakeEC2Conn) CreateRoute(i *ec2.CreateRouteInput) (*ec2.CreateRouteOutput, error) {
-	f.CreateRouteInput = i
-	return f.CreateRouteOutput, f.CreateRouteError
-}
-func (f *FakeEC2Conn) ReplaceRoute(i *ec2.ReplaceRouteInput) (*ec2.ReplaceRouteOutput, error) {
-	f.ReplaceRouteInput = i
-	return f.ReplaceRouteOutput, f.ReplaceRouteError
-}
-func (f *FakeEC2Conn) DeleteRoute(i *ec2.DeleteRouteInput) (*ec2.DeleteRouteOutput, error) {
-	f.DeleteRouteInput = i
-	return f.DeleteRouteOutput, f.DeleteRouteError
-}
-func (f *FakeEC2Conn) DescribeRouteTables(i *ec2.DescribeRouteTablesInput) (*ec2.DescribeRouteTablesOutput, error) {
-	f.DescribeRouteTablesInput = i
-	return f.DescribeRouteTablesOutput, f.DescribeRouteTablesError
-}
-func (f *FakeEC2Conn) DescribeNetworkInterfaces(*ec2.DescribeNetworkInterfacesInput) (*ec2.DescribeNetworkInterfacesOutput, error) {
-	return nil, nil
+	assert.Equal(t, *(in.DryRun), true)
 }
 
 func TestFindRouteFromRouteTableNoCidr(t *testing.T) {
