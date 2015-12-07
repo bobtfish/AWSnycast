@@ -915,3 +915,31 @@ func TestStartHealthcheckListenerNoHealthcheck(t *testing.T) {
 	rs := &ManageRoutesSpec{}
 	rs.StartHealthcheckListener(false)
 }
+
+func TestUpdateRemoteHealthchecksEmpty(t *testing.T) {
+	rs := &ManageRoutesSpec{
+		Cidr: "127.0.0.1",
+		RemoteHealthcheckName: "test",
+	}
+	err := rs.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
+	testhelpers.CheckOneMultiError(t, err, "Route tables foo, route 127.0.0.1/32 cannot find remote healthcheck 'test'")
+	rs.UpdateRemoteHealthchecks()
+}
+func TestUpdateRemoteHealthchecksNoHealthcheck(t *testing.T) {
+	rt := make([]*ec2.RouteTable, 0)
+	hc := make(map[string]*healthcheck.Healthcheck)
+	hc["192.168.1.1"] = &healthcheck.Healthcheck{}
+	rs := &ManageRoutesSpec{
+		Cidr: "127.0.0.1",
+		RemoteHealthcheckName: "test",
+		ec2RouteTables:        rt,
+	}
+	rs.remotehealthchecks = hc
+	templates := make(map[string]*healthcheck.Healthcheck)
+	templates["test"] = &healthcheck.Healthcheck{}
+	err := rs.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, templates)
+	assert.Nil(t, err)
+	rs.UpdateRemoteHealthchecks()
+	_, _ = hc["192.168.1.1"]
+	//assert.Equal(t, ok, false, "Has been deleted")
+}
