@@ -62,7 +62,7 @@ func (r *ManageRoutesSpec) Validate(meta instancemetadata.InstanceMetadata, mana
 		if hc, ok := remotehealthchecks[r.RemoteHealthcheckName]; ok {
 			r.remotehealthchecktemplate = hc
 		} else {
-			result = multierror.Append(result, errors.New(fmt.Sprintf("Route table %s, route %s cannot find healthcheck '%s'", name, r.Cidr, r.RemoteHealthcheckName)))
+			result = multierror.Append(result, errors.New(fmt.Sprintf("Route tables %s, route %s cannot find remote healthcheck '%s'", name, r.Cidr, r.RemoteHealthcheckName)))
 		}
 	}
 	return result.ErrorOrNil()

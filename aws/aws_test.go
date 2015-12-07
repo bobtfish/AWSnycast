@@ -746,6 +746,16 @@ func TestManageRoutesSpecValidateWithHealthcheck(t *testing.T) {
 	assert.Equal(t, h["test"], r.healthcheck, "r.healthcheck not set")
 }
 
+func TestManageRoutesSpecValidateMissingRemoteHealthcheck(t *testing.T) {
+	r := ManageRoutesSpec{
+		Cidr:                  "0.0.0.0/0",
+		Instance:              "SELF",
+		RemoteHealthcheckName: "test",
+	}
+	err := r.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, emptyHealthchecks)
+	testhelpers.CheckOneMultiError(t, err, "Route tables foo, route 0.0.0.0/0 cannot find remote healthcheck 'test'")
+}
+
 func TestManageRoutesSpecValidateWithRemoteHealthcheck(t *testing.T) {
 	r := ManageRoutesSpec{
 		Cidr:                  "0.0.0.0/0",
