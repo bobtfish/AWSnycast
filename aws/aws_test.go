@@ -746,6 +746,19 @@ func TestManageRoutesSpecValidateWithHealthcheck(t *testing.T) {
 	assert.Equal(t, h["test"], r.healthcheck, "r.healthcheck not set")
 }
 
+func TestManageRoutesSpecValidateWithRemoteHealthcheck(t *testing.T) {
+	r := ManageRoutesSpec{
+		Cidr:                  "0.0.0.0/0",
+		Instance:              "SELF",
+		RemoteHealthcheckName: "test",
+	}
+	h := make(map[string]*healthcheck.Healthcheck)
+	h["test"] = &healthcheck.Healthcheck{}
+	err := r.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, h)
+	assert.Nil(t, err)
+	assert.Equal(t, h["test"], r.remotehealthchecktemplate, "r.temptehealthchecktemplate not set")
+}
+
 func TestManageRouteSpecStartHealthcheckListenerNoHealthcheck(t *testing.T) {
 	urs := ManageRoutesSpec{
 		Cidr:     "127.0.0.1",
