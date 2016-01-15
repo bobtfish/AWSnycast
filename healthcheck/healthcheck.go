@@ -44,6 +44,7 @@ type Healthcheck struct {
 	quitChan      chan<- bool       `yaml:"-"`
 	hasQuitChan   <-chan bool       `yaml:"-"`
 	listeners     []chan<- bool     `yaml:"-"`
+	tlsConnection bool              `yaml:"-"`
 }
 
 func (h *Healthcheck) NewWithDestination(destination string) (*Healthcheck, error) {

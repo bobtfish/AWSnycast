@@ -141,7 +141,7 @@ func TestConfigBadHealthcheck(t *testing.T) {
 		Type:        "testconstructorfail",
 		Destination: "127.0.0.1",
 	}
-	err := setupHealthchecks(c)
+	err := setupHealthchecks(c, false)
 	if assert.NotNil(t, err) {
 		assert.Equal(t, err.Error(), "Test")
 	}
