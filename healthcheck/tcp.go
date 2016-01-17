@@ -23,6 +23,7 @@ type TcpHealthCheck struct {
 	Expect      string
 	TLS         bool
 	x509        []byte
+	SkipVerify  bool
 }
 
 func (h TcpHealthCheck) GetConnection() {
@@ -36,7 +37,8 @@ func (h TcpHealthCheck) GetConnection() {
 			"tcp",
 			h.Destination+":"+h.Port,
 			&tls.Config{
-				RootCAs: roots,
+				RootCAs:            roots,
+				InsecureSkipVerify: h.SkipVerify,
 			},
 		)
 	} else {
@@ -106,6 +108,7 @@ func TcpConstructor(h Healthcheck) (HealthChecker, error) {
 		Port:        h.Config["port"],
 		TLS:         h.tlsConnection,
 		x509:        x509,
+		SkipVerify:  h.Config["skipVerify"],
 	}
 	if v, ok := h.Config["expect"]; ok {
 		hc.Expect = v
