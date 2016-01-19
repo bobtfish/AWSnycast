@@ -58,7 +58,7 @@ func (d *Daemon) Setup() error {
 
 func setupHealthchecks(c *config.Config, tlsHealthCheck bool) error {
 	for _, v := range c.Healthchecks {
-		v.tlsConnection = tlsHealthCheck
+		v.TlsConnection = tlsHealthCheck
 		err := v.Setup()
 		if err != nil {
 			return err

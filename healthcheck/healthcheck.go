@@ -39,12 +39,12 @@ type Healthcheck struct {
 	Every         uint              `yaml:"every"`
 	History       []bool            `yaml:"-"`
 	Config        map[string]string `yaml:"config"`
+	TlsConnection bool              `yaml:"-"`
 	healthchecker HealthChecker     `yaml:"-"`
 	isRunning     bool              `yaml:"-"`
 	quitChan      chan<- bool       `yaml:"-"`
 	hasQuitChan   <-chan bool       `yaml:"-"`
 	listeners     []chan<- bool     `yaml:"-"`
-	tlsConnection bool              `yaml:"-"`
 }
 
 func (h *Healthcheck) NewWithDestination(destination string) (*Healthcheck, error) {
