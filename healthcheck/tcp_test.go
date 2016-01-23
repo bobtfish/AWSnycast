@@ -1,12 +1,13 @@
 package healthcheck
 
 import (
-	"bufio"
 	"crypto/tls"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"net"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
