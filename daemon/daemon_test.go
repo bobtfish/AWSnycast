@@ -175,7 +175,7 @@ func TestSetupBadConfigFile(t *testing.T) {
 	if assert.NotNil(t, err) {
 		assert.Equal(t, err.Error(), "open ../tests/doesnotexist.yaml: no such file or directory")
 	}
-	assert.Equal(t, d.Run(true, false), 1)
+	assert.Equal(t, d.Run(true, false, false), 1)
 }
 
 func TestSetupHealthChecks(t *testing.T) {
@@ -192,7 +192,7 @@ func TestSetupHealthChecks(t *testing.T) {
 
 func TestRunOneShotFail(t *testing.T) {
 	d := getD(true)
-	assert.Equal(t, d.Run(true, true), 1)
+	assert.Equal(t, d.Run(true, true, false), 1)
 }
 
 func TestRunOneShot(t *testing.T) {
@@ -225,7 +225,7 @@ func TestRunOneShot(t *testing.T) {
 		},
 	}
 	d.RouteTableManager.(*FakeRouteTableManager).Tables = awsRt
-	assert.Equal(t, d.Run(true, true), 0)
+	assert.Equal(t, d.Run(true, true, false), 0)
 }
 
 func TestRunOneRouteTableGetFilterFail(t *testing.T) {
@@ -397,7 +397,7 @@ func TestRunOneReal(t *testing.T) {
 	d.RouteTableManager.(*FakeRouteTableManager).Tables = awsRt
 	hasFinishedRunLoop := make(chan bool, 1)
 	go func() {
-		assert.Equal(t, d.Run(false, true), 0, "Run was not successful")
+		assert.Equal(t, d.Run(false, true, false), 0, "Run was not successful")
 		hasFinishedRunLoop <- true
 	}()
 	time.Sleep(time.Millisecond)
