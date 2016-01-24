@@ -429,12 +429,12 @@ func TestHealthcheckTcpTLS(t *testing.T) {
 		c["cert"] = string(serverPEM)
 		c["serverName"] = "127.0.0.1"
 		c["skipVerify"] = "true"
+		c["ssl"] = "true"
 
 		h := Healthcheck{
-			Type:          "tcp",
-			Destination:   "127.0.0.1",
-			Config:        c,
-			TlsConnection: true,
+			Type:        "tcp",
+			Destination: "127.0.0.1",
+			Config:      c,
 		}
 		err = h.Validate("foo", false)
 		assert.Nil(t, err)
@@ -487,12 +487,12 @@ func TestHealthcheckTcpTLSSkipVerify(t *testing.T) {
 		c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
 		c["expect"] = "200 OK"
 		c["skipVerify"] = "true"
+		c["ssl"] = "true"
 
 		h := Healthcheck{
-			Type:          "tcp",
-			Destination:   "127.0.0.1",
-			Config:        c,
-			TlsConnection: true,
+			Type:        "tcp",
+			Destination: "127.0.0.1",
+			Config:      c,
 		}
 		err = h.Validate("foo", false)
 		assert.Nil(t, err)
@@ -545,12 +545,12 @@ func TestHealthcheckTcpTLSEmptyExpect(t *testing.T) {
 		c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
 		c["expect"] = ""
 		c["skipVerify"] = "true"
+		c["ssl"] = "true"
 
 		h := Healthcheck{
-			Type:          "tcp",
-			Destination:   "127.0.0.1",
-			Config:        c,
-			TlsConnection: true,
+			Type:        "tcp",
+			Destination: "127.0.0.1",
+			Config:      c,
 		}
 		err = h.Validate("foo", false)
 		assert.Nil(t, err)
@@ -570,12 +570,12 @@ func TestHealthcheckTcpTLSFailedParse(t *testing.T) {
 	c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
 	c["expect"] = "200 OK"
 	c["cert"] = string("Hello")
+	c["ssl"] = "true"
 
 	h := Healthcheck{
-		Type:          "tcp",
-		Destination:   "127.0.0.1",
-		Config:        c,
-		TlsConnection: true,
+		Type:        "tcp",
+		Destination: "127.0.0.1",
+		Config:      c,
 	}
 	err := h.Validate("foo", false)
 	assert.Nil(t, err)
@@ -626,12 +626,12 @@ func TestHealthcheckTcpTLSFailedread(t *testing.T) {
 		c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
 		c["expect"] = "200 OK"
 		c["skipVerify"] = "true"
+		c["ssl"] = "true"
 
 		h := Healthcheck{
-			Type:          "tcp",
-			Destination:   "127.0.0.1",
-			Config:        c,
-			TlsConnection: true,
+			Type:        "tcp",
+			Destination: "127.0.0.1",
+			Config:      c,
 		}
 		err = h.Validate("foo", false)
 		assert.Nil(t, err)
@@ -648,12 +648,12 @@ func TestHealthcheckTcpTLSFailedread(t *testing.T) {
 func TestHealthcheckTcpTLSFailedConnet(t *testing.T) {
 	c := make(map[string]string)
 	c["port"] = "hello"
+	c["ssl"] = "true"
 
 	h := Healthcheck{
-		Type:          "tcp",
-		Destination:   "rollover",
-		Config:        c,
-		TlsConnection: true,
+		Type:        "tcp",
+		Destination: "rollover",
+		Config:      c,
 	}
 	err := h.Setup()
 	if assert.Nil(t, err) {
@@ -667,12 +667,26 @@ func TestHealthcheckTcpTLSFailedParseSkipVerify(t *testing.T) {
 	c := make(map[string]string)
 	c["port"] = "0"
 	c["skipVerify"] = "bye"
+	c["ssl"] = "true"
 
 	h := Healthcheck{
-		Type:          "tcp",
-		Destination:   "127.0.0.1",
-		Config:        c,
-		TlsConnection: true,
+		Type:        "tcp",
+		Destination: "127.0.0.1",
+		Config:      c,
+	}
+	err := h.Setup()
+	assert.NotNil(t, err)
+}
+
+func TestHealthcheckTcpTLSFailedParseSSL(t *testing.T) {
+	c := make(map[string]string)
+	c["port"] = "0"
+	c["ssl"] = "bye"
+
+	h := Healthcheck{
+		Type:        "tcp",
+		Destination: "127.0.0.1",
+		Config:      c,
 	}
 	err := h.Setup()
 	assert.NotNil(t, err)
@@ -682,12 +696,12 @@ func TestHealthcheckTcpTLSFailedCertPath(t *testing.T) {
 	c := make(map[string]string)
 	c["port"] = "0"
 	c["certPath"] = "fakeFile"
+	c["ssl"] = "true"
 
 	h := Healthcheck{
-		Type:          "tcp",
-		Destination:   "127.0.0.1",
-		Config:        c,
-		TlsConnection: true,
+		Type:        "tcp",
+		Destination: "127.0.0.1",
+		Config:      c,
 	}
 	err := h.Setup()
 	assert.NotNil(t, err)
@@ -697,12 +711,12 @@ func TestHealthcheckTcpTLSCertPath(t *testing.T) {
 	c := make(map[string]string)
 	c["port"] = "0"
 	c["certPath"] = tmpTestFakeFile
+	c["ssl"] = "true"
 
 	h := Healthcheck{
-		Type:          "tcp",
-		Destination:   "127.0.0.1",
-		Config:        c,
-		TlsConnection: true,
+		Type:        "tcp",
+		Destination: "127.0.0.1",
+		Config:      c,
 	}
 	err := h.Setup()
 	assert.Nil(t, err)

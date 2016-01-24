@@ -149,7 +149,6 @@ func TcpConstructor(h Healthcheck) (HealthChecker, error) {
 	hc := TcpHealthCheck{
 		Destination: h.Destination,
 		Port:        h.Config["port"],
-		TLS:         h.TlsConnection,
 	}
 	if v, ok := h.Config["expect"]; ok {
 		hc.Expect = v
@@ -158,29 +157,37 @@ func TcpConstructor(h Healthcheck) (HealthChecker, error) {
 		hc.Send = v
 	}
 
-	if val, exists := h.Config["certPath"]; h.TlsConnection && exists {
-		x509, err := ioutil.ReadFile(val)
-		if err != nil {
-			return TcpHealthCheck{}, errors.New("'cert' refers to a file that can not be parsed" + val)
+	if val, exists := h.Config["ssl"]; exists {
+		ssl, er := strconv.ParseBool(val)
+		if er != nil {
+			return TcpHealthCheck{}, errors.New("'ssl' has to be true or false, input: " + val)
 		}
-		hc.x509 = x509
-	}
+		hc.TLS = ssl
 
-	if val, exists := h.Config["cert"]; h.TlsConnection && exists {
-		x509 := []byte(val)
-		hc.x509 = x509
-	}
-
-	if val, exists := h.Config["skipVerify"]; exists {
-		skipVerify, err := strconv.ParseBool(val)
-		if err != nil {
-			return TcpHealthCheck{}, errors.New("'skipVerify' has to be true or false, input: " + val)
+		if val, exists := h.Config["certPath"]; exists {
+			x509, err := ioutil.ReadFile(val)
+			if err != nil {
+				return TcpHealthCheck{}, errors.New("'cert' refers to a file that can not be parsed" + val)
+			}
+			hc.x509 = x509
 		}
-		hc.SkipVerify = skipVerify
-	}
 
-	if val, exists := h.Config["serverName"]; exists {
-		hc.ServerName = string(val)
+		if val, exists := h.Config["cert"]; exists {
+			x509 := []byte(val)
+			hc.x509 = x509
+		}
+
+		if val, exists := h.Config["skipVerify"]; exists {
+			skipVerify, err := strconv.ParseBool(val)
+			if err != nil {
+				return TcpHealthCheck{}, errors.New("'skipVerify' has to be true or false, input: " + val)
+			}
+			hc.SkipVerify = skipVerify
+		}
+
+		if val, exists := h.Config["serverName"]; exists {
+			hc.ServerName = string(val)
+		}
 	}
 	return hc, nil
 }

@@ -12,7 +12,6 @@ import (
 type Daemon struct {
 	oneShot           bool
 	noop              bool
-	tlsHealthCheck    bool
 	ConfigFile        string
 	Debug             bool
 	Config            *config.Config
@@ -53,12 +52,11 @@ func (d *Daemon) Setup() error {
 		d.FetchWait = time.Second * time.Duration(config.PollTime)
 	}
 
-	return setupHealthchecks(d.Config, d.tlsHealthCheck)
+	return setupHealthchecks(d.Config)
 }
 
-func setupHealthchecks(c *config.Config, tlsHealthCheck bool) error {
+func setupHealthchecks(c *config.Config) error {
 	for _, v := range c.Healthchecks {
-		v.TlsConnection = tlsHealthCheck
 		err := v.Setup()
 		if err != nil {
 			return err
@@ -106,10 +104,9 @@ func (d *Daemon) RunRouteTables() error {
 	return nil
 }
 
-func (d *Daemon) Run(oneShot bool, noop bool, tlsHealthCheck bool) int {
+func (d *Daemon) Run(oneShot bool, noop bool) int {
 	d.oneShot = oneShot
 	d.noop = noop
-	d.tlsHealthCheck = tlsHealthCheck
 	if err := d.Setup(); err != nil {
 		log.WithFields(log.Fields{"err": err.Error()}).Error("Error in initial setup")
 		return 1
