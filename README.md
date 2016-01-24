@@ -7,9 +7,7 @@ extension of in-datacenter Anycast. It can also be used to provide HA NAT servic
 
 # WARNING
 
-master is currently *highly* unstable.
-
-If you're crazy enough to want to use this, please use release version 0.0.8
+Please use release version 0.0.8 rather than master.
 
 # NAT
 
@@ -110,7 +108,7 @@ or you can install the .deb or .rpm packages found at the same location
 
 # Building from source
 
-You need go installed to build this project (go 1.4 or 1.5). 
+You need go installed to build this project (tested on go 1.5). 
 
 Once you have go installed, and a GOPATH setup, you should be able
 to install with:
@@ -366,11 +364,8 @@ are uploaded to github - see the CHANGELOG.md for information about what is in e
 Note that currently this project is pre-1.0, so I reserve the right to make massive sweeping changes
 between versions.
 
-Also, I've properly tested *only* the stuff in tests/integration, so YMMV and this may eat your lunch,
-and completely mess up your AWS account! You are *HIGHLY* recommended to become confident using the _-noop_
+Note also that incorrecy use of this project can completely mess up your AWS routing tables, and make your instances inaccessible! You are *HIGHLY* recommended to become confident using the _-noop_
 mode before running this for real!
-
-Once I've got something that *I* am happy deploying to production, I'll cut a 1.0.0 and switch to semver.
 
 # TODO
 
@@ -378,7 +373,6 @@ This project is currently under heavy development.
 
 Here's a list of the features that I'm planning to work on next, in approximate order:
 
-  * Remote healthchecks
   * Command healthcheck
   * Run scripts before / after takeover of route
   * Autodetect this machine's AZ
