@@ -406,7 +406,7 @@ func TestHealthcheckTcpTLSSkipVerify(t *testing.T) {
 		c := make(map[string]string)
 		c["port"] = fmt.Sprintf("%d", port)
 		c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
-		c["expect"] = "200 OK"
+		c["expect"] = "OK"
 		c["skipVerify"] = "true"
 
 		h := Healthcheck{
