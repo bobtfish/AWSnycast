@@ -11,12 +11,13 @@ import (
 )
 
 var (
-	debug        = flag.Bool("debug", false, "Enable debugging")
-	f            = flag.String("f", "/etc/awsnycast.yaml", "Configration file")
-	oneshot      = flag.Bool("oneshot", false, "Run route table manipulation exactly once, ignoring healthchecks, then exit")
-	noop         = flag.Bool("noop", false, "Don't actually *do* anything, just print what would be done")
-	printVersion = flag.Bool("version", false, "Print the version number")
-	logToSyslog  = flag.Bool("syslog", false, "Log to syslog")
+	debug          = flag.Bool("debug", false, "Enable debugging")
+	f              = flag.String("f", "/etc/awsnycast.yaml", "Configration file")
+	oneshot        = flag.Bool("oneshot", false, "Run route table manipulation exactly once, ignoring healthchecks, then exit")
+	noop           = flag.Bool("noop", false, "Don't actually *do* anything, just print what would be done")
+	printVersion   = flag.Bool("version", false, "Print the version number")
+	logToSyslog    = flag.Bool("syslog", false, "Log to syslog")
+	tlsHealthCheck = flag.Bool("ssl", false, "Use SSL for TCP HealthCheck")
 )
 
 func main() {
@@ -37,5 +38,5 @@ func main() {
 	}
 	d.Debug = *debug
 	d.ConfigFile = *f
-	os.Exit(d.Run(*oneshot, *noop))
+	os.Exit(d.Run(*oneshot, *noop, *tlsHealthCheck))
 }
