@@ -60,7 +60,7 @@ func TLSHealthCheck(h TcpHealthCheck) bool {
 			return false
 		}
 	}
-	config = &tls.Config{
+	config := &tls.Config{
 		RootCAs:            roots,
 		ServerName:         h.ServerName,
 		InsecureSkipVerify: h.SkipVerify,
