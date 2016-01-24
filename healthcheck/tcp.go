@@ -52,22 +52,18 @@ func TLSHealthCheck(h TcpHealthCheck) bool {
 	})
 	contextLogger.Info("Probing TCP port")
 
-	config := &tls.Config{
-		InsecureSkipVerify: h.SkipVerify,
+	roots := x509.NewCertPool()
+	if len(h.x509) > 0 {
+		ok := roots.AppendCertsFromPEM(h.x509)
+		if !ok {
+			contextLogger.Info("Failed to parse PEM file")
+			return false
+		}
 	}
-	if !h.SkipVerify {
-		roots := x509.NewCertPool()
-		if len(h.x509) > 0 {
-			ok := roots.AppendCertsFromPEM(h.x509)
-			if !ok {
-				contextLogger.Info("Failed to parse PEM file")
-				return false
-			}
-		}
-		config = &tls.Config{
-			RootCAs:    roots,
-			ServerName: h.ServerName,
-		}
+	config = &tls.Config{
+		RootCAs:            roots,
+		ServerName:         h.ServerName,
+		InsecureSkipVerify: h.SkipVerify,
 	}
 
 	c, err := tls.Dial(
@@ -161,11 +157,17 @@ func TcpConstructor(h Healthcheck) (HealthChecker, error) {
 	if v, ok := h.Config["send"]; ok {
 		hc.Send = v
 	}
-	if val, exists := h.Config["cert"]; h.TlsConnection && exists {
+
+	if val, exists := h.Config["certPath"]; h.TlsConnection && exists {
 		x509, err := ioutil.ReadFile(val)
 		if err != nil {
 			return TcpHealthCheck{}, errors.New("'cert' refers to a file that can not be parsed" + val)
 		}
+		hc.x509 = x509
+	}
+
+	if val, exists := h.Config["cert"]; h.TlsConnection && exists {
+		x509 := []byte(val)
 		hc.x509 = x509
 	}
 
