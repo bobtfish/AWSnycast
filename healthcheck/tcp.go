@@ -37,10 +37,10 @@ func (h TcpHealthCheck) VerifyResponse(answer string, contextLogger *log.Entry) 
 	})
 
 	if strings.Contains(answer, h.Expect) {
-		ansLogger.Debug("Healthy response")
+		ansLogger.Info("Healthy response")
 		return true
 	}
-	ansLogger.Debug("Unhealthy response")
+	ansLogger.Info("Unhealthy response")
 	return false
 }
 
