@@ -705,5 +705,5 @@ func TestHealthcheckTcpTLSCertPath(t *testing.T) {
 		TlsConnection: true,
 	}
 	err := h.Setup()
-	assert.NotNil(t, err)
+	assert.Nil(t, err)
 }
