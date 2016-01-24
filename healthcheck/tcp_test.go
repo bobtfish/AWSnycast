@@ -571,6 +571,62 @@ func TestHealthcheckTcpTLSFailedParse(t *testing.T) {
 	}
 }
 
+func TestHealthcheckTcpTLSFailedread(t *testing.T) {
+
+	cert, _ := tls.X509KeyPair([]byte(serverPEM), []byte(serverKey))
+	config := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
+
+	ln, err := tls.Listen("tcp", "127.0.0.1:0", config)
+	defer ln.Close()
+	if assert.Nil(t, err) {
+		port := ln.Addr().(*net.TCPAddr).Port
+
+		ready := make(chan bool, 1)
+		quit := false
+		go func() {
+			for {
+				ready <- true
+				conn, err := ln.Accept()
+				if err != nil {
+					if quit {
+						return
+					}
+					t.Fatal(fmt.Printf("Error accepting: %s", err.Error()))
+				}
+				go func(conn net.Conn) {
+					buf := make([]byte, 1024)
+					n, err := conn.Read(buf)
+					conn.Close()
+				}(conn)
+			}
+		}()
+		<-ready
+		c := make(map[string]string)
+		c["port"] = fmt.Sprintf("%d", port)
+		c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
+		c["expect"] = "200 OK"
+		c["skipVerify"] = "true"
+
+		h := Healthcheck{
+			Type:          "tcp",
+			Destination:   "127.0.0.1",
+			Config:        c,
+			TlsConnection: true,
+		}
+		err = h.Validate("foo", false)
+		assert.Nil(t, err)
+		err = h.Setup()
+		if assert.Nil(t, err) {
+			log.Printf("%+v", h)
+			res := h.healthchecker.Healthcheck()
+			assert.Equal(t, false, res, "h.healthchecker.Healthcheck() returned false")
+		}
+		quit = true
+	}
+}
+
 func TestHealthcheckTcpTLSFailedConnet(t *testing.T) {
 	c := make(map[string]string)
 	c["port"] = "hello"
@@ -593,6 +649,21 @@ func TestHealthcheckTcpTLSFailedParseSkipVerify(t *testing.T) {
 	c := make(map[string]string)
 	c["port"] = "0"
 	c["skipVerify"] = "bye"
+
+	h := Healthcheck{
+		Type:          "tcp",
+		Destination:   "127.0.0.1",
+		Config:        c,
+		TlsConnection: true,
+	}
+	err := h.Setup()
+	assert.NotNil(t, err)
+}
+
+func TestHealthcheckTcpTLSFailedCertPath(t *testing.T) {
+	c := make(map[string]string)
+	c["port"] = "0"
+	c["certPath"] = "fakeFile"
 
 	h := Healthcheck{
 		Type:          "tcp",
