@@ -60,21 +60,22 @@ func TLSHealthCheck(h TcpHealthCheck) bool {
 			return false
 		}
 	}
-	
-    config := &tls.Config{
-            RootCAs:            roots,
-            ServerName:         h.ServerName,
-    }
-    if h.SkipVerify {
-        config = &tls.Config{
-                InsecureSkipVerify: h.SkipVerify,
-        }
-    }
+
+	config := &tls.Config{
+		RootCAs:    roots,
+		ServerName: h.ServerName,
+	}
+
+	if h.SkipVerify {
+		config = &tls.Config{
+			InsecureSkipVerify: h.SkipVerify,
+		}
+	}
 
 	c, err := tls.Dial(
 		"tcp",
 		h.Destination+":"+h.Port,
-        config,
+		config,
 	)
 
 	if err != nil {
