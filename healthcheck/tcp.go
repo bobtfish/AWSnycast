@@ -52,23 +52,22 @@ func TLSHealthCheck(h TcpHealthCheck) bool {
 	})
 	contextLogger.Info("Probing TCP port")
 
-	roots := x509.NewCertPool()
-	if len(h.x509) > 0 {
-		ok := roots.AppendCertsFromPEM(h.x509)
-		if !ok {
-			contextLogger.Info("Failed to parse PEM file")
-			return false
-		}
-	}
-
 	config := &tls.Config{
-		RootCAs:    roots,
-		ServerName: h.ServerName,
+		InsecureSkipVerify: h.SkipVerify,
 	}
+	if !h.SkipVerify {
+		roots := x509.NewCertPool()
+		if len(h.x509) > 0 {
+			ok := roots.AppendCertsFromPEM(h.x509)
+			if !ok {
+				contextLogger.Info("Failed to parse PEM file")
+				return false
+			}
+		}
 
-	if h.SkipVerify {
 		config = &tls.Config{
-			InsecureSkipVerify: h.SkipVerify,
+			RootCAs:    roots,
+			ServerName: h.ServerName,
 		}
 	}
 
