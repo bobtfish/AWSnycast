@@ -2,8 +2,8 @@ package healthcheck
 
 import (
 	"crypto/tls"
-    "crypto/x509"
-    "encoding/pem"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -65,7 +65,6 @@ l1xp2QKBgQD1vqdIeokdVcHKUziQJ0G+X4EmvBjVDaH+4Ho1nFUfHgPT1EJhyu4j
 f78Yac/8I4KwnmFq85ODBy6dSLoftVx7o4eU6tPrNNQ7w2r3gorwLI+oJU6/Nhyx
 Oks6gY7X5f6uv5yl7P6gUl7744zEjj5ef9oD1v6+9JSlb7lTWpmp5g==
 -----END RSA PRIVATE KEY-----`
-
 
 func TestHealthcheckTcpNoPort(t *testing.T) {
 	c := make(map[string]string)
@@ -378,74 +377,73 @@ func TestHealthcheckTcpNoSend(t *testing.T) {
 }
 
 func TestHealthcheckTcpTLSSkipVerify(t *testing.T) {
-    block, _ := pem.Decode([]byte(serverPEM))
-    ca, _ := x509.ParseCertificate(block.Bytes)
-    block, _ = pem.Decode([]byte(serverKey))
-    priv, _ := x509.ParsePKCS1PrivateKey(block.Bytes)
+	block, _ := pem.Decode([]byte(serverPEM))
+	ca, _ := x509.ParseCertificate(block.Bytes)
+	block, _ = pem.Decode([]byte(serverKey))
+	priv, _ := x509.ParsePKCS1PrivateKey(block.Bytes)
 
-    pool := x509.NewCertPool()
-    pool.AddCert(ca)
+	pool := x509.NewCertPool()
+	pool.AddCert(ca)
 
-    cert := tls.Certificate{
-        Certificate: [][]byte{ []byte(serverPEM) },
-        PrivateKey: priv,
-    }
+	cert := tls.Certificate{
+		Certificate: [][]byte{[]byte(serverPEM)},
+		PrivateKey:  priv,
+	}
 
-    config := &tls.Config{
-        ClientAuth: tls.RequireAndVerifyClientCert,
-        Certificates: []tls.Certificate{cert},
-        ClientCAs: pool,
-    }
+	config := &tls.Config{
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		Certificates: []tls.Certificate{cert},
+		ClientCAs:    pool,
+	}
 
 	ln, err := tls.Listen("tcp", "127.0.0.1:0", config)
 	defer ln.Close()
 	if assert.Nil(t, err) {
 		port := ln.Addr().(*net.TCPAddr).Port
 
-        ready := make(chan bool, 1)
-        quit := false
-        go func() {
-            for {
-                ready <- true
-                conn, err := ln.Accept()
-                if err != nil {
-                    if quit {
-                        return
-                    }
-                    t.Fatal(fmt.Printf("Error accepting: %s", err.Error()))
-                }
-                go func(conn net.Conn) {
-                    buf := make([]byte, 1024)
-                    n, err := conn.Read(buf)
-                    assert.Nil(t, err)
-                    assert.Equal(t, string(buf[:n]), "HEAD / HTTP/1.0\r\n\r\n")
-                    conn.Write([]byte("200 OK"))
-                    conn.Close()
-                }(conn)
-            }
-        }()
-        <-ready
-        c := make(map[string]string)
+		ready := make(chan bool, 1)
+		quit := false
+		go func() {
+			for {
+				ready <- true
+				conn, err := ln.Accept()
+				if err != nil {
+					if quit {
+						return
+					}
+					t.Fatal(fmt.Printf("Error accepting: %s", err.Error()))
+				}
+				go func(conn net.Conn) {
+					buf := make([]byte, 1024)
+					n, err := conn.Read(buf)
+					assert.Nil(t, err)
+					assert.Equal(t, string(buf[:n]), "HEAD / HTTP/1.0\r\n\r\n")
+					conn.Write([]byte("200 OK"))
+					conn.Close()
+				}(conn)
+			}
+		}()
+		<-ready
+		c := make(map[string]string)
 		c["port"] = fmt.Sprintf("%d", port)
-        c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
-        c["expect"] = "200 OK"
-        c["serverName"] = "example.com"
-        c["skipVerify"] = "true"
+		c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
+		c["expect"] = "200 OK"
+		c["skipVerify"] = "true"
 
-        h := Healthcheck{
-            Type:          "tcp",
-            Destination:   "127.0.0.1",
-            Config:        c,
-            TlsConnection: true,
-        }
-        err = h.Validate("foo", false)
-        assert.Nil(t, err)
-        err = h.Setup()
-        if assert.Nil(t, err) {
-            log.Printf("%+v", h)
-            res := h.healthchecker.Healthcheck()
-            assert.Equal(t, res, true, "h.healthchecker.Healthcheck() returned false")
-        }
-        quit = true
-    }
+		h := Healthcheck{
+			Type:          "tcp",
+			Destination:   "127.0.0.1",
+			Config:        c,
+			TlsConnection: true,
+		}
+		err = h.Validate("foo", false)
+		assert.Nil(t, err)
+		err = h.Setup()
+		if assert.Nil(t, err) {
+			log.Printf("%+v", h)
+			res := h.healthchecker.Healthcheck()
+			assert.Equal(t, true, res, "h.healthchecker.Healthcheck() returned false")
+		}
+		quit = true
+	}
 }
