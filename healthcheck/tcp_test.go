@@ -2,6 +2,7 @@ package healthcheck
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
