@@ -2,8 +2,6 @@ package healthcheck
 
 import (
 	"crypto/tls"
-	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -371,23 +369,10 @@ nnK1NVPr4qP5lM6RBh9zodBcU7ZAnERTAORRR/u7ZSWnod475LaPQ1o=
 -----END RSA PRIVATE KEY-----`
 
 func TestHealthcheckTcpTLSSkipVerify(t *testing.T) {
-	block, _ := pem.Decode([]byte(serverPEM))
-	ca, _ := x509.ParseCertificate(block.Bytes)
-	block, _ = pem.Decode([]byte(serverKey))
-	priv, _ := x509.ParsePKCS1PrivateKey(block.Bytes)
 
-	pool := x509.NewCertPool()
-	pool.AddCert(ca)
-
-	cert := tls.Certificate{
-		Certificate: [][]byte{[]byte(serverPEM)},
-		PrivateKey:  priv,
-	}
-
+	cert, _ := tls.X509KeyPair([]byte(serverPEM), []byte(serverKey))
 	config := &tls.Config{
-		ClientAuth:   tls.RequireAndVerifyClientCert,
 		Certificates: []tls.Certificate{cert},
-		ClientCAs:    pool,
 	}
 
 	ln, err := tls.Listen("tcp", "127.0.0.1:0", config)
