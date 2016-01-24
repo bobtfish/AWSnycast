@@ -6,7 +6,9 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	"net"
+	"os"
 	"testing"
 )
 
@@ -369,6 +371,20 @@ O/T8Ix3u3678ihTT2MSMJm2ve5Z0YEC/DvuBxTCH/kXjmprpoXTT785KbCHR1TIw
 nnK1NVPr4qP5lM6RBh9zodBcU7ZAnERTAORRR/u7ZSWnod475LaPQ1o=
 -----END RSA PRIVATE KEY-----`
 
+var (
+	tmpTestFakeFile string
+)
+
+func TestMain(m *testing.M) {
+	if f, err := ioutil.TempFile("/tmp", "ca.pem"); err == nil {
+		f.WriteString(serverPEM)
+		tmpTestFakeFile = f.Name()
+		f.Close()
+		defer os.Remove(tmpTestFakeFile)
+	}
+	os.Exit(m.Run())
+}
+
 func TestHealthcheckTcpTLS(t *testing.T) {
 
 	cert, _ := tls.X509KeyPair([]byte(serverPEM), []byte(serverKey))
@@ -666,6 +682,21 @@ func TestHealthcheckTcpTLSFailedCertPath(t *testing.T) {
 	c := make(map[string]string)
 	c["port"] = "0"
 	c["certPath"] = "fakeFile"
+
+	h := Healthcheck{
+		Type:          "tcp",
+		Destination:   "127.0.0.1",
+		Config:        c,
+		TlsConnection: true,
+	}
+	err := h.Setup()
+	assert.NotNil(t, err)
+}
+
+func TestHealthcheckTcpTLSCertPath(t *testing.T) {
+	c := make(map[string]string)
+	c["port"] = "0"
+	c["certPath"] = tmpTestFakeFile
 
 	h := Healthcheck{
 		Type:          "tcp",
