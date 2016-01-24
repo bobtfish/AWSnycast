@@ -598,6 +598,8 @@ func TestHealthcheckTcpTLSFailedread(t *testing.T) {
 				go func(conn net.Conn) {
 					buf := make([]byte, 1024)
 					n, err := conn.Read(buf)
+					assert.Nil(t, err)
+					assert.Equal(t, string(buf[:n]), "HEAD / HTTP/1.0\r\n\r\n")
 					conn.Close()
 				}(conn)
 			}
