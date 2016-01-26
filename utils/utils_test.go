@@ -7,81 +7,71 @@ import (
 )
 
 func TestGetBool(t *testing.T) {
-	assert := assert.New(t)
-
 	val, err := GetAsBool("false", true)
-	assert.Equal(val, false)
+	assert.Equal(t, val, false)
 	assert.Nil(t, err)
 
 	val, err = GetAsBool("notabool", false)
-	assert.Equal(val, false)
+	assert.Equal(t, val, false)
 	assert.NotNil(t, err)
 
 	val, err = GetAsBool(true, false)
-	assert.Equal(val, true)
+	assert.Equal(t, val, true)
 	assert.Nil(t, err)
 
 	val, err = GetAsBool("True", false)
-	assert.Equal(val, true)
+	assert.Equal(t, val, true)
 	assert.Nil(t, err)
 }
 
 func TestGetInt(t *testing.T) {
-	assert := assert.New(t)
-
 	val, err := GetAsInt("10", 123)
-	assert.Equal(val, 10)
+	assert.Equal(t, val, 10)
 	assert.Nil(t, err)
 
 	val, err = GetAsInt("notanint", 123)
-	assert.Equal(val, 123)
+	assert.Equal(t, val, 123)
 	assert.NotNil(t, err)
 
 	val, err = GetAsInt(12.123, 123)
-	assert.Equal(val, 12)
+	assert.Equal(t, val, 12)
 	assert.Nil(t, err)
 
 	val, err = GetAsInt(12, 123)
-	assert.Equal(val, 12)
+	assert.Equal(t, val, 12)
 	assert.Nil(t, err)
 }
 
 func TestGetFloat(t *testing.T) {
-	assert := assert.New(t)
-
 	val, err := GetAsFloat("10", 123)
-	assert.Equal(val, 10.0)
+	assert.Equal(t, val, 10.0)
 	assert.Nil(t, err)
 
 	val, err = GetAsFloat("10.21", 123)
-	assert.Equal(val, 10.21)
+	assert.Equal(t, val, 10.21)
 	assert.Nil(t, err)
 
 	val, err = GetAsFloat("notafloat", 123)
-	assert.Equal(val, 123.0)
+	assert.Equal(t, val, 123.0)
 	assert.NotNil(t, err)
 
 	val, err = GetAsFloat(12.123, 123)
-	assert.Equal(val, 12.123)
+	assert.Equal(t, val, 12.123)
 	assert.Nil(t, err)
 }
 
 func TestGetString(t *testing.T) {
-	assert := assert.New(t)
-
 	val := GetAsString("10")
-	assert.Equal(val, "10")
+	assert.Equal(t, val, "10")
 
 	val = GetAsString(10)
-	assert.Equal(val, "10")
+	assert.Equal(t, val, "10")
 
 	val = GetAsString(10.123)
-	assert.Equal(val, "10.123")
+	assert.Equal(t, val, "10.123")
 }
 
 func TestGetAsMap(t *testing.T) {
-	assert := assert.New(t)
-
 	// Test if string can be converted to map[string]string
 	stringToParse := "{\"foor\" : \"bar\", \"alice\":\"bob\"}"
 	expectedValue := map[string]string{
@@ -104,8 +94,6 @@ func TestGetAsMap(t *testing.T) {
 }
 
 func TestGetAsSlice(t *testing.T) {
-	assert := assert.New(t)
-
 	// Test if string array can be converted to []string
 	stringToParse := "[\"baz\", \"bat\"]"
 	expectedValue := []string{"baz", "bat"}
