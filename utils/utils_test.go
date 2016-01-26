@@ -1,7 +1,6 @@
 package utils
 
 import (
-	utils "github.com/bobtfish/AWSnycast/utils"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 	"testing"
