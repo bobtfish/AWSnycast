@@ -109,7 +109,7 @@ func TestGetAsSlice(t *testing.T) {
 }
 
 func TestGetAsSliceFromYAML(t *testing.T) {
-	var data interface{}
+	var data map[string]interface{}
 	yamlString := []byte(`{"listOfStrings": ["a", "b", "c"]}`)
 
 	err := yaml.Unmarshal(yamlString, &data)
