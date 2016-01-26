@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"github.com/bobtfish/AWSnycast/testhelpers"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net"
@@ -24,7 +25,7 @@ func TestHealthcheckTcpNoPort(t *testing.T) {
 	h.Validate("foo", false)
 	err := h.Setup()
 	if assert.NotNil(t, err) {
-		assert.Equal(t, err.Error(), "'port' not defined in tcp healthcheck config to 127.0.0.1")
+		testhelpers.CheckOneMultiError(t, err, "'port' not defined in tcp healthcheck config to 127.0.0.1")
 	}
 }
 
