@@ -116,7 +116,7 @@ func TestGetAsSliceFromYAML(t *testing.T) {
 	assert.Nil(t, err)
 
 	if err == nil {
-		temp := data.(map[string]interface{})
+		temp := data
 
 		res, err := GetAsSlice(temp["listOfStrings"])
 		assert.Equal(t, []string{"a", "b", "c"}, res)
