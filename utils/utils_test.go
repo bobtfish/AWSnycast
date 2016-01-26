@@ -73,10 +73,10 @@ func TestGetString(t *testing.T) {
 
 func TestGetAsMap(t *testing.T) {
 	// Test if string can be converted to map[string]string
-	stringToParse := "{\"foor\" : \"bar\", \"alice\":\"bob\"}"
+	stringToParse := "{\"foo\" : \"bar\", \"alice\":\"bob\"}"
 	expectedValue := map[string]string{
-		"runtimeenv": "dev",
-		"region":     "uswest1-devc",
+		"foo":   "bar",
+		"alice": "bob",
 	}
 	actualValue, err := GetAsMap(stringToParse)
 	assert.Equal(t, actualValue, expectedValue)
