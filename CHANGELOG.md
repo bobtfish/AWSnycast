@@ -1,3 +1,7 @@
+ - Add the ability to negotiate SSL connections when
+   doing healthchecks.
+ - Remove some of the scary warning text from README
+
 Version 0.0.10 - 2015-12-05
  - First version with working remote_healthchecks
 
