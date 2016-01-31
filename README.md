@@ -373,7 +373,6 @@ This project is currently under heavy development.
 
 Here's a list of the features that I'm planning to work on next, in approximate order:
 
-  * Command healthcheck
   * Run scripts before / after takeover of route
   * Autodetect this machine's AZ
   * Make us autodetect the VPC this instance is running in, and refuse to adjust routing tables in other VPCs
