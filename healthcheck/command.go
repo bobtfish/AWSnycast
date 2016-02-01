@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	RegisterHealthcheck("command", CommandConstructor)
+//	RegisterHealthcheck("command", CommandConstructor)
 }
 
 type CommandHealthCheck struct {
