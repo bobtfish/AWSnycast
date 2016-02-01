@@ -1,4 +1,4 @@
- - Add a command healthcheck type
+Version 0.1.0 - 2016-02-01
  - Add the ability to negotiate SSL connections when
    doing healthchecks.
  - Remove some of the scary warning text from README
