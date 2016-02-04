@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"github.com/bobtfish/AWSnycast/testhelpers"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net"
@@ -13,7 +14,7 @@ import (
 )
 
 func TestHealthcheckTcpNoPort(t *testing.T) {
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
 	c["expect"] = "200 OK"
 	h := Healthcheck{
@@ -24,7 +25,7 @@ func TestHealthcheckTcpNoPort(t *testing.T) {
 	h.Validate("foo", false)
 	err := h.Setup()
 	if assert.NotNil(t, err) {
-		assert.Equal(t, err.Error(), "'port' not defined in tcp healthcheck config to 127.0.0.1")
+		testhelpers.CheckOneMultiError(t, err, "'port' not defined in tcp healthcheck config to 127.0.0.1")
 	}
 }
 
@@ -55,7 +56,7 @@ func TestHealthcheckTcp(t *testing.T) {
 			}
 		}()
 		<-ready
-		c := make(map[string]string)
+		c := make(map[string]interface{})
 		c["port"] = fmt.Sprintf("%d", port)
 		c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
 		c["expect"] = "200 OK"
@@ -106,7 +107,7 @@ func TestHealthcheckTcpFail(t *testing.T) {
 		}
 	}()
 	<-ready
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["port"] = fmt.Sprintf("%d", port)
 	c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
 	c["expect"] = "200 OK"
@@ -132,7 +133,7 @@ func TestHealthcheckTcpClosed(t *testing.T) {
 	if assert.Nil(t, err) {
 		port := ln.Addr().(*net.TCPAddr).Port
 		ln.Close() // Close the port again before running healthcheck
-		c := make(map[string]string)
+		c := make(map[string]interface{})
 		c["port"] = fmt.Sprintf("%d", port)
 		c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
 		c["expect"] = "200 OK"
@@ -171,7 +172,7 @@ func TestHealthcheckTcpFailClientClose(t *testing.T) {
 			}
 		}()
 		<-ready
-		c := make(map[string]string)
+		c := make(map[string]interface{})
 		c["port"] = fmt.Sprintf("%d", port)
 		c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
 		c["expect"] = "200 OK"
@@ -219,7 +220,7 @@ func TestHealthcheckTcpNoExpect(t *testing.T) {
 			}
 		}()
 		<-ready
-		c := make(map[string]string)
+		c := make(map[string]interface{})
 		c["port"] = fmt.Sprintf("%d", port)
 		c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
 		h := Healthcheck{
@@ -261,7 +262,7 @@ func TestHealthcheckTcpNoSendOrExpect(t *testing.T) {
 		}
 	}()
 	<-ready
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["port"] = fmt.Sprintf("%d", port)
 	h := Healthcheck{
 		Type:        "tcp",
@@ -301,7 +302,7 @@ func TestHealthcheckTcpNoSend(t *testing.T) {
 			}
 		}()
 		<-ready
-		c := make(map[string]string)
+		c := make(map[string]interface{})
 		c["port"] = fmt.Sprintf("%d", port)
 		c["expect"] = "200 OK"
 		h := Healthcheck{
@@ -422,7 +423,7 @@ func TestHealthcheckTcpTLS(t *testing.T) {
 			}
 		}()
 		<-ready
-		c := make(map[string]string)
+		c := make(map[string]interface{})
 		c["port"] = fmt.Sprintf("%d", port)
 		c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
 		c["expect"] = "200 OK"
@@ -482,7 +483,7 @@ func TestHealthcheckTcpTLSSkipVerify(t *testing.T) {
 			}
 		}()
 		<-ready
-		c := make(map[string]string)
+		c := make(map[string]interface{})
 		c["port"] = fmt.Sprintf("%d", port)
 		c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
 		c["expect"] = "200 OK"
@@ -540,7 +541,7 @@ func TestHealthcheckTcpTLSEmptyExpect(t *testing.T) {
 			}
 		}()
 		<-ready
-		c := make(map[string]string)
+		c := make(map[string]interface{})
 		c["port"] = fmt.Sprintf("%d", port)
 		c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
 		c["expect"] = ""
@@ -565,7 +566,7 @@ func TestHealthcheckTcpTLSEmptyExpect(t *testing.T) {
 }
 
 func TestHealthcheckTcpTLSFailedParse(t *testing.T) {
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["port"] = "0"
 	c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
 	c["expect"] = "200 OK"
@@ -621,7 +622,7 @@ func TestHealthcheckTcpTLSFailedread(t *testing.T) {
 			}
 		}()
 		<-ready
-		c := make(map[string]string)
+		c := make(map[string]interface{})
 		c["port"] = fmt.Sprintf("%d", port)
 		c["send"] = "HEAD / HTTP/1.0\r\n\r\n"
 		c["expect"] = "200 OK"
@@ -646,7 +647,7 @@ func TestHealthcheckTcpTLSFailedread(t *testing.T) {
 }
 
 func TestHealthcheckTcpTLSFailedConnet(t *testing.T) {
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["port"] = "hello"
 	c["ssl"] = "true"
 
@@ -664,7 +665,7 @@ func TestHealthcheckTcpTLSFailedConnet(t *testing.T) {
 }
 
 func TestHealthcheckTcpTLSFailedParseSkipVerify(t *testing.T) {
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["port"] = "0"
 	c["skipVerify"] = "bye"
 	c["ssl"] = "true"
@@ -679,7 +680,7 @@ func TestHealthcheckTcpTLSFailedParseSkipVerify(t *testing.T) {
 }
 
 func TestHealthcheckTcpTLSFailedParseSSL(t *testing.T) {
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["port"] = "0"
 	c["ssl"] = "bye"
 
@@ -693,7 +694,7 @@ func TestHealthcheckTcpTLSFailedParseSSL(t *testing.T) {
 }
 
 func TestHealthcheckTcpTLSFailedCertPath(t *testing.T) {
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["port"] = "0"
 	c["certPath"] = "fakeFile"
 	c["ssl"] = "true"
@@ -708,7 +709,7 @@ func TestHealthcheckTcpTLSFailedCertPath(t *testing.T) {
 }
 
 func TestHealthcheckTcpTLSCertPath(t *testing.T) {
-	c := make(map[string]string)
+	c := make(map[string]interface{})
 	c["port"] = "0"
 	c["certPath"] = tmpTestFakeFile
 	c["ssl"] = "true"

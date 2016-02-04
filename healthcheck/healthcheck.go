@@ -29,21 +29,21 @@ type CanBeHealthy interface {
 }
 
 type Healthcheck struct {
-	canPassYet    bool              `yaml:"-"`
-	runCount      uint64            `yaml:"-"`
-	Type          string            `yaml:"type"`
-	Destination   string            `yaml:"destination"`
-	isHealthy     bool              `yaml:"-"`
-	Rise          uint              `yaml:"rise"`
-	Fall          uint              `yaml:"fall"`
-	Every         uint              `yaml:"every"`
-	History       []bool            `yaml:"-"`
-	Config        map[string]string `yaml:"config"`
-	healthchecker HealthChecker     `yaml:"-"`
-	isRunning     bool              `yaml:"-"`
-	quitChan      chan<- bool       `yaml:"-"`
-	hasQuitChan   <-chan bool       `yaml:"-"`
-	listeners     []chan<- bool     `yaml:"-"`
+	canPassYet    bool                   `yaml:"-"`
+	runCount      uint64                 `yaml:"-"`
+	Type          string                 `yaml:"type"`
+	Destination   string                 `yaml:"destination"`
+	isHealthy     bool                   `yaml:"-"`
+	Rise          uint                   `yaml:"rise"`
+	Fall          uint                   `yaml:"fall"`
+	Every         uint                   `yaml:"every"`
+	History       []bool                 `yaml:"-"`
+	Config        map[string]interface{} `yaml:"config"`
+	healthchecker HealthChecker          `yaml:"-"`
+	isRunning     bool                   `yaml:"-"`
+	quitChan      chan<- bool            `yaml:"-"`
+	hasQuitChan   <-chan bool            `yaml:"-"`
+	listeners     []chan<- bool          `yaml:"-"`
 }
 
 func (h *Healthcheck) NewWithDestination(destination string) (*Healthcheck, error) {
@@ -136,7 +136,7 @@ func (h *Healthcheck) PerformHealthcheck() {
 
 func (h *Healthcheck) Validate(name string, remote bool) error {
 	if h.Config == nil {
-		h.Config = make(map[string]string)
+		h.Config = make(map[string]interface{})
 	}
 	if h.Rise == 0 {
 		h.Rise = 2
