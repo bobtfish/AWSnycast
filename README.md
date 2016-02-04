@@ -74,7 +74,7 @@ There are a number of reasons I chose not to do this:
 ## What do you recommend using this for?
 
 Basic infrastructure services, like DNS (if you use your own DNS already), puppet or chef servers, package
-repositories, etc. This is *not* a load balancing, or SOA service discovery solution.
+repositories, etc. This is *not* a load balancing or SOA service discovery solution.
 
 I'd *highly* recommend putting any TCP service you use AWSnycast for behind haproxy, for load balancing (as
 only one route can be active at a time - i.e. AWS doesn't support any form of ECMP), and to make AWSnycast's
@@ -136,9 +136,9 @@ You can run AWSnycast -h to get a list of helpful options:
       -oneshot
             Run route table manipulation exactly once, ignoring healthchecks, then exit
 
-Once you've got it fully setup, you shouldn't need any options.
+Once you've everything is fully set up, you shouldn't need any options.
 
-To run it also needs permissions to access the AWS API. This can be done either by
+To run AWSnycast also needs permissions to access the AWS API. This can be done either by
 supplying the standard *AWS_ACCESS_KEY_ID* and *AWS_SECRET_ACCESS_KEY* environment
 variables, or by applying an IAM Role to the instance running AWSnycast (recommended).
 
@@ -174,9 +174,7 @@ using an IAM Role).
 
 # Configuration
 
-Which routes to advertise into which route tables is configured with a YAML config file.
-
-By default AWSnycast will look for this in /etc/awsnycast.yaml
+AWSnycast reads a YAML config file (by default /etc/awsnycast.yaml) to learn which routes to advertise.
 
 An example config is shown below:
 
@@ -268,7 +266,7 @@ Healthchecks are indicated by the top level 'healthchecks' key. Values are a has
 The definition is composed of a few fields:
 
  * type - required
- * destination - required. The destination IP for the healthcheck. N.B. this *must* be an IP.
+ * destination - required. The destination IP for the healthcheck. This *must* be an IP.
  * rise - optional, how many checks need to pass in a row to become healthy. Default 2
  * fall - optional, how many checks need to fail in a row to become unhealthy. Default 2
  * every - required, how often in seconds to run the healthcheck
@@ -290,7 +288,7 @@ returned data.
 
 ## Route tables
 
-Indicated by the top level 'route_tabls' key. Values are a hash of name / definition.
+Indicated by the top level 'route_tables' key. Values are a hash of name / definition.
 
 The definition is composed of a few fields:
 
@@ -364,7 +362,7 @@ are uploaded to github - see the CHANGELOG.md for information about what is in e
 Note that currently this project is pre-1.0, so I reserve the right to make massive sweeping changes
 between versions.
 
-Note also that incorrecy use of this project can completely mess up your AWS routing tables, and make your instances inaccessible! You are *HIGHLY* recommended to become confident using the _-noop_
+Note also that incorrect use of this project can completely mess up your AWS routing tables, and make your instances inaccessible! You are *HIGHLY* recommended to become confident using the _-noop_
 mode before running this for real!
 
 # TODO
