@@ -9,6 +9,28 @@ extension of in-datacenter Anycast. It can also be used to provide HA NAT servic
 
 Please use release version 0.1.0 rather than master.
 
+# Anycast in AWS?
+
+AWSnycast allows you to implement an Anycast-like method of route publishing - based on healthchecks,
+and HA/failover. This is very similar to using systems like [exabgp](https://github.com/Exa-Networks/exabgp)
+or [bird](http://bird.network.cz/) on traditional datacenter hosts to publish BGP routing information
+for individual /32 IPs of services they're running.
+
+This means that all your systems in AWS (no matter what region or account) can use *the same* IP/subnet for
+highly available services (avoiding the need to reconfigure things at boot time if you're constructing
+AMIs).
+
+If you have a physical datacenter with Anycast already, you can configure VPN tunnels,
+or Direct Connects to AWS then publish routes to the Amazon routing tables using BGP,
+including an Anycast /24 or /16 - things you bring up in AWS will have more specific routes
+locally, but services which only reside in your datacenter will automatically be routed there.
+
+This is super useful for bootstrapping a new VPC (before you have any local services running), or for
+providing high availability.
+
+N.B. Whilst publishing routes *from* AWS into your datacenter's BGP would be useful, at this
+time that is beyond the goals for this project.
+
 # NAT
 
 A common pattern in AWS is to route egressing traffic (from private subnets) through a NAT instance
@@ -20,28 +42,6 @@ for each AZ. AWSnycast can then be used to manage the routes to these NAT machin
 such that by default, both machines will be active (for their AZ - to avoid cross AZ transfer costs + latency),
 however if one machine fails, then the remaining machine will take over it's route for the duration that
 it's down.
-
-# Anycast in AWS?
-
-In datacenters, a common pattern is to have a /24 network for Anycast, and then in each datacenter,
-use systems like [exabgp](https://github.com/Exa-Networks/exabgp) and [bird](http://bird.network.cz/)
-on hosts to publish BGP routing information for individual /32 IPs of services they're running.
-
-In AWS we can configure VPN tunnels, or Direct Connects, and publish routes to the Amazon
-routing tables using BGP, including the Anycast /24. AWSnycast then runs locally on your AWS nodes,
-healthchecks local services, and publishes more specific routes to them into the AWS route table.
-
-This means that all your systems in AWS can use *the same* subnet for Anycast services as your
-in datacenter machines, *and* talk to services locally, as you bring them up in AWS. This is
-super useful for bootstrapping a new VPC (before you have any local services running), or for
-providing high availability.
-
-You don't *have* to have a datacenter or VPN connection for AWSnycast to be useful to you, you
-still get route publishing based on healthchecks, and HA/failover, just not bootstrapping
-from in-datacenter.
-
-N.B. Whilst publishing routes *from* AWS into your datacenter's BGP would be useful, at this
-time that is beyond the goals for this project.
 
 # How does this even work?
 
