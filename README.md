@@ -20,8 +20,8 @@ This means that all your systems in AWS (no matter what region or account) can u
 highly available services (avoiding the need to reconfigure things at boot time if you're constructing
 AMIs).
 
-If you have a physical datacenter with Anycast already, you can configure VPN tunnels,
-or Direct Connects to AWS then publish routes to the Amazon routing tables using BGP,
+If you have a physical datacenter with Anycast already, you can configure [aVPN tunnels](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_VPN.html),
+or [Direct Connects](https://aws.amazon.com/directconnect/) to AWS then publish routes to the Amazon routing tables using BGP,
 including an Anycast /24 or /16 - things you bring up in AWS will have more specific routes
 locally, but services which only reside in your datacenter will automatically be routed there.
 
