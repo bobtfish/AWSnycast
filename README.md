@@ -34,11 +34,18 @@ time that is beyond the goals for this project.
 # NAT
 
 A common pattern in AWS is to route egressing traffic (from private subnets) through a NAT instance
-in a public subnet. AWSnycast can manage one or more NAT instances for you automatically, allowing
+in a public subnet. AWSnycast can publish routes for one or more NAT instances for you automatically, allowing
 you to deploy one or more NAT instances per VPC.
 
-You can deploy 2 NAT machines, in different availability zones, and configure a private routing table
-for each AZ. AWSnycast can then be used to manage the routes to these NAT machines for High Availability,
+AWS have recently added a [NAT gateway](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-gateway.html)
+product, which simplifies redunent NAT, and allows you to burst to 10G (which needs high spec NAT instances to do).
+
+For small amounts of traffic, NAT gateway is cheaper than NAT instancesm for large amounts of traffic it becomes
+more expensive - however NAT instances with AWSnycast probably have a lower reliability, as HA/failover won't happen
+until the failed machine is stopped/blackholed.
+
+If you choose to use NAT instances, and AWSnycast to manage their routes, you can deploy 2 (or more) NAT machines, in different availability zones, and configure a private routing table
+for each AZ. AWSnycast can then be used to advertise the routes to these NAT machines for High Availability,
 such that by default, both machines will be active (for their AZ - to avoid cross AZ transfer costs + latency),
 however if one machine fails, then the remaining machine will take over it's route for the duration that
 it's down.
@@ -59,8 +66,8 @@ IP address) and HA.
 
 ## Why not manage / move ENIs?
 
-Good question! You *can* provide HA in AWS by assigning each service an ENI, and moving them between
-healthy instances.
+Good question! You *can* provide HA in AWS by assigning each service an ENI ([Elastic Network Interface](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html), and [moving them between
+healthy instances](http://www.cakesolutions.net/teamblogs/making-aws-nat-instances-highly-available-without-the-compromises).
 
 There are a number of reasons I chose not to do this:
   * Most AWS machine classes/sizes are fairly restricted about the number of ENIs they can have attached.
@@ -76,7 +83,7 @@ There are a number of reasons I chose not to do this:
 Basic infrastructure services, like DNS (if you use your own DNS already), puppet or chef servers, package
 repositories, etc. This is *not* a load balancing or SOA service discovery solution.
 
-I'd *highly* recommend putting any TCP service you use AWSnycast for behind haproxy, for load balancing (as
+I'd *highly* recommend putting any TCP service you use AWSnycast for behind [haproxy](http://www.haproxy.org/), for load balancing (as
 only one route can be active at a time - i.e. AWS doesn't support any form of ECMP), and to make AWSnycast's
 failover only needed when an instance dies, rather than an individual service instance.
 
