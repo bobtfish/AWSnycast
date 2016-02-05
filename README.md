@@ -31,7 +31,7 @@ In AWS we can configure VPN tunnels, or Direct Connects, and publish routes to t
 routing tables using BGP, including the Anycast /24. AWSnycast then runs locally on your AWS nodes,
 healthchecks local services, and publishes more specific routes to them into the AWS route table.
 
-This means that all your systems in AWS can use *the same* network for Anycast services as your
+This means that all your systems in AWS can use *the same* subnet for Anycast services as your
 in datacenter machines, *and* talk to services locally, as you bring them up in AWS. This is
 super useful for bootstrapping a new VPC (before you have any local services running), or for
 providing high availability.
