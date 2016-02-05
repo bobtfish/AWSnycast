@@ -1,3 +1,4 @@
+ - Documentation updates / improvements
  - Better type conversions in the "config" attribute for health
    checks (Fixes #6)
 
