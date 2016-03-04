@@ -1,6 +1,5 @@
 package healthcheck
 
-/*
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -16,6 +15,7 @@ func TestHealthcheckCommand(t *testing.T) {
 	h.Setup()
 	assert.Equal(t, h.healthchecker.Healthcheck(), true)
 }
+
 func TestHealthcheckCommandFail(t *testing.T) {
 	h := Healthcheck{
 		Type:        "command",
@@ -26,4 +26,4 @@ func TestHealthcheckCommandFail(t *testing.T) {
 	h.Setup()
 	assert.Equal(t, h.healthchecker.Healthcheck(), false)
 }
-*/
+
