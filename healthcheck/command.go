@@ -33,7 +33,7 @@ func (h CommandHealthCheck) Healthcheck() bool {
 
 func CommandConstructor(h Healthcheck) (HealthChecker, error) {
 	command := "ping"
-	args := []string{"-c", "1"}
+	args := []string{"-c", "1", h.Destination}
 	return CommandHealthCheck{
 		Destination: h.Destination,
 		Command:     command,

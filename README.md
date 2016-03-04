@@ -66,8 +66,9 @@ IP address) and HA.
 
 ## Why not manage / move ENIs?
 
-Good question! You *can* provide HA in AWS by assigning each service an ENI ([Elastic Network Interface](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html), and [moving them between
-healthy instances](http://www.cakesolutions.net/teamblogs/making-aws-nat-instances-highly-available-without-the-compromises).
+Good question! You *can* provide HA in AWS by assigning each service an ENI
+([Elastic Network Interface](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html), and
+[moving them between healthy instances](http://www.cakesolutions.net/teamblogs/making-aws-nat-instances-highly-available-without-the-compromises).
 
 There are a number of reasons I chose not to do this:
   * Most AWS machine classes/sizes are fairly restricted about the number of ENIs they can have attached.
@@ -288,10 +289,29 @@ Does an ICMP ping against the destination.
 Makes a TCP connection against the destination on a port. Optionally sends data and checks
 returned data.
 
+Takes a number of parameters:
+
   * port - required, the port number to connect on
   * send - optional, a string to send to the remote side
   * expect - optional, a string to expect back in the
              response from the remote side
+
+### command
+
+Run an arbitrary command. Exit status 0 is success, anything else is a failure.
+
+Takes the following parameters:
+
+  * command - required, the command to run
+  * arguments - options, a list of arguments to supply to the command.
+
+If any of the arguments contains the string %DESTINATION% then it will be
+replaced by the healthcheck destination.
+
+For example, you can replicate the ping healthcheck with the following arguments:
+
+  * command - ping
+  * arguments - -c, 1, %DESTINATION%
 
 ## Route tables
 
