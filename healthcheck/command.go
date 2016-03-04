@@ -3,6 +3,7 @@ package healthcheck
 import (
 	log "github.com/Sirupsen/logrus"
 	"os/exec"
+	"strings"
 )
 
 func init() {
@@ -11,17 +12,18 @@ func init() {
 
 type CommandHealthCheck struct {
 	Destination string
-	Command string
+	Command     string
+	Arguments   []string
 }
 
 func (h CommandHealthCheck) Healthcheck() bool {
-	args := []string{"-c", "1", h.Destination}
 	contextLogger := log.WithFields(log.Fields{
 		"destination": h.Destination,
-		"command": h.Command,
+		"command":     h.Command,
+		"arguments":   strings.Join(h.Arguments, ", "),
 	})
 	contextLogger.Debug("Run command")
-	if err := exec.Command(h.Command, args...).Run(); err != nil {
+	if err := exec.Command(h.Command, h.Arguments...).Run(); err != nil {
 		contextLogger.WithFields(log.Fields{"err": err.Error()}).Debug("command healthcheck failed")
 		return false
 	}
@@ -31,8 +33,10 @@ func (h CommandHealthCheck) Healthcheck() bool {
 
 func CommandConstructor(h Healthcheck) (HealthChecker, error) {
 	command := "ping"
+	args := []string{"-c", "1"}
 	return CommandHealthCheck{
 		Destination: h.Destination,
-		Command: command,
+		Command:     command,
+		Arguments:   args,
 	}, nil
 }
