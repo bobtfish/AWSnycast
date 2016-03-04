@@ -295,10 +295,11 @@ Takes a number of parameters:
   * send - optional, a string to send to the remote side
   * expect - optional, a string to expect back in the
              response from the remote side
-  * tls    - optional, a bool for if to use TLS to connect
-  * skipverify - optional, a bool which if true will skip certificate verification
-  * servername - FIXME
-  * x509 - FIXME
+  * ssl - optional, a bool for if to use TLS to connect
+  * certPath - path to a certificate
+  * cert - just put the certificate in config
+  * skipVerify - optional, a bool which if true will skip certificate verification
+  * serverName - FIXME
 
 ### command
 
