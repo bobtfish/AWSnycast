@@ -138,7 +138,7 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 func (d *Daemon) RunSleepLoop() {
 	go func() {
 
-		ticker := time.NewTicker(d.FetchWai)
+		ticker := time.NewTicker(d.FetchWait)
 		fetch := ticker.C
 
 		for {
