@@ -79,6 +79,7 @@ func TestGetAsMap(t *testing.T) {
 		"alice": "bob",
 	}
 	actualValue, err := GetAsMap(stringToParse)
+	assert.Nil(t, err)
 	assert.Equal(t, actualValue, expectedValue)
 
 	// Test if map[string]interface{} can be converted to map[string]string
@@ -87,9 +88,20 @@ func TestGetAsMap(t *testing.T) {
 	interfaceMapToParse["alice"] = "bob"
 
 	actualValue, err = GetAsMap(interfaceMapToParse)
+	assert.Nil(t, err)
 	assert.Equal(t, actualValue, expectedValue)
 
-	actualValue, err = GetAsMap(123)
+	_, err = GetAsMap(123)
+	assert.NotNil(t, err)
+
+	stringMap := make(map[string]string)
+	stringMap["foo"] = "bar"
+	stringMap["alice"] = "bob"
+	actualValue, err = GetAsMap(stringMap)
+	assert.Nil(t, err)
+	assert.Equal(t, actualValue, expectedValue)
+
+	_, err = GetAsMap("{\"foo\" : \"bar\", \"alice\":\"bob\"")
 	assert.NotNil(t, err)
 }
 
@@ -124,4 +136,11 @@ func TestGetAsSliceFromYAML(t *testing.T) {
 		res, err = GetAsSlice(123)
 		assert.NotNil(t, err)
 	}
+}
+
+func TestGetAsSliceBadYaml(t *testing.T) {
+	// Test if string array can be converted to []string
+	stringToParse := "[\"baz, \"bat\"]"
+	_, err := GetAsSlice(stringToParse)
+	assert.NotNil(t, err)
 }
