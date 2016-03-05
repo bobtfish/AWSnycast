@@ -1,3 +1,4 @@
+Version 0.1.1 - 2016-03-05
  - Add a 'command' healthcheck type.
  - Documentation updates / improvements
  - Better type conversions in the "config" attribute for health
