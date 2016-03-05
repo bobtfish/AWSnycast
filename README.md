@@ -289,15 +289,15 @@ Does an ICMP ping against the destination.
 Makes a TCP connection against the destination on a port. Optionally sends data and checks
 returned data.
 
-Takes a number of parameters:
+Takes a number of config parameters:
 
   * port - required, the port number to connect on
   * send - optional, a string to send to the remote side
   * expect - optional, a string to expect back in the
              response from the remote side
   * ssl - optional, a bool for if to use TLS to connect
-  * certPath - path to a certificate
-  * cert - just put the certificate in config
+  * certPath - optional, path to a file containing a certificate
+  * cert - optional, the certificate as a string
   * skipVerify - optional, a bool which if true will skip certificate verification
   * serverName - FIXME
 
@@ -305,7 +305,7 @@ Takes a number of parameters:
 
 Run an arbitrary command. Exit status 0 is success, anything else is a failure.
 
-Takes the following parameters:
+Takes the following config parameters:
 
   * command - required, the command to run
   * arguments - options, a list of arguments to supply to the command.
