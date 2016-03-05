@@ -49,6 +49,9 @@ func CommandConstructor(h Healthcheck) (HealthChecker, error) {
 		if err != nil {
 			result = multierror.Append(result, err)
 		} else {
+			for i, val := range args {
+				args[i] = strings.Replace(val, "%DESTINATION%", h.Destination, -1)
+			}
 			hc.Arguments = args
 		}
 	}
