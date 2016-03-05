@@ -101,11 +101,7 @@ func GetAsMap(value interface{}) (result map[string]string, err error) {
 	case map[string]interface{}:
 		temp := value.(map[string]interface{})
 		for k, v := range temp {
-			if str, ok := v.(string); ok {
-				result[k] = str
-			} else {
-				err = errors.New("Expected a string but got" + reflect.TypeOf(value).Name())
-			}
+			result[k] = GetAsString(v)
 		}
 	case map[string]string:
 		result = value.(map[string]string)

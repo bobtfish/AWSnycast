@@ -90,7 +90,7 @@ func TestGetAsMap(t *testing.T) {
 	}
 	actualValue, err := GetAsMap(stringToParse)
 	assert.Nil(t, err)
-	assert.Equal(t, actualValue, expectedValue)
+	assert.Equal(t, expectedValue, actualValue)
 
 	// Test if map[string]interface{} can be converted to map[string]string
 	interfaceMapToParse := make(map[string]interface{})
@@ -99,7 +99,7 @@ func TestGetAsMap(t *testing.T) {
 
 	actualValue, err = GetAsMap(interfaceMapToParse)
 	assert.Nil(t, err)
-	assert.Equal(t, actualValue, expectedValue)
+	assert.Equal(t, expectedValue, actualValue)
 
 	_, err = GetAsMap(123)
 	assert.NotNil(t, err)
@@ -109,10 +109,24 @@ func TestGetAsMap(t *testing.T) {
 	stringMap["alice"] = "bob"
 	actualValue, err = GetAsMap(stringMap)
 	assert.Nil(t, err)
-	assert.Equal(t, actualValue, expectedValue)
+	assert.Equal(t, expectedValue, actualValue)
 
 	_, err = GetAsMap("{\"foo\" : \"bar\", \"alice\":\"bob\"")
 	assert.NotNil(t, err)
+}
+
+func TestGetAsMapMore(t *testing.T) {
+	expectedValue := map[string]string{
+		"foo":   "bar",
+		"alice": "2",
+	}
+	interfaceMapToParse := make(map[string]interface{})
+	interfaceMapToParse["foo"] = "bar"
+	interfaceMapToParse["alice"] = 2
+
+	actualValue, err := GetAsMap(interfaceMapToParse)
+	assert.Nil(t, err)
+	assert.Equal(t, expectedValue, actualValue)
 }
 
 func TestGetAsSlice(t *testing.T) {
@@ -120,11 +134,11 @@ func TestGetAsSlice(t *testing.T) {
 	stringToParse := "[\"baz\", \"bat\"]"
 	expectedValue := []string{"baz", "bat"}
 	actualValue, err := GetAsSlice(stringToParse)
-	assert.Equal(t, actualValue, expectedValue)
+	assert.Equal(t, expectedValue, actualValue)
 
 	sliceToParse := []string{"baz", "bat"}
 	actualValue, err = GetAsSlice(sliceToParse)
-	assert.Equal(t, actualValue, expectedValue)
+	assert.Equal(t, expectedValue, actualValue)
 
 	actualValue, err = GetAsSlice(123)
 	assert.NotNil(t, err)
