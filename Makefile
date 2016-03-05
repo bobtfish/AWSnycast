@@ -15,6 +15,9 @@ test:
 get:
 	CGO_ENABLED=0 go get -a -x -installsuffix cgo -ldflags '-d -s -w' && godep go install -a -x -installsuffix cgo -ldflags '-d -s -w'
 
+fmt:
+	go fmt ./...
+
 coverage:
 	godep go test -cover -short ./...
 
