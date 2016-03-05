@@ -253,22 +253,26 @@ func NewFakeEC2Conn() *FakeEC2Conn {
 }
 
 type FakeEC2Conn struct {
-	CreateRouteOutput         *ec2.CreateRouteOutput
-	CreateRouteError          error
-	CreateRouteInput          *ec2.CreateRouteInput
-	ReplaceRouteOutput        *ec2.ReplaceRouteOutput
-	ReplaceRouteError         error
-	ReplaceRouteInput         *ec2.ReplaceRouteInput
-	DeleteRouteInput          *ec2.DeleteRouteInput
-	DeleteRouteOutput         *ec2.DeleteRouteOutput
-	DeleteRouteError          error
-	DescribeRouteTablesInput  *ec2.DescribeRouteTablesInput
-	DescribeRouteTablesOutput *ec2.DescribeRouteTablesOutput
-	DescribeRouteTablesError  error
+	CreateRouteOutput               *ec2.CreateRouteOutput
+	CreateRouteError                error
+	CreateRouteInput                *ec2.CreateRouteInput
+	ReplaceRouteOutput              *ec2.ReplaceRouteOutput
+	ReplaceRouteError               error
+	ReplaceRouteInput               *ec2.ReplaceRouteInput
+	DeleteRouteInput                *ec2.DeleteRouteInput
+	DeleteRouteOutput               *ec2.DeleteRouteOutput
+	DeleteRouteError                error
+	DescribeRouteTablesInput        *ec2.DescribeRouteTablesInput
+	DescribeRouteTablesOutput       *ec2.DescribeRouteTablesOutput
+	DescribeRouteTablesError        error
+	DescribeInstanceAttributeInput  *ec2.DescribeInstanceAttributeInput
+	DescribeInstanceAttributeOutput *ec2.DescribeInstanceAttributeOutput
+	DescribeInstanceAttributError   error
 }
 
 func (f *FakeEC2Conn) DescribeInstanceAttribute(i *ec2.DescribeInstanceAttributeInput) (*ec2.DescribeInstanceAttributeOutput, error) {
-	return nil, nil
+	f.DescribeInstanceAttributeInput = i
+	return f.DescribeInstanceAttributeOutput, f.DescribeInstanceAttributError
 }
 
 func (f *FakeEC2Conn) CreateRoute(i *ec2.CreateRouteInput) (*ec2.CreateRouteOutput, error) {
@@ -317,6 +321,30 @@ func (r *FakeRouteTableManager) ManageInstanceRoute(rtb ec2.RouteTable, rs Manag
 	r.ManageRoutesSpec = &rs
 	r.Noop = noop
 	return r.Error
+}
+
+func TestInstanceIsRouter(t *testing.T) {
+	conn := NewFakeEC2Conn()
+	conn.DescribeInstanceAttributeOutput = &ec2.DescribeInstanceAttributeOutput{SourceDestCheck: &ec2.AttributeBooleanValue{Value: aws.Bool(false)}}
+	rtf := RouteTableManagerEC2{conn: conn}
+	ans := rtf.InstanceIsRouter("i-1234")
+	assert.Equal(t, true, ans)
+
+	// Check cached path
+	ans = rtf.InstanceIsRouter("i-1234")
+	assert.Equal(t, true, ans)
+}
+
+func TestInstanceIsRouter2(t *testing.T) {
+	conn := NewFakeEC2Conn()
+	conn.DescribeInstanceAttributeOutput = &ec2.DescribeInstanceAttributeOutput{SourceDestCheck: &ec2.AttributeBooleanValue{Value: aws.Bool(true)}}
+	rtf := RouteTableManagerEC2{conn: conn}
+	ans := rtf.InstanceIsRouter("i-4567")
+	assert.Equal(t, false, ans)
+
+	// Check cached path
+	ans = rtf.InstanceIsRouter("i-4567")
+	assert.Equal(t, false, ans)
 }
 
 func TestFakeFetcher(t *testing.T) {
