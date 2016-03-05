@@ -131,7 +131,7 @@ func GetAsSlice(value interface{}) (result []string, err error) {
 	case []interface{}:
 		result = make([]string, len(realValue))
 		for i, value := range realValue {
-			result[i] = value.(string)
+			result[i] = GetAsString(value)
 		}
 	default:
 		err = errors.New("Expected a string array but got" + reflect.TypeOf(realValue).Name() + ". Returning empty slice!")

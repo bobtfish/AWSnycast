@@ -110,7 +110,7 @@ func TestGetAsSlice(t *testing.T) {
 
 func TestGetAsSliceFromYAML(t *testing.T) {
 	var data map[string]interface{}
-	yamlString := []byte(`{"listOfStrings": ["a", "b", "c"]}`)
+	yamlString := []byte(`{"listOfStrings": ["a", "b", "c", 5]}`)
 
 	err := yaml.Unmarshal(yamlString, &data)
 	assert.Nil(t, err)
@@ -119,7 +119,7 @@ func TestGetAsSliceFromYAML(t *testing.T) {
 		temp := data
 
 		res, err := GetAsSlice(temp["listOfStrings"])
-		assert.Equal(t, []string{"a", "b", "c"}, res)
+		assert.Equal(t, []string{"a", "b", "c", "5"}, res)
 
 		res, err = GetAsSlice(123)
 		assert.NotNil(t, err)
