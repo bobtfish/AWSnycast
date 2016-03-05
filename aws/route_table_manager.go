@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"os/exec"
 )
 
 type MyEC2Conn interface {
@@ -81,8 +82,20 @@ func (r RouteTableManagerEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageR
 						return nil
 					}
 					contextLogger.Info("Healthcheck unhealthy: deleting route")
+					if len(rs.RunBeforeDeleteRoute) > 0 {
+						cmd := rs.RunBeforeDeleteRoute[0]
+						if err := exec.Command(cmd, rs.RunBeforeDeleteRoute[1:]...).Run(); err != nil {
+							contextLogger.WithFields(log.Fields{"err": err.Error()}).Debug("RunBeforeDeleteRoute failed")
+						}
+					}
 					if err := r.DeleteInstanceRoute(rtb.RouteTableId, route, rs.Cidr, rs.Instance, noop); err != nil {
 						return err
+					}
+					if len(rs.RunAfterDeleteRoute) > 0 {
+						cmd := rs.RunAfterDeleteRoute[0]
+						if err := exec.Command(cmd, rs.RunAfterDeleteRoute[1:]...).Run(); err != nil {
+							contextLogger.WithFields(log.Fields{"err": err.Error()}).Debug("RunAfterDeleteRoute failed")
+						}
 					}
 					return nil
 				}
@@ -217,6 +230,12 @@ func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *
 			}
 		}
 	}
+	if len(rs.RunBeforeAddRoute) > 0 {
+		cmd := rs.RunBeforeAddRoute[0]
+		if err := exec.Command(cmd, rs.RunBeforeAddRoute[1:]...).Run(); err != nil {
+			contextLogger.WithFields(log.Fields{"err": err.Error()}).Debug("RunBeforeAddRoute failed")
+		}
+	}
 	_, err := r.conn.ReplaceRoute(params)
 	if err != nil {
 		contextLogger.WithFields(log.Fields{
@@ -225,6 +244,12 @@ func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *
 		return err
 	}
 	contextLogger.Info("Replaced route")
+	if len(rs.RunAfterAddRoute) > 0 {
+		cmd := rs.RunAfterAddRoute[0]
+		if err := exec.Command(cmd, rs.RunAfterAddRoute[1:]...).Run(); err != nil {
+			contextLogger.WithFields(log.Fields{"err": err.Error()}).Debug("RunAfterAddRoute failed")
+		}
+	}
 	return nil
 }
 
