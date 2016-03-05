@@ -150,6 +150,42 @@ func (r RouteTableManagerEC2) DeleteInstanceRoute(routeTableId *string, route *e
 	return nil
 }
 
+func (r RouteTableManagerEC2) checkRemoteHealthCheck(contextLogger *log.Entry, route *ec2.Route, rs ManageRoutesSpec) bool {
+	contextLogger = contextLogger.WithFields(log.Fields{
+		"remote_healthcheck": rs.RemoteHealthcheckName,
+		"current_eni":        *(route.NetworkInterfaceId),
+	})
+	contextLogger.Info("Has remote healthcheck ")
+	if ip, ok := eniToIP[*route.NetworkInterfaceId]; ok {
+		contextLogger = contextLogger.WithFields(log.Fields{"current_ip": ip})
+		if hc, ok := rs.remotehealthchecks[ip]; ok {
+			contextLogger = contextLogger.WithFields(log.Fields{
+				"healthcheck_healthy": hc.IsHealthy(),
+				"healthcheck_ready":   hc.CanPassYet(),
+			})
+			contextLogger.Info("Has remote healthcheck instance")
+			if hc.CanPassYet() {
+				if hc.IsHealthy() {
+					contextLogger.Debug("Not replacing route, as current route is healthy")
+					return false
+				} else {
+					contextLogger.Debug("Replacing route as remote healthcheck is unhealthy")
+				}
+			} else {
+				contextLogger.Debug("Not replacing route as remote healthcheck cannot pass yet")
+				return false
+			}
+		} else {
+			contextLogger.Error("Cannot find healthcheck")
+			return false
+		}
+	} else {
+		contextLogger.Error("Cannot find ip for ENI")
+		return false
+	}
+	return true
+}
+
 func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *ec2.Route, rs ManageRoutesSpec, noop bool) error {
 	cidr := rs.Cidr
 	instance := rs.Instance
@@ -172,36 +208,7 @@ func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *
 	if ifUnhealthy {
 		if *(route.State) == "active" {
 			if rs.RemoteHealthcheckName != "" {
-				contextLogger = contextLogger.WithFields(log.Fields{
-					"remote_healthcheck": rs.RemoteHealthcheckName,
-					"current_eni":        *(route.NetworkInterfaceId),
-				})
-				contextLogger.Info("Has remote healthcheck ")
-				if ip, ok := eniToIP[*route.NetworkInterfaceId]; ok {
-					contextLogger = contextLogger.WithFields(log.Fields{"current_ip": ip})
-					if hc, ok := rs.remotehealthchecks[ip]; ok {
-						contextLogger = contextLogger.WithFields(log.Fields{
-							"healthcheck_healthy": hc.IsHealthy(),
-							"healthcheck_ready":   hc.CanPassYet(),
-						})
-						contextLogger.Info("Has remote healthcheck instance")
-						if hc.CanPassYet() {
-							if hc.IsHealthy() {
-								contextLogger.Debug("Not replacing route, as current route is healthy")
-								return nil
-							} else {
-								contextLogger.Debug("Replacing route as remote healthcheck is unhealthy")
-							}
-						} else {
-							contextLogger.Debug("Not replacing route as remote healthcheck cannot pass yet")
-							return nil
-						}
-					} else {
-						contextLogger.Error("Cannot find healthcheck")
-						return nil
-					}
-				} else {
-					contextLogger.Error("Cannot find ip for ENI")
+				if !r.checkRemoteHealthCheck(contextLogger, route, rs) {
 					return nil
 				}
 			} else {
