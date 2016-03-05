@@ -26,8 +26,8 @@ type ManageRoutesSpec struct {
 	Manager                   RouteTableManager                   `yaml:"-"`
 	NeverDelete               bool                                `yaml:"never_delete"`
 	myIPAddress               string                              `yaml:"-"`
-	RunBeforeAddRoute         []string                            `yaml:"run_before_add_route"`
-	RunAfterAddRoute          []string                            `yaml:"run_after_add_route"`
+	RunBeforeReplaceRoute     []string                            `yaml:"run_before_replace_route"`
+	RunAfterReplaceRoute      []string                            `yaml:"run_after_replace_route"`
 	RunBeforeDeleteRoute      []string                            `yaml:"run_before_delete_route"`
 	RunAfterDeleteRoute       []string                            `yaml:"run_after_delete_route"`
 }

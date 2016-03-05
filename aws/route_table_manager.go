@@ -230,10 +230,10 @@ func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *
 			}
 		}
 	}
-	if len(rs.RunBeforeAddRoute) > 0 {
-		cmd := rs.RunBeforeAddRoute[0]
-		if err := exec.Command(cmd, rs.RunBeforeAddRoute[1:]...).Run(); err != nil {
-			contextLogger.WithFields(log.Fields{"err": err.Error()}).Debug("RunBeforeAddRoute failed")
+	if len(rs.RunBeforeReplaceRoute) > 0 {
+		cmd := rs.RunBeforeReplaceRoute[0]
+		if err := exec.Command(cmd, rs.RunBeforeReplaceRoute[1:]...).Run(); err != nil {
+			contextLogger.WithFields(log.Fields{"err": err.Error()}).Debug("RunBeforeReplaceRoute failed")
 		}
 	}
 	_, err := r.conn.ReplaceRoute(params)
@@ -244,10 +244,10 @@ func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *
 		return err
 	}
 	contextLogger.Info("Replaced route")
-	if len(rs.RunAfterAddRoute) > 0 {
-		cmd := rs.RunAfterAddRoute[0]
-		if err := exec.Command(cmd, rs.RunAfterAddRoute[1:]...).Run(); err != nil {
-			contextLogger.WithFields(log.Fields{"err": err.Error()}).Debug("RunAfterAddRoute failed")
+	if len(rs.RunAfterReplaceRoute) > 0 {
+		cmd := rs.RunAfterReplaceRoute[0]
+		if err := exec.Command(cmd, rs.RunAfterReplaceRoute[1:]...).Run(); err != nil {
+			contextLogger.WithFields(log.Fields{"err": err.Error()}).Debug("RunAfterReplaceRoute failed")
 		}
 	}
 	return nil
