@@ -3,11 +3,16 @@ package healthcheck
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"runtime"
 )
 
 func TestHealthcheckCommand(t *testing.T) {
 	c := make(map[string]interface{})
-	c["command"] = "/bin/true"
+	if runtime.GOOS == "darwin" {
+		c["command"] = "/usr/bin/true"
+	} else {
+		c["command"] = "/bin/true"
+	}
 	h := Healthcheck{
 		Type:        "command",
 		Destination: "127.0.0.1",
@@ -22,7 +27,11 @@ func TestHealthcheckCommand(t *testing.T) {
 
 func TestHealthcheckCommandFail(t *testing.T) {
 	c := make(map[string]interface{})
-        c["command"] = "/bin/false"
+	if runtime.GOOS == "darwin" {
+                c["command"] = "/usr/bin/false"
+        } else {
+                c["command"] = "/bin/false"
+        }
 	h := Healthcheck{
 		Type:        "command",
 		Destination: "169.254.255.45", // Hopefully you can't talk to this :)
