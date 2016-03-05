@@ -245,6 +245,7 @@ func TestRunOneRouteTableNoRouteTablesInAWS(t *testing.T) {
 	c["key"] = "Name"
 	c["value"] = "private a"
 	rt := &config.RouteTable{
+		Name: "foo",
 		Find: config.RouteTableFindSpec{
 			Type:   "by_tag",
 			Config: c,
@@ -252,7 +253,7 @@ func TestRunOneRouteTableNoRouteTablesInAWS(t *testing.T) {
 	}
 	err := d.RunOneRouteTable(awsRt, "public", rt)
 	if assert.NotNil(t, err) {
-		assert.Equal(t, err.Error(), "No route table in AWS matched filter spec")
+		assert.Equal(t, "No route table in AWS matched filter spec in route table 'foo'", err.Error())
 	}
 }
 

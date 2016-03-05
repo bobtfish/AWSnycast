@@ -389,6 +389,7 @@ func TestUpdateEc2RouteTablesNoRouteTablesInAWS(t *testing.T) {
 	c["key"] = "Name"
 	c["value"] = "private a"
 	rt := &RouteTable{
+		Name: "foo",
 		Find: RouteTableFindSpec{
 			Type:   "by_tag",
 			Config: c,
@@ -396,7 +397,7 @@ func TestUpdateEc2RouteTablesNoRouteTablesInAWS(t *testing.T) {
 	}
 	err := rt.UpdateEc2RouteTables(awsRt)
 	if assert.NotNil(t, err) {
-		assert.Equal(t, err.Error(), "No route table in AWS matched filter spec")
+		assert.Equal(t, "No route table in AWS matched filter spec in route table 'foo'", err.Error())
 	}
 	rt.Find.NoResultsOk = true
 	err = rt.UpdateEc2RouteTables(awsRt)

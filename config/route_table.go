@@ -12,6 +12,7 @@ import (
 )
 
 type RouteTable struct {
+	Name           string                  `yaml:"-"`
 	Find           RouteTableFindSpec      `yaml:"find"`
 	ManageRoutes   []*aws.ManageRoutesSpec `yaml:"manage_routes"`
 	ec2RouteTables []*ec2.RouteTable
@@ -27,7 +28,7 @@ func (r *RouteTable) UpdateEc2RouteTables(rt []*ec2.RouteTable) error {
 		if r.Find.NoResultsOk {
 			return nil
 		}
-		return errors.New("No route table in AWS matched filter spec")
+		return errors.New(fmt.Sprintf("No route table in AWS matched filter spec in route table '%s'", r.Name))
 	}
 	for _, manage := range r.ManageRoutes {
 		manage.UpdateEc2RouteTables(r.ec2RouteTables)
@@ -52,12 +53,13 @@ func (r *RouteTable) RunEc2Updates(manager aws.RouteTableManager, noop bool) err
 }
 
 func (r *RouteTable) Validate(meta instancemetadata.InstanceMetadata, manager aws.RouteTableManager, name string, healthchecks map[string]*healthcheck.Healthcheck, remotehealthchecks map[string]*healthcheck.Healthcheck) error {
+	r.Name = name
 	if r.ManageRoutes == nil {
 		r.ManageRoutes = make([]*aws.ManageRoutesSpec, 0)
 	}
 	var result *multierror.Error
 	if len(r.ManageRoutes) == 0 {
-		result = multierror.Append(result, errors.New(fmt.Sprintf("No manage_routes key in route table '%s'", name)))
+		result = multierror.Append(result, errors.New(fmt.Sprintf("No manage_routes key in route table '%s'", r.Name)))
 	}
 	if err := r.Find.Validate(name); err != nil {
 		result = multierror.Append(result, err)
