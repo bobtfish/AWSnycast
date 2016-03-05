@@ -19,7 +19,6 @@ type Daemon struct {
 	RouteTableManager aws.RouteTableManager
 	quitChan          chan bool
 	loopQuitChan      chan bool
-	loopTimerChan     chan bool
 	FetchWait         time.Duration
 	instancemetadata.InstanceMetadata
 }
@@ -124,7 +123,6 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 		return 1
 	}
 	d.loopQuitChan = make(chan bool, 1)
-	d.loopTimerChan = make(chan bool, 1)
 	if oneShot {
 		d.quitChan <- true
 	} else {
@@ -139,24 +137,21 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 
 func (d *Daemon) RunSleepLoop() {
 	go func() {
+
+		ticker := time.NewTicker(d.FetchWait)
+		fetch := ticker.C
+
 		for {
 			select {
 			case <-d.loopQuitChan:
+				ticker.Stop()
 				return
-			case <-d.loopTimerChan:
+			case <-fetch:
 				err := d.RunRouteTables()
 				if err != nil {
 					log.WithFields(log.Fields{"err": err.Error()}).Warn("Error in route table poll run")
 				}
-				go func() {
-					time.Sleep(d.FetchWait)
-					d.loopTimerChan <- true
-				}()
 			}
 		}
-	}()
-	go func() {
-		time.Sleep(d.FetchWait)
-		d.loopTimerChan <- true
 	}()
 }
