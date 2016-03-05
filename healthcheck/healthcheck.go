@@ -79,6 +79,19 @@ func (h *Healthcheck) GetListener() <-chan bool {
 
 func (h *Healthcheck) stateChange() {
 	h.canPassYet = true
+	if h.isHealthy {
+		if len(h.RunOnHealthy) > 0 {
+			if err := exec.Command(h.RunOnHealthy...).Run(); err != nil {
+				contextLogger.WithFields(log.Fields{"err": err.Error()}).Debug("healthcheck RunOnHealthy failed")
+			}
+		}
+	} else {
+		if len(h.RunOnUnhealthy) > 0 {
+			if err := exec.Command(h.RunOnUnhealthy...).Run(); err != nil {
+                                contextLogger.WithFields(log.Fields{"err": err.Error()}).Debug("healthcheck RunOnUnhealthy failed")
+                        }
+		}
+	}
 	for _, l := range h.listeners {
 		l <- h.isHealthy
 	}
@@ -119,7 +132,7 @@ func (h *Healthcheck) PerformHealthcheck() {
 				return
 			}
 		}
-		contextLogger.Info("Healthcheck is healthy")
+		contextLogger.Info("Healthcheck is unhealthy")
 		h.isHealthy = false
 		h.stateChange()
 	} else { // Currently unhealthy
@@ -133,7 +146,7 @@ func (h *Healthcheck) PerformHealthcheck() {
 			}
 		}
 		h.isHealthy = true
-		contextLogger.Info("Healthcheck is unhealthy")
+		contextLogger.Info("Healthcheck is healthy")
 		h.stateChange()
 	}
 }
