@@ -279,6 +279,8 @@ The definition is composed of a few fields:
  * fall - optional, how many checks need to fail in a row to become unhealthy. Default 2
  * every - required, how often in seconds to run the healthcheck
  * config - optional, A hash of keys/values for the specific healthcheck type you are using
+ * run_on_healthy - optional. An array holding a script/command to run when the healthcheck becomes healthy.
+ * run_on_unhealthy - optional. An array holding a script/command to run when the healthcheck becomes unhealthy.
 
 ### ping
 
