@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"github.com/bobtfish/AWSnycast/testhelpers"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"log"
+	"os"
 	"testing"
 )
 
@@ -361,4 +364,62 @@ func TestChangeDestinationFail(t *testing.T) {
 	n, err := h.NewWithDestination("127.0.0.2")
 	assert.NotNil(t, err)
 	assert.Equal(t, n.canPassYet, false)
+}
+
+func TestHealthcheckRunOnHealthy(t *testing.T) {
+	dir, err := ioutil.TempDir("", "awsnycast")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(dir) // clean up
+	flagFile := dir + "/run_on_healthy"
+	h := Healthcheck{
+		Type:         "ping",
+		Destination:  "127.0.0.1",
+		RunOnHealthy: []string{"/usr/bin/touch", flagFile},
+	}
+	assert.Nil(t, h.Validate("foo", false))
+	assert.Nil(t, h.Setup())
+	if _, err := os.Stat(flagFile); err == nil {
+		t.Log(flagFile + " exists already")
+		t.Fail()
+	}
+	c := h.GetListener()
+	h.PerformHealthcheck()
+	h.PerformHealthcheck()
+	assert.Equal(t, <-c, true)
+	if _, err := os.Stat(flagFile); os.IsNotExist(err) {
+		t.Log(flagFile + " does not exist")
+		t.Fail()
+	}
+}
+
+func TestHealthcheckRunOnUnhealthy(t *testing.T) {
+	pingCmd = "false"
+	dir, err := ioutil.TempDir("", "awsnycast")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(dir) // clean up
+	flagFile := dir + "/run_on_unhealthy"
+	h := Healthcheck{
+		Type:           "ping",
+		Destination:    "127.0.0.1",
+		RunOnUnhealthy: []string{"/usr/bin/touch", flagFile},
+	}
+	assert.Nil(t, h.Validate("foo", false))
+	assert.Nil(t, h.Setup())
+	if _, err := os.Stat(flagFile); err == nil {
+		t.Log(flagFile + " exists already")
+		t.Fail()
+	}
+	c := h.GetListener()
+	h.PerformHealthcheck()
+	h.PerformHealthcheck()
+	assert.Equal(t, <-c, false)
+	if _, err := os.Stat(flagFile); os.IsNotExist(err) {
+		t.Log(flagFile + " does not exist")
+		t.Fail()
+	}
+	pingCmd = "ping"
 }

@@ -6,6 +6,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/hashicorp/go-multierror"
 	"net"
+	"os/exec"
 	"time"
 )
 
@@ -78,18 +79,24 @@ func (h *Healthcheck) GetListener() <-chan bool {
 }
 
 func (h *Healthcheck) stateChange() {
+	contextLogger := log.WithFields(log.Fields{
+		"destination": h.Destination,
+		"type":        h.Type,
+	})
 	h.canPassYet = true
 	if h.isHealthy {
 		if len(h.RunOnHealthy) > 0 {
-			if err := exec.Command(h.RunOnHealthy...).Run(); err != nil {
+			cmd := h.RunOnHealthy[0]
+			if err := exec.Command(cmd, h.RunOnHealthy[1:]...).Run(); err != nil {
 				contextLogger.WithFields(log.Fields{"err": err.Error()}).Debug("healthcheck RunOnHealthy failed")
 			}
 		}
 	} else {
 		if len(h.RunOnUnhealthy) > 0 {
-			if err := exec.Command(h.RunOnUnhealthy...).Run(); err != nil {
-                                contextLogger.WithFields(log.Fields{"err": err.Error()}).Debug("healthcheck RunOnUnhealthy failed")
-                        }
+			cmd := h.RunOnUnhealthy[0]
+			if err := exec.Command(cmd, h.RunOnUnhealthy[1:]...).Run(); err != nil {
+				contextLogger.WithFields(log.Fields{"err": err.Error()}).Debug("healthcheck RunOnUnhealthy failed")
+			}
 		}
 	}
 	for _, l := range h.listeners {
