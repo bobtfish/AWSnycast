@@ -40,6 +40,16 @@ func TestGetInt(t *testing.T) {
 	val, err = GetAsInt(12, 123)
 	assert.Equal(t, val, 12)
 	assert.Nil(t, err)
+
+	var intThirtyTwo int32 = 12
+	val, err = GetAsInt(intThirtyTwo, 123)
+	assert.Equal(t, val, 12)
+	assert.Nil(t, err)
+
+	var intSixtyFour int64 = 12
+	val, err = GetAsInt(intSixtyFour, 123)
+	assert.Equal(t, val, 12)
+	assert.Nil(t, err)
 }
 
 func TestGetFloat(t *testing.T) {
