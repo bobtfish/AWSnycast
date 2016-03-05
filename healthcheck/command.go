@@ -1,7 +1,10 @@
 package healthcheck
 
 import (
+	"errors"
 	log "github.com/Sirupsen/logrus"
+	utils "github.com/bobtfish/AWSnycast/utils"
+	"github.com/hashicorp/go-multierror"
 	"os/exec"
 	"strings"
 )
@@ -32,11 +35,22 @@ func (h CommandHealthCheck) Healthcheck() bool {
 }
 
 func CommandConstructor(h Healthcheck) (HealthChecker, error) {
-	command := "ping"
-	args := []string{"-c", "1", h.Destination}
-	return CommandHealthCheck{
+	var result *multierror.Error
+	hc := CommandHealthCheck{
 		Destination: h.Destination,
-		Command:     command,
-		Arguments:   args,
-	}, nil
+	}
+	if val, ok := h.Config["command"]; ok {
+		hc.Command = utils.GetAsString(val)
+	} else {
+		result = multierror.Append(result, errors.New("'command' not defined in command healthcheck config to "+h.Destination))
+	}
+	if val, ok := h.Config["arguments"]; ok {
+		args, err := utils.GetAsSlice(val)
+		if err != nil {
+			result = multierror.Append(result, err)
+		} else {
+			hc.Arguments = args
+		}
+	}
+	return hc, result.ErrorOrNil()
 }

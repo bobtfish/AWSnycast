@@ -26,4 +26,3 @@ func TestHealthcheckCommandFail(t *testing.T) {
 	h.Setup()
 	assert.Equal(t, h.healthchecker.Healthcheck(), false)
 }
-
