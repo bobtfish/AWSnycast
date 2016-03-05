@@ -144,6 +144,7 @@ func (d *Daemon) RunSleepLoop() {
 		for {
 			select {
 			case <-d.loopQuitChan:
+				ticker.Stop()
 				return
 			case <-fetch:
 				err := d.RunRouteTables()
