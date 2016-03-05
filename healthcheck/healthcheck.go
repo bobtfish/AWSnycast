@@ -29,31 +29,35 @@ type CanBeHealthy interface {
 }
 
 type Healthcheck struct {
-	canPassYet    bool                   `yaml:"-"`
-	runCount      uint64                 `yaml:"-"`
-	Type          string                 `yaml:"type"`
-	Destination   string                 `yaml:"destination"`
-	isHealthy     bool                   `yaml:"-"`
-	Rise          uint                   `yaml:"rise"`
-	Fall          uint                   `yaml:"fall"`
-	Every         uint                   `yaml:"every"`
-	History       []bool                 `yaml:"-"`
-	Config        map[string]interface{} `yaml:"config"`
-	healthchecker HealthChecker          `yaml:"-"`
-	isRunning     bool                   `yaml:"-"`
-	quitChan      chan<- bool            `yaml:"-"`
-	hasQuitChan   <-chan bool            `yaml:"-"`
-	listeners     []chan<- bool          `yaml:"-"`
+	canPassYet     bool                   `yaml:"-"`
+	runCount       uint64                 `yaml:"-"`
+	Type           string                 `yaml:"type"`
+	Destination    string                 `yaml:"destination"`
+	isHealthy      bool                   `yaml:"-"`
+	Rise           uint                   `yaml:"rise"`
+	Fall           uint                   `yaml:"fall"`
+	Every          uint                   `yaml:"every"`
+	History        []bool                 `yaml:"-"`
+	Config         map[string]interface{} `yaml:"config"`
+	RunOnHealthy   []string               `yaml:"run_on_healthy"`
+	RunOnUnhealthy []string               `yaml:"run_on_unhealthy"`
+	healthchecker  HealthChecker          `yaml:"-"`
+	isRunning      bool                   `yaml:"-"`
+	quitChan       chan<- bool            `yaml:"-"`
+	hasQuitChan    <-chan bool            `yaml:"-"`
+	listeners      []chan<- bool          `yaml:"-"`
 }
 
 func (h *Healthcheck) NewWithDestination(destination string) (*Healthcheck, error) {
 	n := &Healthcheck{
-		Destination: destination,
-		Type:        h.Type,
-		Rise:        h.Rise,
-		Fall:        h.Fall,
-		Every:       h.Every,
-		Config:      h.Config,
+		Destination:    destination,
+		Type:           h.Type,
+		Rise:           h.Rise,
+		Fall:           h.Fall,
+		Every:          h.Every,
+		Config:         h.Config,
+		RunOnHealthy:   h.RunOnHealthy,
+		RunOnUnhealthy: h.RunOnUnhealthy,
 	}
 	err := n.Validate(destination, false)
 	if err == nil {
