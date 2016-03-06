@@ -14,7 +14,8 @@ gom 'github.com/hashicorp/go-multierror', :commit => 'd30f09973e19c1dfcd120b2d9c
 gom 'github.com/jmespath/go-jmespath', :commit => '3433f3ea46d9f8019119e7dd41274e112a2359a9'
 gom 'github.com/onsi/ginkgo', :commit => 'ac3d45ddd7ef5c4d7fc4d037b615a81f4d67981e'
 gom 'github.com/onsi/gomega', :commit => '7ce781ea776b2fd506491011353bded2e40c8467'
+gom 'github.com/stretchr/testify/assert'
 gom 'gopkg.in/yaml.v2', :commit => '7ad95dd0798a40da1ccdff6dff35fd177b5edf40'
 gom 'golang.org/x/crypto/ssh'
-gom 'github.com/stretchr/testify/assert'
+gom 'golang.org/x/net'
 
