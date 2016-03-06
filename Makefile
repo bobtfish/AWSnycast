@@ -39,7 +39,7 @@ test:
 get:
 	@echo Getting dependencies...
 	@go get github.com/mattn/gom
-	@bin/gom install
+	@bin/gom install -a -installsuffix cgo -ldflags '-d -s -w'
 
 fmt:
 	bin/gom fmt ./...
