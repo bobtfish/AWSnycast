@@ -13,7 +13,7 @@ test:
 	godep go test -short ./...
 
 get:
-	CGO_ENABLED=0 go get -a -x -installsuffix cgo -ldflags '-d -s -w' && godep go install -a -x -installsuffix cgo -ldflags '-d -s -w'
+	CGO_ENABLED=0 go get -a -installsuffix cgo -ldflags '-d -s -w' && godep go install -a -installsuffix cgo -ldflags '-d -s -w'
 
 fmt:
 	go fmt ./...
