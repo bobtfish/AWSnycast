@@ -387,6 +387,11 @@ Routes to be managed are a list of hashes, with the following keys:
   * if_unhealthy - true. Only take this route over if the instance currently
     associated with it is unhealthy in the AWS route table (i.e. black holing
     traffic). This is used for backup servers in a multi-az deployment.
+  * remote_healthcheck - FIXME
+  * run_before_replace_route - FIXME
+  * run_after_replace_route - FIXME
+  * run_before_add_route - FIXME
+  * run_after_add_route - FIXME
 
 # Releases
 
@@ -405,7 +410,6 @@ This project is currently under heavy development.
 
 Here's a list of the features that I'm planning to work on next, in approximate order:
 
-  * Run scripts before / after takeover of route
   * Autodetect this machine's AZ
   * Make us autodetect the VPC this instance is running in, and refuse to adjust routing tables in other VPCs
   * Enable the use of multiple different healthchecks for a route (to only consider it down if multiple checks fail)
