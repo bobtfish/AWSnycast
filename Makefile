@@ -1,4 +1,4 @@
-CGO_ENABLED=0
+
 TRAVIS_BUILD_NUMBER?=debug0
 
 AWSNYCAST      := AWSnycast
@@ -24,6 +24,9 @@ export GOPATH
 
 PATH := bin:$(PATH)
 export PATH
+
+CGO_ENABLED := 0
+export CGO_ENABLED
 
 AWSnycast: $(SOURCES)
 	@echo Building $(AWSNYCAST)...
