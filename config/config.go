@@ -17,7 +17,8 @@ type Config struct {
 }
 
 func New(filename string, im instancemetadata.InstanceMetadata, manager aws.RouteTableManager) (*Config, error) {
-	c := new(Config)
+	var c Config
+
 	viper.SetConfigType("yaml")
 	viper.SetConfigFile(filename)
 	err := viper.ReadInConfig()
