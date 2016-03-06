@@ -1,9 +1,9 @@
 package config
 
 import (
+	"AWSnycast/aws"
 	"errors"
 	"fmt"
-	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/hashicorp/go-multierror"
 	"gopkg.in/yaml.v2"
 )
