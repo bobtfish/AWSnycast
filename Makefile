@@ -51,7 +51,7 @@ integration:
 	bin/gom test ./...
 
 clean:
-	rm -rf dist */coverage.out */coverprofile.out coverage.out coverprofile.out AWSnycast
+	rm -rf dist */coverage.out */coverprofile.out coverage.out coverprofile.out bin/AWSnycast
 
 realclean: clean
 	make -C tests/integration realclean
