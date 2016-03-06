@@ -7,7 +7,6 @@ import (
 	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"github.com/hashicorp/go-multierror"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -21,7 +20,7 @@ func New(filename string, im instancemetadata.InstanceMetadata, manager aws.Rout
 	c := new(Config)
 	viper.SetConfigType("yaml")
 	viper.SetConfigFile(filename)
-	err := viper.ReadInConfig(filename)
+	err := viper.ReadInConfig()
 	if err != nil {
 		return c, err
 	}
