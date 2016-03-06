@@ -11,5 +11,8 @@ tests/integration/terraform.tfstate.backup
 tests/integration/id_rsa.pub
 tests/integration/id_rsa
 tests/integration/.terraform/
-AWSnycast
 Gemfile.lock
+_vendor/
+bin/*
+pkg/*
+src/github.com/*

@@ -1,10 +1,10 @@
 package config
 
 import (
+	"AWSnycast/aws"
+	"AWSnycast/healthcheck"
+	"AWSnycast/instancemetadata"
 	"errors"
-	"github.com/bobtfish/AWSnycast/aws"
-	"github.com/bobtfish/AWSnycast/healthcheck"
-	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"github.com/hashicorp/go-multierror"
 	"github.com/spf13/viper"
 )

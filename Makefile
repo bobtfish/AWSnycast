@@ -1,41 +1,69 @@
-CGO_ENABLED=0
 TRAVIS_BUILD_NUMBER?=debug0
+
+AWSNYCAST      := AWSnycast
+SRCDIR         := src
 
 .PHONY: coverage get test clean
 
 all: get coverage AWSnycast
 
-AWSnycast: *.go */*.go
-	go build -a -tags netgo -ldflags '-w' .
-	strip AWSnycast
+dev: getdev coverage AWSnycast
+
+PKGS           := \
+	$(AWSNYCAST)/\
+	$(AWSNYCAST)/aws \
+	$(AWSNYCAST)/config \
+	$(AWSNYCAST)/daemon \
+	$(AWSNYCAST)/healthcheck \
+	$(AWSNYCAST)/instancemetadata \
+	$(AWSNYCAST)/utils
+
+SOURCES        := $(foreach pkg, $(PKGS), $(wildcard $(SRCDIR)/$(pkg)/*.go))
+
+GOPATH  := $(shell pwd -L)
+export GOPATH
+
+PATH := bin:$(PATH)
+export PATH
+
+CGO_ENABLED := 0
+export CGO_ENABLED
+
+AWSnycast: $(SOURCES)
+	@echo Building $(AWSNYCAST)...
+	bin/gom build -a -tags netgo -ldflags '-w' -o bin/$(AWSNYCAST) $@
+	strip bin/$(AWSNYCAST)
 
 test:
-	go test -short ./...
+	bin/gom test -short ./...
 
 get:
-	CGO_ENABLED=0 go get -a -installsuffix cgo -ldflags '-d -s -w' && go install -a -installsuffix cgo -ldflags '-d -s -w'
+	@echo Getting dependencies...
+	@go get github.com/mattn/gom
+	@bin/gom install -a -installsuffix cgo -ldflags '-d -s -w'
+
+getdev:
+	@echo Getting dependencies...
+	@go get github.com/mattn/gom
+	@CGO_ENABLED=1 bin/gom install > /dev/null
 
 fmt:
-	go fmt ./...
+	bin/gom fmt ./...
 
 coverage:
-	go test -cover -short ./...
+	bin/gom test -cover -short ./...
 
 integration:
-	go test ./...
+	bin/gom test ./...
 
 clean:
-	rm -rf dist */coverage.out */coverprofile.out coverage.out coverprofile.out AWSnycast
+	rm -rf dist */coverage.out */coverprofile.out coverage.out coverprofile.out bin/AWSnycast
 
 realclean: clean
 	make -C tests/integration realclean
 
 coverage.out:
-	cd aws ; go test -coverprofile=coverage.out ./... ; cd ..
-	cd daemon ; go test -coverprofile=coverage.out ./... ; cd ..
-	cd config ; go test -coverprofile=coverage.out ./... ; cd ..
-	cd healthcheck ; go test -coverprofile=coverage.out ./... ; cd ..
-	cd instancemetadata ; go test -coverprofile=coverage.out ./... ; cd ..
+	@$(foreach pkg, $(PKGS), bin/gom test -coverprofile=coverage.out $(pkg);)
 	echo "mode: set" > coverage.out && cat */coverage.out | grep -v mode: | sort -r | awk '{if($$1 != last) {print $$0;last=$$1}}' >> coverage.out
 
 itest_%:
@@ -46,7 +74,7 @@ Gemfile.lock:
 
 dist: AWSnycast Gemfile.lock
 	rm -rf dist/ *.deb
-	bundle exec fpm -s dir -t deb --name awsnycast --url "https://github.com/bobtfish/AWSnycast" --maintainer "Tomas Doran <bobtfish@bobtfish.net>" --description "Anycast in AWS" --license Apache2 --iteration $(TRAVIS_BUILD_NUMBER) --version $$(./AWSnycast -version) --prefix /usr/bin AWSnycast
-	bundle exec fpm -s dir -t rpm --name awsnycast --url "https://github.com/bobtfish/AWSnycast" --maintainer "Tomas Doran <bobtfish@bobtfish.net>" --description "Anycast in AWS" --license Apache2 --iteration $(TRAVIS_BUILD_NUMBER) --version $$(./AWSnycast -version) --prefix /usr/bin AWSnycast
+	bundle exec fpm -s dir -t deb --name awsnycast --url "https://github.com/bobtfish/AWSnycast" --maintainer "Tomas Doran <bobtfish@bobtfish.net>" --description "Anycast in AWS" --license Apache2 --iteration $(TRAVIS_BUILD_NUMBER) --version $$(./bin/AWSnycast -version) --prefix /usr/bin ./bin/AWSnycast
+	bundle exec fpm -s dir -t rpm --name awsnycast --url "https://github.com/bobtfish/AWSnycast" --maintainer "Tomas Doran <bobtfish@bobtfish.net>" --description "Anycast in AWS" --license Apache2 --iteration $(TRAVIS_BUILD_NUMBER) --version $$(./bin/AWSnycast -version) --prefix /usr/bin ./bin/AWSnycast
 	mkdir dist
 	mv *.deb *.rpm dist/

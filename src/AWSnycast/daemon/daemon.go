@@ -1,11 +1,11 @@
 package daemon
 
 import (
+	"AWSnycast/aws"
+	"AWSnycast/config"
+	"AWSnycast/instancemetadata"
 	log "github.com/Sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/bobtfish/AWSnycast/aws"
-	"github.com/bobtfish/AWSnycast/config"
-	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"github.com/spf13/viper"
 	"gopkg.in/fsnotify.v1"
 	"time"

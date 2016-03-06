@@ -1,11 +1,11 @@
 package healthcheck
 
 import (
+	"AWSnycast/testhelpers"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"github.com/bobtfish/AWSnycast/testhelpers"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net"
