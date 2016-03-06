@@ -39,7 +39,7 @@ func (c *Config) Validate(im instancemetadata.InstanceMetadata, manager aws.Rout
 		result = multierror.Append(result, errors.New("No route_tables key in config"))
 	} else {
 		if len(c.RouteTables) == 0 {
-			result = multierror.Append(result, errors.New("No route_tables defined in config"))
+			result = multierror.Append(result, errors.New("No routetables defined in config"))
 		} else {
 			for k, v := range c.RouteTables {
 				if err := v.Validate(im, manager, k, c.Healthchecks, c.RemoteHealthcheckTemplates); err != nil {
