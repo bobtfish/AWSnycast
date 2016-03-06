@@ -8,7 +8,7 @@ export PATH=$PATH:/go/bin:/usr/local/go/bin
 
 cd /go/src/github.com/bobtfish/AWSnycast
 CGO_ENABLED=0 go get
-CGO_ENABLED=0 godep go build -a -tags netgo -ldflags '-w' .
+CGO_ENABLED=0 go build -a -tags netgo -ldflags '-w' .
 strip AWSnycast
 mkdir /dist && cd /dist
 cp /go/bin/AWSnycast .

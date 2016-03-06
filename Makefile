@@ -6,23 +6,23 @@ TRAVIS_BUILD_NUMBER?=debug0
 all: get coverage AWSnycast
 
 AWSnycast: *.go */*.go
-	godep go build -a -tags netgo -ldflags '-w' .
+	go build -a -tags netgo -ldflags '-w' .
 	strip AWSnycast
 
 test:
-	godep go test -short ./...
+	go test -short ./...
 
 get:
-	CGO_ENABLED=0 go get -a -installsuffix cgo -ldflags '-d -s -w' && godep go install -a -installsuffix cgo -ldflags '-d -s -w'
+	CGO_ENABLED=0 go get -a -installsuffix cgo -ldflags '-d -s -w' && go install -a -installsuffix cgo -ldflags '-d -s -w'
 
 fmt:
 	go fmt ./...
 
 coverage:
-	godep go test -cover -short ./...
+	go test -cover -short ./...
 
 integration:
-	godep go test ./...
+	go test ./...
 
 clean:
 	rm -rf dist */coverage.out */coverprofile.out coverage.out coverprofile.out AWSnycast
