@@ -1,4 +1,3 @@
-
 TRAVIS_BUILD_NUMBER?=debug0
 
 AWSNYCAST      := AWSnycast
@@ -7,6 +6,8 @@ SRCDIR         := src
 .PHONY: coverage get test clean
 
 all: get coverage AWSnycast
+
+dev: getdev coverage AWSnycast
 
 PKGS           := \
 	$(AWSNYCAST)/\
@@ -39,8 +40,12 @@ test:
 get:
 	@echo Getting dependencies...
 	@go get github.com/mattn/gom
-	@bin/gom install
-# -a -installsuffix cgo -ldflags '-d -s -w'
+	@bin/gom install -a -installsuffix cgo -ldflags '-d -s -w'
+
+getdev:
+	@echo Getting dependencies...
+	@go get github.com/mattn/gom
+	@CGO_ENABLED=1 bin/gom install > /dev/null
 
 fmt:
 	bin/gom fmt ./...
