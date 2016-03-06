@@ -1,7 +1,7 @@
 CGO_ENABLED=0
 TRAVIS_BUILD_NUMBER?=debug0
 
-AWSNYCAST := AWSnycast
+AWSNYCAST      := AWSnycast
 SRCDIR         := src
 
 .PHONY: coverage get test clean
