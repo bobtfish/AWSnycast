@@ -1,13 +1,13 @@
 package aws
 
 import (
+	"AWSnycast/healthcheck"
+	"AWSnycast/instancemetadata"
+	"AWSnycast/testhelpers"
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/bobtfish/AWSnycast/healthcheck"
-	"github.com/bobtfish/AWSnycast/instancemetadata"
-	"github.com/bobtfish/AWSnycast/testhelpers"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"

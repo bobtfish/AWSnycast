@@ -1,14 +1,14 @@
 package daemon
 
 import (
+	"AWSnycast/aws"
+	"AWSnycast/config"
+	"AWSnycast/healthcheck"
+	"AWSnycast/instancemetadata"
 	"errors"
 	"fmt"
 	a "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/bobtfish/AWSnycast/aws"
-	"github.com/bobtfish/AWSnycast/config"
-	"github.com/bobtfish/AWSnycast/healthcheck"
-	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"

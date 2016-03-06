@@ -1,11 +1,11 @@
 package main
 
 import (
+	"AWSnycast/daemon"
 	"flag"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	logrus_syslog "github.com/Sirupsen/logrus/hooks/syslog"
-	"github.com/bobtfish/AWSnycast/daemon"
 	"log/syslog"
 	"os"
 )

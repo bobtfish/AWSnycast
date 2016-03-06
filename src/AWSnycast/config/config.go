@@ -1,13 +1,12 @@
 package config
 
 import (
+	"AWSnycast/aws"
+	"AWSnycast/healthcheck"
+	"AWSnycast/instancemetadata"
 	"errors"
-	"github.com/bobtfish/AWSnycast/aws"
-	"github.com/bobtfish/AWSnycast/healthcheck"
-	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"github.com/hashicorp/go-multierror"
-	"gopkg.in/yaml.v2"
-	"io/ioutil"
+	"github.com/spf13/viper"
 )
 
 type Config struct {
@@ -18,12 +17,15 @@ type Config struct {
 }
 
 func New(filename string, im instancemetadata.InstanceMetadata, manager aws.RouteTableManager) (*Config, error) {
-	c := new(Config)
-	data, err := ioutil.ReadFile(filename)
+	var c *Config
+
+	viper.SetConfigType("yaml")
+	viper.SetConfigFile(filename)
+	err := viper.ReadInConfig()
 	if err != nil {
 		return c, err
 	}
-	err = yaml.Unmarshal(data, &c)
+	err = viper.Unmarshal(&c)
 	if err == nil {
 		err = c.Validate(im, manager)
 	}

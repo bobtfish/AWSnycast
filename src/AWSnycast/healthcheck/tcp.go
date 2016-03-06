@@ -1,10 +1,10 @@
 package healthcheck
 
 import (
+	utils "AWSnycast/utils"
 	"errors"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	utils "github.com/bobtfish/AWSnycast/utils"
 	"github.com/hashicorp/go-multierror"
 	"net"
 	"strings"

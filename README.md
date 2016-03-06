@@ -425,6 +425,11 @@ Please feel free to ping t0m on Freenode or @bobtfish on Twitter if you'd like h
 
 Please note however that this project is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms.
 
+### Adding a new dependency
+
+If you want to add new external dependency to AWSnycast, please make sure it is added to [Gomfile](https://github.com/bobtfish/AWSnycast/blob/master/Gomfile).
+Do not forget to specify `TAG` or `commit_id` of the external git repository.
+
 # Copyright
 
 Copyright Tomas Doran 2015
