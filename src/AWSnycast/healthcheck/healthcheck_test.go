@@ -1,9 +1,9 @@
 package healthcheck
 
 import (
+	"AWSnycast/testhelpers"
 	"errors"
 	"fmt"
-	"github.com/bobtfish/AWSnycast/testhelpers"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"log"

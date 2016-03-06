@@ -1,12 +1,16 @@
 package daemon
 
 import (
+	"AWSnycast/aws"
+	"AWSnycast/config"
+	"AWSnycast/instancemetadata"
+
+	"time"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/bobtfish/AWSnycast/aws"
-	"github.com/bobtfish/AWSnycast/config"
-	"github.com/bobtfish/AWSnycast/instancemetadata"
-	"time"
+	"github.com/spf13/viper"
+	"gopkg.in/fsnotify.v1"
 )
 
 type Daemon struct {
@@ -126,6 +130,15 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 	if oneShot {
 		d.quitChan <- true
 	} else {
+		// Reload the daemon on config change
+		viper.SetConfigFile(d.ConfigFile)
+		viper.WatchConfig()
+		viper.OnConfigChange(func(e fsnotify.Event) {
+			log.WithFields(log.Fields{"file": d.ConfigFile}).Info("Config file changed, reloading daemon")
+			d.quitChan <- true
+			d.Run(oneShot, noop)
+		})
+
 		d.runHealthChecks()
 		defer d.stopHealthChecks()
 		d.RunSleepLoop()

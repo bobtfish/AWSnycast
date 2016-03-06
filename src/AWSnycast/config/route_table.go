@@ -1,13 +1,13 @@
 package config
 
 import (
+	"AWSnycast/aws"
+	"AWSnycast/healthcheck"
+	"AWSnycast/instancemetadata"
 	"errors"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/bobtfish/AWSnycast/aws"
-	"github.com/bobtfish/AWSnycast/healthcheck"
-	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"github.com/hashicorp/go-multierror"
 )
 
