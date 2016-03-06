@@ -5,13 +5,15 @@ import (
 	"AWSnycast/healthcheck"
 	"AWSnycast/instancemetadata"
 	"AWSnycast/testhelpers"
+
 	"errors"
 	"fmt"
+	"testing"
+
 	a "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/go-multierror"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 var tim instancemetadata.InstanceMetadata
@@ -135,7 +137,7 @@ func TestConfigValidateEmptyRouteTables(t *testing.T) {
 		RouteTables: r,
 	}
 	err := c.Validate(tim, rtm)
-	testhelpers.CheckOneMultiError(t, err, "No route_tables defined in config")
+	testhelpers.CheckOneMultiError(t, err, "No routetables defined in config")
 }
 
 func TestConfigValidateBadRouteTables(t *testing.T) {
