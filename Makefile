@@ -8,20 +8,23 @@ all: _vendor coverage AWSnycast
 _vendor: Gomfile
 	gom install
 
+_vendor/src/github.com/stretchr/testify/assert: Gomfile
+	gom -test install
+
 AWSnycast: *.go */*.go _vendor
 	gom build -a -tags netgo -ldflags '-w' .
 	strip AWSnycast
 
-test: _vendor
+test: _vendor/src/github.com/stretchr/testify/assert
 	gom test -short ./...
 
 fmt:
 	go fmt ./...
 
-coverage:
+coverage: _vendor/src/github.com/stretchr/testify/assert
 	gom test -cover -short ./...
 
-integration:
+integration: _vendor/src/github.com/stretchr/testify/assert
 	gom test ./...
 
 clean:
