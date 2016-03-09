@@ -13,7 +13,6 @@ gom 'github.com/hashicorp/errwrap', :commit => '7554cd9344cec97297fa6649b055a8c9
 gom 'github.com/hashicorp/go-multierror', :commit => 'd30f09973e19c1dfcd120b2d9c4f168e68d6b5d5'
 gom 'github.com/jmespath/go-jmespath', :commit => '3433f3ea46d9f8019119e7dd41274e112a2359a9'
 gom 'gopkg.in/yaml.v2', :commit => '7ad95dd0798a40da1ccdff6dff35fd177b5edf40'
-gom 'gopkg.in/fsnotify.v1'
 gom 'golang.org/x/crypto/ssh'
 
 group :test do
