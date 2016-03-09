@@ -4,8 +4,8 @@ all: ssh_key .terraform variables.tf.json
 		true
 
 go:
-	CGO_ENABLED=0 go get -a -x -installsuffix cgo -ldflags '-d -s -w' github.com/onsi/ginkgo/ginkgo
-	CGO_ENABLED=0 go get -a -x -installsuffix cgo -ldflags '-d -s -w' github.com/onsi/gomega
+	CGO_ENABLED=0 go get -a -installsuffix cgo -ldflags '-d -s -w' github.com/onsi/ginkgo/ginkgo
+	CGO_ENABLED=0 go get -a -installsuffix cgo -ldflags '-d -s -w' github.com/onsi/gomega
 
 .terraform_applied:
 	terraform apply
