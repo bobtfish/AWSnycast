@@ -29,7 +29,6 @@ _vendor/src/github.com/stretchr/testify/assert: Gomfile
 
 AWSnycast: *.go */*.go _vendor
 	gom build -a -tags netgo -ldflags '-w' .
-	strip AWSnycast
 
 test: _vendor/src/github.com/stretchr/testify/assert
 	gom test -short ./...
@@ -65,6 +64,7 @@ Gemfile.lock:
 
 dist: AWSnycast Gemfile.lock
 	rm -rf dist/ *.deb
+	strip AWSnycast
 	bundle exec fpm -s dir -t deb --name awsnycast --url "https://github.com/bobtfish/AWSnycast" --maintainer "Tomas Doran <bobtfish@bobtfish.net>" --description "Anycast in AWS" --license Apache2 --iteration $(TRAVIS_BUILD_NUMBER) --version $$(./AWSnycast -version) --prefix /usr/bin AWSnycast
 	bundle exec fpm -s dir -t rpm --name awsnycast --url "https://github.com/bobtfish/AWSnycast" --maintainer "Tomas Doran <bobtfish@bobtfish.net>" --description "Anycast in AWS" --license Apache2 --iteration $(TRAVIS_BUILD_NUMBER) --version $$(./AWSnycast -version) --prefix /usr/bin AWSnycast
 	mkdir dist
