@@ -9,9 +9,11 @@ CGO_ENABLED=0
 # our dependencies dependencies at working versions - so running tests on dependencies opens us up to random
 # flakes (for stuff we don't care about).
 #
-# The following 2 lines basically put back Go <= 1.5 gom behavior, using _vendor (which is then ignored in tests).
+# The following 4 lines basically put back Go <= 1.5 gom behavior, using _vendor (which is then ignored in tests).
 GO15VENDOREXPERIMENT=0
 GOM_VENDOR_NAME=_vendor
+export GO15VENDOREXPERIMENT
+export GOM_VENDOR_NAME
 
 TRAVIS_BUILD_NUMBER?=debug0
 
