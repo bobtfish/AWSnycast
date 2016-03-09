@@ -1,4 +1,18 @@
+# Static binaries are where it's at!
 CGO_ENABLED=0
+
+# I'm waiting till the discussion pans out on vendoring. (https://github.com/golang/go/issues/14417 and others)
+#
+# I personally support the idea that vendor directories should *not* be tested (i.e. that the vendor directory
+# should be named _vendor), as I like go test ./... as an idiom, but don't want to, and more importantly can't
+# reliably run the tests for all my dependencies as we can't reliably pull in the transitive closure of all
+# our dependencies dependencies at working versions - so running tests on dependencies opens us up to random
+# flakes (for stuff we don't care about).
+#
+# The following 2 lines basically put back Go <= 1.5 gom behavior, using _vendor (which is then ignored in tests).
+GO15VENDOREXPERIMENT=0
+GOM_VENDOR_NAME=_vendor
+
 TRAVIS_BUILD_NUMBER?=debug0
 
 .PHONY: coverage get test clean
