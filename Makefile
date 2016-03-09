@@ -5,27 +5,27 @@ TRAVIS_BUILD_NUMBER?=debug0
 
 all: get coverage AWSnycast
 
-AWSnycast: *.go */*.go
-	go build -a -tags netgo -ldflags '-w' .
+_vendor: Gomfile
+	gom install
+
+AWSnycast: *.go */*.go _vendor
+	gom build -a -tags netgo -ldflags '-w' .
 	strip AWSnycast
 
-test:
-	go test -short ./...
-
-get:
-	CGO_ENABLED=0 go get -a -x -installsuffix cgo -ldflags '-d -s -w' && go install -a -x -installsuffix cgo -ldflags '-d -s -w'
+test: _vendor
+	gom test -short ./...
 
 fmt:
 	go fmt ./...
 
 coverage:
-	go test -cover -short ./...
+	gom test -cover -short ./...
 
 integration:
-	go test ./...
+	gom test ./...
 
 clean:
-	rm -rf dist */coverage.out */coverprofile.out coverage.out coverprofile.out AWSnycast
+	rm -rf dist */coverage.out */coverprofile.out coverage.out coverprofile.out AWSnycast _vendor
 
 realclean: clean
 	make -C tests/integration realclean
