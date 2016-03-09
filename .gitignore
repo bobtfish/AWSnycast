@@ -13,3 +13,4 @@ tests/integration/id_rsa
 tests/integration/.terraform/
 AWSnycast
 Gemfile.lock
+_vendor

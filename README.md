@@ -96,7 +96,7 @@ recommend checking out Consul, Smartstack and similar technologies.
 In the [tests/integration](tests/integration) folder, there is [Terraform](http://terraform.io) code which will build
 a simple AWS VPC, with 2 AZs and 2 NAT machines (with HA and failover), and AWSnycast setup.
 
-To try this, you can just run _make_ then _terraform apply_ in that directory to build
+To try this, you can install the binary and then _terraform apply_ in that directory to build
 the example network, then _make sshnat_ to log into one of the machines,
 and _journalctl -u awsnycast_ to view the logs.
 
@@ -116,19 +116,18 @@ or you can install the .deb or .rpm packages found at the same location
 
 # Building from source
 
-You need go installed to build this project (tested on go 1.5). 
+You need go installed to build this project (tested on go 1.5+1.6). 
 
-Once you have go installed, and a GOPATH setup, you should be able
-to install with:
+Once you have go installed, and the GOPATH environment variable setup
+(to, for example, /Users/tdoran/go), you should be able to install with:
 
+    go get github.com/mattn/gom
     go get github.com/bobtfish/AWSnycast
-    go install github.com/bobtfish/AWSnycast
+    cd /Users/tdoran/go/src/github.com/bobtfish/AWSnycast
+    make
 
-This will install the software to the bin directory in the first part of your GOPATH.
-
-Run this to find it:
-
-    echo $(echo $GOPATH|cut -d: -f1)/bin/AWSnycast
+This will build the binary at the top level of the checkout
+(i.e. in /Users/tdoran/go/src/github.com/bobtfish/AWSnycast/AWSnycast in my example)
 
 # Running it
 
