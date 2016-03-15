@@ -953,6 +953,7 @@ func TestUpdateRemoteHealthchecksEmpty(t *testing.T) {
 	testhelpers.CheckOneMultiError(t, err, "Route tables foo, route 127.0.0.1/32 cannot find remote healthcheck 'test'")
 	rs.UpdateRemoteHealthchecks()
 }
+
 func TestUpdateRemoteHealthchecksNoHealthcheck(t *testing.T) {
 	rt := make([]*ec2.RouteTable, 0)
 	hc := make(map[string]*healthcheck.Healthcheck)
@@ -970,4 +971,17 @@ func TestUpdateRemoteHealthchecksNoHealthcheck(t *testing.T) {
 	rs.UpdateRemoteHealthchecks()
 	_, _ = hc["192.168.1.1"]
 	//assert.Equal(t, ok, false, "Has been deleted")
+}
+
+func TestUpdateRemoteHealthchecks(t *testing.T) {
+	hc := make(map[string]*healthcheck.Healthcheck)
+	hc["test"] = &healthcheck.Healthcheck{}
+	rs := &ManageRoutesSpec{
+		Cidr: "127.0.0.1",
+		RemoteHealthcheckName: "test",
+	}
+	err := rs.Validate(im1, &FakeRouteTableManager{}, "foo", emptyHealthchecks, hc)
+	assert.Nil(t, err)
+	rs.ec2RouteTables = []*ec2.RouteTable{&ec2.RouteTable{}}
+	rs.UpdateRemoteHealthchecks()
 }
