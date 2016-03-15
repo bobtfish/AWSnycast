@@ -1,3 +1,6 @@
+ - Switch from Godep to Gom to manage dependencies.
+ - Upgrade aws-sdk-go to the latest upstream version.
+
 Version 0.1.1 - 2016-03-05
  - Add a 'command' healthcheck type.
  - Documentation updates / improvements
