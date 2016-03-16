@@ -1,3 +1,6 @@
+ - Initial support for running hooks on creating/deleting
+   routes. Not yet documented or fully tested, but
+   this is the first part of fixing issue #1
  - Switch from Godep to Gom to manage dependencies.
  - Upgrade aws-sdk-go to the latest upstream version.
 
