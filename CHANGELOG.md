@@ -1,3 +1,4 @@
+Version 0.1.2 - 2016-04-15
  - Initial support for running hooks on creating/deleting
    routes. Not yet documented or fully tested, but
    this is the first part of fixing issue #1
