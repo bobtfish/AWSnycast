@@ -67,7 +67,7 @@ IP address) and HA.
 ## Why not manage / move ENIs?
 
 Good question! You *can* provide HA in AWS by assigning each service an ENI
-([Elastic Network Interface](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html), and
+([Elastic Network Interface](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html)), and
 [moving them between healthy instances](http://www.cakesolutions.net/teamblogs/making-aws-nat-instances-highly-available-without-the-compromises).
 
 There are a number of reasons I chose not to do this:
