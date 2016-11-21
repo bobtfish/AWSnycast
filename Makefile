@@ -44,6 +44,7 @@ integration: _vendor/src/github.com/stretchr/testify/assert
 
 clean:
 	rm -rf dist */coverage.out */coverprofile.out coverage.out coverprofile.out AWSnycast _vendor
+	make -C package clean
 
 realclean: clean
 	make -C tests/integration realclean
