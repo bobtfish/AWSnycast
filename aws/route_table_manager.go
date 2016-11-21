@@ -75,6 +75,9 @@ func (r RouteTableManagerEC2) ManageInstanceRoute(rtb ec2.RouteTable, rs ManageR
 	}
 	if route != nil {
 		if route.InstanceId != nil {
+			contextLogger = contextLogger.WithFields(log.Fields{
+				"instance_id": *(route.InstanceId),
+			})
 			if *(route.InstanceId) == rs.Instance {
 				if rs.HealthcheckName != "" && !rs.healthcheck.IsHealthy() && rs.healthcheck.CanPassYet() {
 					if rs.NeverDelete {
