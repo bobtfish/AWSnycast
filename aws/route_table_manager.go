@@ -182,7 +182,7 @@ func (r RouteTableManagerEC2) checkRemoteHealthCheck(contextLogger *log.Entry, r
 			contextLogger.Info("Has remote healthcheck instance")
 			if hc.CanPassYet() {
 				if hc.IsHealthy() {
-					contextLogger.Debug("Not replacing route, as current route is healthy")
+					contextLogger.Info("Not replacing route, as current route and remote healthcheck is healthy")
 					return false
 				} else {
 					contextLogger.Debug("Replacing route as remote healthcheck is unhealthy")
@@ -234,7 +234,7 @@ func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *
 		}
 	}
 	if rs.HealthcheckName != "" && !rs.healthcheck.IsHealthy() && rs.healthcheck.CanPassYet() {
-		contextLogger.Info("Not replacing route, as healthcheck is failing")
+		contextLogger.Info("Not replacing route, as local healthcheck is failing")
 		return nil
 	}
 	if len(rs.RunBeforeReplaceRoute) > 0 {
