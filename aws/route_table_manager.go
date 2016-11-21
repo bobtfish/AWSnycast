@@ -230,6 +230,10 @@ func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *
 			}
 		}
 	}
+	if rs.HealthcheckName != "" && !rs.healthcheck.IsHealthy() && rs.healthcheck.CanPassYet() {
+		contextLogger.Info("Not replacing route, as healthcheck is failing")
+		return nil
+	}
 	if len(rs.RunBeforeReplaceRoute) > 0 {
 		cmd := rs.RunBeforeReplaceRoute[0]
 		if err := exec.Command(cmd, rs.RunBeforeReplaceRoute[1:]...).Run(); err != nil {
