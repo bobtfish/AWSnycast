@@ -1,12 +1,11 @@
-FROM docker-dev.yelpcorp.com/lucid_yelp
+FROM docker-dev.yelpcorp.com/trusty_yelp
 MAINTAINER Tomas Doran <bobtfish@bobtfish.net>
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -yq \
     go \
     git \
     build-essential \
-    ruby1.8 rubygems \
-    libopenssl-ruby \
+    ruby2.0 \
     ruby-dev \
     --no-install-recommends
 
