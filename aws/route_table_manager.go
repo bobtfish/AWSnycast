@@ -3,6 +3,7 @@ package aws
 import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"os/exec"
@@ -277,6 +278,14 @@ func NewRouteTableManager(region string, debug bool) RouteTableManager {
 		Region:     aws.String(region),
 		MaxRetries: aws.Int(3),
 	})
+	sess.Handlers.Build.PushFrontNamed(addAWSnycastToUserAgent)
 	r.conn = ec2.New(sess)
 	return r
+}
+
+// addAWSnycastToUserAgent is a named handler that will add AWSnycast
+// to requests made by the AWS SDK.
+var addAWSnycastToUserAgent = request.NamedHandler{
+	Name: "AWSNycast.AWSnycastUserAgentHandler",
+	Fn:   request.MakeAddToUserAgentHandler("AWSnycast"),
 }
