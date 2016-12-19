@@ -3,13 +3,14 @@ package aws
 import (
 	"errors"
 	"fmt"
+	"net"
+	"strings"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"github.com/hashicorp/go-multierror"
-	"net"
-	"strings"
 )
 
 type ManageRoutesSpec struct {
