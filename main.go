@@ -6,6 +6,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	logrus_syslog "github.com/Sirupsen/logrus/hooks/syslog"
 	"github.com/bobtfish/AWSnycast/daemon"
+	"github.com/bobtfish/AWSnycast/version"
 	"log/syslog"
 	"os"
 )
@@ -22,7 +23,7 @@ var (
 func main() {
 	flag.Parse()
 	if *printVersion {
-		fmt.Printf("%s\n", version)
+		fmt.Printf("%s\n", version.Version)
 		os.Exit(0)
 	}
 	d := new(daemon.Daemon)

@@ -1,3 +1,8 @@
+Version 0.1.3 - 2016-12-19
+ - Add version to the user agent sent.
+ - Upgrade AWS SDK
+ - Additional paranoia and debug logging
+
 Version 0.1.2 - 2016-04-15
  - Initial support for running hooks on creating/deleting
    routes. Not yet documented or fully tested, but
