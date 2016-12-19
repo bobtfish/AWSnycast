@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/bobtfish/AWSnycast/version"
 	"os/exec"
 )
 
@@ -287,5 +288,5 @@ func NewRouteTableManager(region string, debug bool) RouteTableManager {
 // to requests made by the AWS SDK.
 var addAWSnycastToUserAgent = request.NamedHandler{
 	Name: "AWSNycast.AWSnycastUserAgentHandler",
-	Fn:   request.MakeAddToUserAgentHandler("AWSnycast"),
+	Fn:   request.MakeAddToUserAgentHandler("AWSnycast", version.Version),
 }
