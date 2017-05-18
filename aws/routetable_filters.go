@@ -1,8 +1,10 @@
 package aws
 
 import (
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"regexp"
 	"strings"
+
+	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
 type RouteTableFilter interface {
@@ -144,6 +146,20 @@ type RouteTableFilterTagMatch struct {
 func (fs RouteTableFilterTagMatch) Keep(rt *ec2.RouteTable) bool {
 	for _, t := range rt.Tags {
 		if *(t.Key) == fs.Key && *(t.Value) == fs.Value {
+			return true
+		}
+	}
+	return false
+}
+
+type RouteTableFilterTagRegexMatch struct {
+	Key    string
+	Regexp *regexp.Regexp
+}
+
+func (fs RouteTableFilterTagRegexMatch) Keep(rt *ec2.RouteTable) bool {
+	for _, t := range rt.Tags {
+		if *(t.Key) == fs.Key && fs.Regexp.MatchString(*(t.Value)) {
 			return true
 		}
 	}

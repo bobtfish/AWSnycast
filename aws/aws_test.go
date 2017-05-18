@@ -3,14 +3,16 @@ package aws
 import (
 	"errors"
 	"fmt"
+	"os"
+	"regexp"
+	"testing"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"github.com/bobtfish/AWSnycast/instancemetadata"
 	"github.com/bobtfish/AWSnycast/testhelpers"
 	"github.com/stretchr/testify/assert"
-	"os"
-	"testing"
 )
 
 var (
@@ -509,6 +511,22 @@ func TestRouteTableFilterTagMatch(t *testing.T) {
 	}
 	assert.Equal(t, f.Keep(&rtb2), false)
 	assert.Equal(t, f.Keep(&rtb1), true)
+}
+
+func TestRouteTableFilterTagRegexpMatch(t *testing.T) {
+	f := RouteTableFilterTagRegexMatch{
+		Key:    "Name",
+		Regexp: regexp.MustCompile("private"),
+	}
+	assert.Equal(t, f.Keep(&rtb1), true)
+	assert.Equal(t, f.Keep(&rtb2), true)
+
+	f = RouteTableFilterTagRegexMatch{
+		Key:    "Name",
+		Regexp: regexp.MustCompile("insecure$"),
+	}
+	assert.Equal(t, f.Keep(&rtb1), true)
+	assert.Equal(t, f.Keep(&rtb2), false)
 }
 
 func TestGetCreateRouteInput(t *testing.T) {

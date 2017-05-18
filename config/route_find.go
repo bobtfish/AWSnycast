@@ -3,6 +3,8 @@ package config
 import (
 	"errors"
 	"fmt"
+	"regexp"
+
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/hashicorp/go-multierror"
 	"gopkg.in/yaml.v2"
@@ -39,6 +41,32 @@ func init() {
 		return aws.RouteTableFilterTagMatch{
 			Key:   key,
 			Value: value,
+		}, nil
+	}
+	routeFindTypes["by_tag_regexp"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
+		var result *multierror.Error
+		var key string
+		var re *regexp.Regexp
+		if v, ok := spec.Config["key"]; !ok {
+			result = multierror.Append(result, errors.New("No key in config for by_tag_regexp route table finder"))
+		} else {
+			key = v.(string)
+		}
+		if v, ok := spec.Config["regexp"]; !ok {
+			result = multierror.Append(result, errors.New("No regexp in config for by_tag_regexp route table finder"))
+		} else {
+			var err error
+			re, err = regexp.Compile(v.(string))
+			if err != nil {
+				result = multierror.Append(result, fmt.Errorf("Invalid regexp in config fvor by_tag_regexp route table finder: %s", err))
+			}
+		}
+		if err := result.ErrorOrNil(); err != nil {
+			return nil, err
+		}
+		return aws.RouteTableFilterTagRegexMatch{
+			Key:    key,
+			Regexp: re,
 		}, nil
 	}
 	routeFindTypes["and"] = func(spec RouteTableFindSpec) (aws.RouteTableFilter, error) {
