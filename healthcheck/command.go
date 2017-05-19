@@ -2,7 +2,7 @@ package healthcheck
 
 import (
 	"errors"
-	log "github.com/sirupsen/logrus"
+	log "github.com/bobtfish/logrus"
 	utils "github.com/bobtfish/AWSnycast/utils"
 	"github.com/hashicorp/go-multierror"
 	"os/exec"

@@ -1,7 +1,7 @@
 package aws
 
 import (
-	log "github.com/sirupsen/logrus"
+	log "github.com/bobtfish/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"

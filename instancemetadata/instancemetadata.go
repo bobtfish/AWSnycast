@@ -3,7 +3,7 @@ package instancemetadata
 import (
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
+	log "github.com/bobtfish/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"

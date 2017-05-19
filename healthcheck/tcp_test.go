@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	log "github.com/sirupsen/logrus"
+	log "github.com/bobtfish/logrus"
 	"github.com/bobtfish/AWSnycast/testhelpers"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
