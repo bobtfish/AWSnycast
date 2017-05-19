@@ -20,7 +20,7 @@ deploy:
   skip_cleanup: true
   provider: releases
   api_key:
-    secure: Fsjtv/dMVNDEvrkwxxrZJR1dUf526nG70/SDVfCHKqEBrkTQqPHgymWloo3D9DHpWhBOvbqtRCPLIcy/TqRUCnviZ4HVYlUXER0r7uQXk2eKUoxu6N5DKn/J3BKZwSi3ZW9GicsDqdfhZlnrVweBPzmmcklBqAkBjpfIyynlE+Y=
+    secure: "R6u944OuUQwy2xDcpPe6LrxcdUI4+phsOJU6oDEX8U3rMMTvuz1Mykt+IPlOYc7P7MTW5k+CaWBlw9DVxuYZa0gV9vGFoUKEXT/H4pOYahADCZkj6E+4IZGcbQgsRWWClP78PtXGpY/Q3X5HJ3IeeY9+tuJmq5wDXuDM7GV70pw="
   file:
     - AWSnycast
     - $(ls dist/awsnycast*.deb)
