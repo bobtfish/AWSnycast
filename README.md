@@ -7,7 +7,7 @@ extension of in-datacenter Anycast. It can also be used to provide HA NAT servic
 
 # WARNING
 
-Please use release version 0.1.4 rather than master.
+Please use release version 0.1.5 rather than master.
 
 # Anycast in AWS?
 

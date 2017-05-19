@@ -1,4 +1,6 @@
-
+Version 0.1.5 - 2017-05-19
+ - Add by_tag_regexp matcher to the route tables
+   finder (ashb)
  - Upgrade to build with Go 1.8
 
 Version 0.1.4 - 2017-05-19
