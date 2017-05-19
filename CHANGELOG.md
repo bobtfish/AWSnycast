@@ -1,3 +1,11 @@
+Version 0.1.4 - 2017-05-19
+ - Drop Gom due to it being more hassle than it's worth
+ - Use foked version of logarus as sirupsen changed his
+   github account name (breaking all imports) without
+   updating all of the logarus code, so upstream is
+   currently unuseable
+ - Upgrade to build with Go 1.7
+
 Version 0.1.3 - 2016-12-19
  - Add version to the user agent sent.
  - Upgrade AWS SDK
