@@ -3,6 +3,8 @@ package config
 import (
 	"errors"
 	"fmt"
+	"testing"
+
 	a "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/aws"
@@ -11,7 +13,6 @@ import (
 	"github.com/bobtfish/AWSnycast/testhelpers"
 	"github.com/hashicorp/go-multierror"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 var tim instancemetadata.InstanceMetadata
@@ -361,6 +362,60 @@ func TestByTagRouteTableFind(t *testing.T) {
 	rtf, err := rts.GetFilter()
 	assert.NotNil(t, rtf)
 	assert.Nil(t, err)
+}
+
+func TestByTagRegexpRouteTableFind(t *testing.T) {
+	c := make(map[string]interface{})
+	c["key"] = "Name"
+	c["regexp"] = "private .*"
+	rts := RouteTableFindSpec{
+		Type:   "by_tag_regexp",
+		Config: c,
+	}
+	rtf, err := rts.GetFilter()
+	assert.NotNil(t, rtf)
+	assert.Nil(t, err)
+}
+
+func TestByTagRegexpRouteTableFindMissingRegexp(t *testing.T) {
+	c := make(map[string]interface{})
+	c["key"] = "Name"
+	rts := RouteTableFindSpec{
+		Type:   "by_tag_regexp",
+		Config: c,
+	}
+	rtf, err := rts.GetFilter()
+	assert.Nil(t, rtf)
+	testhelpers.CheckOneMultiError(t, err, "No regexp in config for by_tag_regexp route table finder")
+}
+
+func TestByTagRegexpRouteTableFindMissingKey(t *testing.T) {
+	c := make(map[string]interface{})
+	c["regexp"] = "private .*"
+	rts := RouteTableFindSpec{
+		Type:   "by_tag_regexp",
+		Config: c,
+	}
+	rtf, err := rts.GetFilter()
+	assert.Nil(t, rtf)
+	testhelpers.CheckOneMultiError(t, err, "No key in config for by_tag_regexp route table finder")
+}
+
+func TestByTagRegexpRouteTableFindInvalidRegexp(t *testing.T) {
+	c := make(map[string]interface{})
+	c["key"] = "Name"
+	c["regexp"] = "private [.*"
+	rts := RouteTableFindSpec{
+		Type:   "by_tag_regexp",
+		Config: c,
+	}
+	rtf, err := rts.GetFilter()
+	assert.Nil(t, rtf)
+	testhelpers.CheckOneMultiError(
+		t,
+		err,
+		"Invalid regexp in config fvor by_tag_regexp route table finder: error parsing regexp: missing closing ]: `[.*`",
+	)
 }
 
 func TestRouteTableFindUnknownType(t *testing.T) {

@@ -347,6 +347,11 @@ Currently supported filters are:
 Does a simple equality match on a tag. Expects config keys 'key' and 'value', whos values are exaclty matched
 with the tag's key and value.
 
+#### by_tag_regexp
+
+Does a regexp match on a tag. Expects config keys 'key' and 'regexp'. The regexp is non anchored so include `^`
+and/or `$` if you want to test against the whole string.
+
 #### and
 
 Runs a series of other filters, and only matches if *all* of it's filters match.
@@ -359,15 +364,15 @@ Runs a series of other filters, and matches if *any* of it's filters match.
 
 Supply a list to the 'filters' config key, with values being hashes of other finders
 
-### main
+#### main
 
 Matches the main route table only. Takes no config parmeters
 
-### subnet
+#### subnet
 
 Matches the route table associated with the subnet given in the 'subnet_id' config key
 
-### has_route_to
+#### has_route_to
 
 Matches any route tables which have a route to a specific (and exact) cidr (given by the 'cidr'
 config key).
