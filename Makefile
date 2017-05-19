@@ -25,7 +25,7 @@ _vendor: Gomfile
 	gom install || true
 
 _vendor/src/github.com/stretchr/testify/assert: Gomfile
-	gom -test install
+	gom -test install || true
 
 AWSnycast: *.go */*.go _vendor
 	gom build -a -tags netgo -ldflags '-w' .
