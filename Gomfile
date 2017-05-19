@@ -1,4 +1,4 @@
-gom 'github.com/sirupsen/logrus', :commit => '07d998d174c4e2dc90e2f1989a20724220bca1ff'
+gom 'github.com/sirupsen/logrus', :commit => '5e5dc898656f695e2a086b8e12559febbfc01562'
 gom 'github.com/aws/aws-sdk-go/aws', :commit => 'a0a042689f81e61e24b16237b502bcbc4a05dfc0'
 gom 'github.com/aws/aws-sdk-go/private/endpoints', :commit => 'a0a042689f81e61e24b16237b502bcbc4a05dfc0'
 gom 'github.com/aws/aws-sdk-go/private/protocol/ec2query', :commit => 'a0a042689f81e61e24b16237b502bcbc4a05dfc0'
