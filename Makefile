@@ -31,7 +31,13 @@ AWSnycast: *.go */*.go _vendor
 	gom build -a -tags netgo -ldflags '-w' .
 
 test: _vendor/src/github.com/stretchr/testify/assert
-	gom test -short ./...
+	gom test -short .
+	gom test -short ./aws
+	gom test -short ./config
+	gom test -short ./daemon
+	gom test -short ./healthcheck
+	gom test -short ./instancemetadata
+	gom test -short ./utils
 
 fmt:
 	go fmt ./...
