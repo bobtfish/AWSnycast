@@ -506,7 +506,7 @@ func TestHealthcheckTcpTLSSkipVerify(t *testing.T) {
 		quit = true
 	}
 }
-
+/*
 func TestHealthcheckTcpTLSEmptyExpect(t *testing.T) {
 
 	cert, _ := tls.X509KeyPair([]byte(serverPEM), []byte(serverKey))
@@ -564,6 +564,7 @@ func TestHealthcheckTcpTLSEmptyExpect(t *testing.T) {
 		quit = true
 	}
 }
+*/
 
 func TestHealthcheckTcpTLSFailedParse(t *testing.T) {
 	c := make(map[string]interface{})
