@@ -1,3 +1,6 @@
+
+ - Upgrade to build with Go 1.8
+
 Version 0.1.4 - 2017-05-19
  - Drop Gom due to it being more hassle than it's worth
  - Use foked version of logarus as sirupsen changed his
