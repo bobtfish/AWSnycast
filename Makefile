@@ -1,55 +1,29 @@
 # Static binaries are where it's at!
 CGO_ENABLED=0
 
-# I'm waiting till the discussion pans out on vendoring. (https://github.com/golang/go/issues/14417 and others)
-#
-# I personally support the idea that vendor directories should *not* be tested (i.e. that the vendor directory
-# should be named _vendor), as I like go test ./... as an idiom, but don't want to, and more importantly can't
-# reliably run the tests for all my dependencies as we can't reliably pull in the transitive closure of all
-# the dependencies of our dependencies at working versions - so running tests on dependencies opens us up to random
-# flakes (for stuff we don't care about).
-#
-# The following 4 lines basically put back Go <= 1.5 gom behavior, using _vendor (which is then ignored in tests).
-GO15VENDOREXPERIMENT=0
-GOM_VENDOR_NAME=_vendor
-export GO15VENDOREXPERIMENT
-export GOM_VENDOR_NAME
-
 TRAVIS_BUILD_NUMBER?=debug0
 
 .PHONY: coverage get test clean
 
-all: _vendor AWSnycast
+all: AWSnycast
 
-_vendor: Gomfile
-	gom install
+AWSnycast: *.go */*.go
+	go build -a -tags netgo -ldflags '-w' .
 
-_vendor/src/github.com/stretchr/testify/assert: Gomfile
-	gom -test install
-
-AWSnycast: *.go */*.go _vendor
-	gom build -a -tags netgo -ldflags '-w' .
-
-test: _vendor/src/github.com/stretchr/testify/assert
-	gom test -short .
-	gom test -short ./aws
-	gom test -short ./config
-	gom test -short ./daemon
-	gom test -short ./healthcheck
-	gom test -short ./instancemetadata
-	gom test -short ./utils
+test: 
+	go test -short ./...
 
 fmt:
 	go fmt ./...
 
-coverage: _vendor/src/github.com/stretchr/testify/assert
-	gom test -cover -short ./...
+coverage: 
+	go test -cover -short ./...
 
-integration: _vendor/src/github.com/stretchr/testify/assert
-	gom test ./...
+integration:
+	go test ./...
 
 clean:
-	rm -rf dist */coverage.out */coverprofile.out coverage.out coverprofile.out AWSnycast _vendor
+	rm -rf dist */coverage.out */coverprofile.out coverage.out coverprofile.out AWSnycast 
 	make -C package clean
 
 realclean: clean
