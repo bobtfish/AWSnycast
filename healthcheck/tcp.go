@@ -3,7 +3,7 @@ package healthcheck
 import (
 	"errors"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	utils "github.com/bobtfish/AWSnycast/utils"
 	"github.com/hashicorp/go-multierror"
 	"net"
