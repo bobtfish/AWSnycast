@@ -14,8 +14,7 @@ after_success:
 - make coverage.out
 - $HOME/gopath/bin/goveralls -coverprofile coverage.out -service=travis-ci
 go:
-- 1.5
-- 1.6
+- 1.7
 env:
 - CGO_ENABLED=0 GOOS=linux
 deploy:
