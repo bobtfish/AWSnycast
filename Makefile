@@ -19,7 +19,7 @@ TRAVIS_BUILD_NUMBER?=debug0
 
 .PHONY: coverage get test clean
 
-all: _vendor coverage AWSnycast
+all: _vendor AWSnycast
 
 _vendor: Gomfile
 	gom install || true
