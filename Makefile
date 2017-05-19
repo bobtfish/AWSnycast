@@ -8,6 +8,7 @@ TRAVIS_BUILD_NUMBER?=debug0
 all: AWSnycast
 
 AWSnycast: *.go */*.go
+	go get ./...
 	go build -a -tags netgo -ldflags '-w' .
 
 test: 
