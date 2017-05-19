@@ -22,10 +22,10 @@ TRAVIS_BUILD_NUMBER?=debug0
 all: _vendor AWSnycast
 
 _vendor: Gomfile
-	gom install || true
+	gom install
 
 _vendor/src/github.com/stretchr/testify/assert: Gomfile
-	gom -test install || true
+	gom -test install
 
 AWSnycast: *.go */*.go _vendor
 	gom build -a -tags netgo -ldflags '-w' .
