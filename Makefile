@@ -22,7 +22,7 @@ TRAVIS_BUILD_NUMBER?=debug0
 all: _vendor coverage AWSnycast
 
 _vendor: Gomfile
-	gom install
+	gom install || true
 
 _vendor/src/github.com/stretchr/testify/assert: Gomfile
 	gom -test install
