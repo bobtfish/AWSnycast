@@ -1,12 +1,12 @@
 package aws
 
 import (
-	log "github.com/bobtfish/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/version"
+	log "github.com/bobtfish/logrus"
 	"os/exec"
 )
 
@@ -17,6 +17,7 @@ type MyEC2Conn interface {
 	DeleteRoute(*ec2.DeleteRouteInput) (*ec2.DeleteRouteOutput, error)
 	DescribeNetworkInterfaces(*ec2.DescribeNetworkInterfacesInput) (*ec2.DescribeNetworkInterfacesOutput, error)
 	DescribeInstanceAttribute(*ec2.DescribeInstanceAttributeInput) (*ec2.DescribeInstanceAttributeOutput, error)
+	DescribeInstanceStatus(*ec2.DescribeInstanceStatusInput) (*ec2.DescribeInstanceStatusOutput, error)
 }
 
 type RouteTableManager interface {
@@ -208,6 +209,10 @@ func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *
 	cidr := rs.Cidr
 	instance := rs.Instance
 	ifUnhealthy := rs.IfUnhealthy
+	disi := &ec2.DescribeInstanceStatusInput{
+		IncludeAllInstances: aws.Bool(false),
+		InstanceIds:         []*string{aws.String(instance)},
+	}
 	params := &ec2.ReplaceRouteInput{
 		DestinationCidrBlock: aws.String(cidr),
 		RouteTableId:         routeTableId,
@@ -229,10 +234,31 @@ func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *
 				if !r.checkRemoteHealthCheck(contextLogger, route, rs) {
 					return nil
 				}
-			} else {
-				contextLogger.Info("Not replacing route, as current route is active (no remote healthcheck)")
+			}
+			o, err := r.conn.DescribeInstanceStatus(disi)
+			if err != nil {
+				contextLogger.WithFields(log.Fields{"err": err.Error()}).Error("Error trying to DescribeInstanceStatus, not replacing route")
 				return nil
 			}
+			if len(o.InstanceStatuses) != 1 {
+				contextLogger.Error("Did not get 1 instance for DescribeInstanceStatus")
+				return nil
+			}
+			is := o.InstanceStatuses[0]
+			instanceHealthOK := true
+			if *(is.InstanceStatus.Status) == "impaired" {
+				instanceHealthOK = false
+			}
+			systemHealthOK := true
+			if *(is.SystemStatus.Status) == "impaired" {
+				systemHealthOK = false
+			}
+			contextLogger = contextLogger.WithFields(log.Fields{"instanceHealthOK": instanceHealthOK, "systemHealthOK": systemHealthOK})
+			if systemHealthOK && instanceHealthOK {
+				contextLogger.Info("Not replacing route, as current route is active and instance is healthy")
+				return nil
+			}
+			contextLogger.Info("Current route is active, but instance with the route is unhealthy, evaluating for replacement")
 		}
 	}
 	if rs.HealthcheckName != "" && !rs.healthcheck.IsHealthy() && rs.healthcheck.CanPassYet() {
