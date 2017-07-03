@@ -7,14 +7,14 @@ resource "aws_instance" "internal-a" {
     tags {
         Name = "internal eu-west-1a"
     }
-    user_data = "${replace(file(\"${path.module}/internal.conf\"), \"__NETWORKPREFIX__\", \"10.0\")}"
+    user_data = "${replace(file("${path.module}/internal.conf"), "__NETWORKPREFIX__", "10.0")}"
     provisioner "remote-exec" {
         inline = [
           "while sudo pkill -0 cloud-init; do sleep 2; done"
         ]
         connection {
           user = "ubuntu"
-          key_file = "id_rsa"
+          private_key = "${file("id_rsa")}"
           bastion_host = "${aws_instance.nat-a.public_ip}"
         }
     }
@@ -29,14 +29,14 @@ resource "aws_instance" "internal-b" {
     tags {
         Name = "internal eu-west-1b"
     }
-    user_data = "${replace(file(\"${path.module}/internal.conf\"), \"__NETWORKPREFIX__\", \"10.0\")}"
+    user_data = "${replace(file("${path.module}/internal.conf"), "__NETWORKPREFIX__", "10.0")}"
     provisioner "remote-exec" {
         inline = [
           "while sudo pkill -0 cloud-init; do sleep 2; done"
         ]
         connection {
           user = "ubuntu"
-          key_file = "id_rsa"
+          private_key = "${file("id_rsa")}"
           bastion_host = "${aws_instance.nat-b.public_ip}"
         }
     }

@@ -8,7 +8,7 @@ resource "aws_instance" "nat-a" {
     tags {
         Name = "nat eu-west-1a"
     }
-    user_data = "${replace(file(\"${path.module}/nat.conf\"), \"__MYAZ__\", \"eu-west-1a\")}"
+    user_data = "${replace(file("${path.module}/nat.conf"), "__MYAZ__", "eu-west-1a")}"
     iam_instance_profile = "${aws_iam_instance_profile.test_profile.id}"
     provisioner "remote-exec" {
         inline = [
@@ -16,7 +16,7 @@ resource "aws_instance" "nat-a" {
         ]
         connection {
           user = "ubuntu"
-          key_file = "id_rsa"
+          private_key = "${file("id_rsa")}"
         }
     }
 }
@@ -31,7 +31,7 @@ resource "aws_instance" "nat-b" {
     tags {
         Name = "nat eu-west-1b"
     }
-    user_data = "${replace(file(\"${path.module}/nat.conf\"), \"__MYAZ__\", \"eu-west-1b\")}"
+    user_data = "${replace(file("${path.module}/nat.conf"), "__MYAZ__", "eu-west-1b")}"
     iam_instance_profile = "${aws_iam_instance_profile.test_profile.id}"
     provisioner "remote-exec" {
         inline = [
@@ -39,7 +39,7 @@ resource "aws_instance" "nat-b" {
         ]
         connection {
           user = "ubuntu"
-          key_file = "id_rsa"
+          private_key = "${file("id_rsa")}"
         }
     }
 }
