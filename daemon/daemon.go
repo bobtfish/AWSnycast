@@ -1,12 +1,13 @@
 package daemon
 
 import (
-	log "github.com/bobtfish/logrus"
+	"time"
+
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/config"
 	"github.com/bobtfish/AWSnycast/instancemetadata"
-	"time"
+	log "github.com/bobtfish/logrus"
 )
 
 type Daemon struct {
@@ -38,7 +39,7 @@ func (d *Daemon) Setup() error {
 	d.InstanceMetadata = im
 
 	if d.RouteTableManager == nil {
-		d.RouteTableManager = aws.NewRouteTableManager(d.Region, d.Debug)
+		d.RouteTableManager = aws.NewRouteTableManagerEC2(d.Region, d.Debug)
 	}
 
 	config, err := config.New(d.ConfigFile, d.InstanceMetadata, d.RouteTableManager)
