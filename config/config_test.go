@@ -1,5 +1,5 @@
 package config
-
+//get forked... Hacktoberfest 2018
 import (
 	"errors"
 	"fmt"
