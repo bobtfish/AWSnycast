@@ -39,7 +39,7 @@ func (d *Daemon) Setup() error {
 	d.InstanceMetadata = im
 
 	if d.RouteTableManager == nil {
-		d.RouteTableManager = aws.NewRouteTableManager(d.Region, d.Debug)
+		d.RouteTableManager = aws.NewRouteTableManagerEC2(d.Region, d.Debug)
 	}
 
 	config, err := config.New(d.ConfigFile, d.InstanceMetadata, d.RouteTableManager)

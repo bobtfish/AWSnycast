@@ -3,13 +3,14 @@ package aws
 import (
 	"errors"
 	"fmt"
-	log "github.com/bobtfish/logrus"
+	"net"
+	"strings"
+
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"github.com/bobtfish/AWSnycast/instancemetadata"
+	log "github.com/bobtfish/logrus"
 	"github.com/hashicorp/go-multierror"
-	"net"
-	"strings"
 )
 
 type ManageRoutesSpec struct {
@@ -119,11 +120,9 @@ func (r *ManageRoutesSpec) UpdateEc2RouteTables(rt []*ec2.RouteTable) {
 }
 
 var eniToIP map[string]string
-var srcdstcheckForInstance map[string]bool
 
 func init() {
 	eniToIP = make(map[string]string)
-	srcdstcheckForInstance = make(map[string]bool)
 }
 
 func (r *ManageRoutesSpec) UpdateRemoteHealthchecks() {

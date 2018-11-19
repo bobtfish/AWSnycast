@@ -251,6 +251,12 @@ func NewFakeEC2Conn() *FakeEC2Conn {
 		DescribeRouteTablesOutput: &ec2.DescribeRouteTablesOutput{
 			RouteTables: make([]*ec2.RouteTable, 0),
 		},
+		DescribeNetworkInterfacesOutput: &ec2.DescribeNetworkInterfacesOutput{
+			NetworkInterfaces: []*ec2.NetworkInterface{
+				{NetworkInterfaceId: aws.String("foo"), SourceDestCheck: aws.Bool(true)},
+				{NetworkInterfaceId: aws.String("bar"), SourceDestCheck: aws.Bool(false)},
+			},
+		},
 	}
 }
 
@@ -270,6 +276,7 @@ type FakeEC2Conn struct {
 	DescribeInstanceAttributeInput  *ec2.DescribeInstanceAttributeInput
 	DescribeInstanceAttributeOutput *ec2.DescribeInstanceAttributeOutput
 	DescribeInstanceAttributError   error
+	DescribeNetworkInterfacesOutput *ec2.DescribeNetworkInterfacesOutput
 }
 
 func (f *FakeEC2Conn) DescribeInstanceAttribute(i *ec2.DescribeInstanceAttributeInput) (*ec2.DescribeInstanceAttributeOutput, error) {
@@ -294,7 +301,7 @@ func (f *FakeEC2Conn) DescribeRouteTables(i *ec2.DescribeRouteTablesInput) (*ec2
 	return f.DescribeRouteTablesOutput, f.DescribeRouteTablesError
 }
 func (f *FakeEC2Conn) DescribeNetworkInterfaces(*ec2.DescribeNetworkInterfacesInput) (*ec2.DescribeNetworkInterfacesOutput, error) {
-	return nil, nil
+	return f.DescribeNetworkInterfacesOutput, nil
 }
 
 func TestMetaDataFetcher(t *testing.T) {
@@ -327,8 +334,13 @@ func (r *FakeRouteTableManager) ManageInstanceRoute(rtb ec2.RouteTable, rs Manag
 
 func TestInstanceIsRouter(t *testing.T) {
 	conn := NewFakeEC2Conn()
-	conn.DescribeInstanceAttributeOutput = &ec2.DescribeInstanceAttributeOutput{SourceDestCheck: &ec2.AttributeBooleanValue{Value: aws.Bool(false)}}
-	rtf := RouteTableManagerEC2{conn: conn}
+	conn.DescribeNetworkInterfacesOutput = &ec2.DescribeNetworkInterfacesOutput{
+		NetworkInterfaces: []*ec2.NetworkInterface{
+			{NetworkInterfaceId: aws.String("foo"), SourceDestCheck: aws.Bool(true)},
+			{NetworkInterfaceId: aws.String("bar"), SourceDestCheck: aws.Bool(false)},
+		},
+	}
+	rtf := RouteTableManagerEC2{conn: conn, srcdstcheckForInstance: map[string]bool{}}
 	ans := rtf.InstanceIsRouter("i-1234")
 	assert.Equal(t, true, ans)
 
@@ -339,8 +351,12 @@ func TestInstanceIsRouter(t *testing.T) {
 
 func TestInstanceIsRouter2(t *testing.T) {
 	conn := NewFakeEC2Conn()
-	conn.DescribeInstanceAttributeOutput = &ec2.DescribeInstanceAttributeOutput{SourceDestCheck: &ec2.AttributeBooleanValue{Value: aws.Bool(true)}}
-	rtf := RouteTableManagerEC2{conn: conn}
+	conn.DescribeNetworkInterfacesOutput = &ec2.DescribeNetworkInterfacesOutput{
+		NetworkInterfaces: []*ec2.NetworkInterface{
+			{NetworkInterfaceId: aws.String("foo"), SourceDestCheck: aws.Bool(true)},
+		},
+	}
+	rtf := RouteTableManagerEC2{conn: conn, srcdstcheckForInstance: map[string]bool{}}
 	ans := rtf.InstanceIsRouter("i-4567")
 	assert.Equal(t, false, ans)
 
@@ -584,7 +600,7 @@ func TestRouteTableManagerEC2ReplaceInstanceRoute(t *testing.T) {
 				r := rtf.conn.(*FakeEC2Conn).ReplaceRouteInput
 				assert.Equal(t, *(r.DestinationCidrBlock), "0.0.0.0/0")
 				assert.Equal(t, *(r.RouteTableId), *(rtb2.RouteTableId))
-				assert.Equal(t, *(r.InstanceId), "i-1234")
+				assert.Equal(t, *(r.NetworkInterfaceId), "bar")
 			}
 		}
 	}
@@ -640,7 +656,7 @@ func TestManageInstanceRoute(t *testing.T) {
 		r := rtf.conn.(*FakeEC2Conn).ReplaceRouteInput
 		assert.Equal(t, *(r.DestinationCidrBlock), "0.0.0.0/0")
 		assert.Equal(t, *(r.RouteTableId), *(rtb2.RouteTableId))
-		assert.Equal(t, *(r.InstanceId), "i-1234")
+		assert.Equal(t, *(r.NetworkInterfaceId), "bar")
 	}
 }
 
@@ -709,9 +725,9 @@ func TestGetRouteTablesAWSFail(t *testing.T) {
 func TestNewRouteTableManager(t *testing.T) {
 	assert.Nil(t, os.Setenv("AWS_ACCESS_KEY_ID", "AKIAJRYDH3TP2D3WKRNQ"))
 	assert.Nil(t, os.Setenv("AWS_SECRET_ACCESS_KEY", "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"))
-	rtf := NewRouteTableManager("us-west-1", false)
+	rtf := NewRouteTableManagerEC2("us-west-1", false)
 	if assert.NotNil(t, rtf) {
-		assert.NotNil(t, rtf.(RouteTableManagerEC2).conn)
+		assert.NotNil(t, rtf.conn)
 	}
 }
 
