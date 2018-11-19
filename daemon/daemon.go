@@ -1,12 +1,13 @@
 package daemon
 
 import (
-	log "github.com/bobtfish/logrus"
+	"time"
+
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/config"
 	"github.com/bobtfish/AWSnycast/instancemetadata"
-	"time"
+	log "github.com/bobtfish/logrus"
 )
 
 type Daemon struct {
@@ -117,6 +118,8 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 	}
 
 	d.quitChan = make(chan bool, 1)
+	d.runHealthChecks()
+	defer d.stopHealthChecks()
 	err := d.RunRouteTables()
 	if err != nil {
 		log.WithFields(log.Fields{"err": err.Error()}).Error("Error in initial route table run")
@@ -126,8 +129,6 @@ func (d *Daemon) Run(oneShot bool, noop bool) int {
 	if oneShot {
 		d.quitChan <- true
 	} else {
-		d.runHealthChecks()
-		defer d.stopHealthChecks()
 		d.RunSleepLoop()
 	}
 	<-d.quitChan
