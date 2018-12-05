@@ -303,6 +303,9 @@ func (f *FakeEC2Conn) DescribeRouteTables(i *ec2.DescribeRouteTablesInput) (*ec2
 func (f *FakeEC2Conn) DescribeNetworkInterfaces(*ec2.DescribeNetworkInterfacesInput) (*ec2.DescribeNetworkInterfacesOutput, error) {
 	return f.DescribeNetworkInterfacesOutput, nil
 }
+func (f *FakeEC2Conn) DescribeInstanceStatus(*ec2.DescribeInstanceStatusInput) (*ec2.DescribeInstanceStatusOutput, error) {
+    return &ec2.DescribeInstanceStatusOutput{}, nil
+}
 
 func TestMetaDataFetcher(t *testing.T) {
 	_ = NewMetadataFetcher(false)
