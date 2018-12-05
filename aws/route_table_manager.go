@@ -259,7 +259,7 @@ func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *
 			} else {
 				disi := &ec2.DescribeInstanceStatusInput{
 					IncludeAllInstances: aws.Bool(false),
-					InstanceIds:         []*string{aws.String(instance)},
+					InstanceIds:         []*string{aws.String(*(route.InstanceId))},
 				}
 				o, err := r.conn.DescribeInstanceStatus(disi)
 				if err != nil {
