@@ -11,20 +11,20 @@ AWSnycast: *.go */*.go
 	go get ./...
 	go build -a -tags netgo -ldflags '-w' .
 
-test: 
+test:
 	go test -short ./...
 
 fmt:
 	go fmt ./...
 
-coverage: 
+coverage:
 	go test -cover -short ./...
 
 integration:
 	go test ./...
 
 clean:
-	rm -rf dist */coverage.out */coverprofile.out coverage.out coverprofile.out AWSnycast 
+	rm -rf dist */coverage.out */coverprofile.out coverage.out coverprofile.out AWSnycast
 	make -C package clean
 
 realclean: clean
