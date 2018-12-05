@@ -3,10 +3,10 @@ package instancemetadata
 import (
 	"errors"
 	"fmt"
-	log "github.com/bobtfish/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
+	log "github.com/bobtfish/logrus"
 )
 
 type MetadataFetcher interface {

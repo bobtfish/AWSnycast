@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	log "github.com/bobtfish/logrus"
-	logrus_syslog "github.com/bobtfish/logrus/hooks/syslog"
 	"github.com/bobtfish/AWSnycast/daemon"
 	"github.com/bobtfish/AWSnycast/version"
+	log "github.com/bobtfish/logrus"
+	logrus_syslog "github.com/bobtfish/logrus/hooks/syslog"
 	"log/syslog"
 	"os"
 )

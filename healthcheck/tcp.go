@@ -3,8 +3,8 @@ package healthcheck
 import (
 	"errors"
 	"fmt"
-	log "github.com/bobtfish/logrus"
 	utils "github.com/bobtfish/AWSnycast/utils"
+	log "github.com/bobtfish/logrus"
 	"github.com/hashicorp/go-multierror"
 	"net"
 	"strings"

@@ -4,8 +4,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	log "github.com/bobtfish/logrus"
 	"github.com/bobtfish/AWSnycast/testhelpers"
+	log "github.com/bobtfish/logrus"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net"
@@ -506,6 +506,7 @@ func TestHealthcheckTcpTLSSkipVerify(t *testing.T) {
 		quit = true
 	}
 }
+
 /*
 func TestHealthcheckTcpTLSEmptyExpect(t *testing.T) {
 

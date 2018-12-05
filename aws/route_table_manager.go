@@ -21,6 +21,7 @@ type MyEC2Conn interface {
 	DeleteRoute(*ec2.DeleteRouteInput) (*ec2.DeleteRouteOutput, error)
 	DescribeNetworkInterfaces(*ec2.DescribeNetworkInterfacesInput) (*ec2.DescribeNetworkInterfacesOutput, error)
 	DescribeInstanceAttribute(*ec2.DescribeInstanceAttributeInput) (*ec2.DescribeInstanceAttributeOutput, error)
+	DescribeInstanceStatus(*ec2.DescribeInstanceStatusInput) (*ec2.DescribeInstanceStatusOutput, error)
 }
 
 type RouteTableManager interface {
@@ -256,8 +257,33 @@ func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *
 					return nil
 				}
 			} else {
-				contextLogger.Info("Not replacing route, as current route is active (no remote healthcheck)")
-				return nil
+				disi := &ec2.DescribeInstanceStatusInput{
+					IncludeAllInstances: aws.Bool(false),
+					InstanceIds:         []*string{aws.String(instance)},
+				}
+				o, err := r.conn.DescribeInstanceStatus(disi)
+				if err != nil {
+					contextLogger.WithFields(log.Fields{"err": err.Error()}).Error("Error trying to DescribeInstanceStatus, not replacing route")
+					return nil
+				}
+				if len(o.InstanceStatuses) != 1 {
+					contextLogger.Error("Did not get 1 instance for DescribeInstanceStatus")
+					return nil
+				}
+				is := o.InstanceStatuses[0]
+				instanceHealthOK := true
+				if *(is.InstanceStatus.Status) == "impaired" {
+					instanceHealthOK = false
+				}
+				systemHealthOK := true
+				if *(is.SystemStatus.Status) == "impaired" {
+					systemHealthOK = false
+				}
+				contextLogger = contextLogger.WithFields(log.Fields{"instanceHealthOK": instanceHealthOK, "systemHealthOK": systemHealthOK})
+				if instanceHealthOK && systemHealthOK {
+					contextLogger.Info("Not replacing route, as current route is active and instance is healthy (no remote healthcheck)")
+					return nil
+				}
 			}
 		}
 	}
