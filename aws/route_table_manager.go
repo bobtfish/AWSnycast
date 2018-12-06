@@ -256,20 +256,16 @@ func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *
 				if !r.checkRemoteHealthCheck(contextLogger, route, rs) {
 					return nil
 				}
-			} else {
-				disi := &ec2.DescribeInstanceStatusInput{
-					IncludeAllInstances: aws.Bool(false),
-					InstanceIds:         []*string{aws.String(*(route.InstanceId))},
-				}
-				o, err := r.conn.DescribeInstanceStatus(disi)
-				if err != nil {
-					contextLogger.WithFields(log.Fields{"err": err.Error()}).Error("Error trying to DescribeInstanceStatus, not replacing route")
-					return nil
-				}
-				if len(o.InstanceStatuses) != 1 {
-					contextLogger.Error("Did not get 1 instance for DescribeInstanceStatus")
-					return nil
-				}
+			}
+			o, err := r.conn.DescribeInstanceStatus(&ec2.DescribeInstanceStatusInput{
+				IncludeAllInstances: aws.Bool(false),
+				InstanceIds:         []*string{aws.String(*(route.InstanceId))},
+			})
+			if err != nil {
+				contextLogger.WithFields(log.Fields{"err": err.Error()}).Error("Error trying to DescribeInstanceStatus, not replacing route")
+				return nil
+			}
+			if len(o.InstanceStatuses) == 1 {
 				is := o.InstanceStatuses[0]
 				instanceHealthOK := true
 				if *(is.InstanceStatus.Status) == "impaired" {
@@ -281,10 +277,14 @@ func (r RouteTableManagerEC2) ReplaceInstanceRoute(routeTableId *string, route *
 				}
 				contextLogger = contextLogger.WithFields(log.Fields{"instanceHealthOK": instanceHealthOK, "systemHealthOK": systemHealthOK})
 				if instanceHealthOK && systemHealthOK {
-					contextLogger.Info("Not replacing route, as current route is active and instance is healthy (no remote healthcheck)")
+					contextLogger.Info("Not replacing route, as current route is active and instance is healthy")
 					return nil
 				}
+			} else {
+				contextLogger.Error("Did not get 1 instance for DescribeInstanceStatus - assuming instance has been terminated")
 			}
+		} else {
+			contextLogger.Info("Current route is not active - replacing")
 		}
 	}
 	if rs.HealthcheckName != "" && !rs.healthcheck.IsHealthy() && rs.healthcheck.CanPassYet() {
