@@ -1,3 +1,12 @@
+Version 0.2.0 - 2018-12-06
+ - Upgrade to build with Go 1.11
+ - Support multiple NICs on a machine
+ - Check EC2 instance healthchecks as well as route
+   blackholing so that routes wil be replaced if held
+   by an instance that is impaired as well as just terminated.
+ - Fix race condition with healthchecks so that routes
+   cannot be taken over before the healthcheck has passed.
+
 Version 0.1.5 - 2017-05-19
  - Add by_tag_regexp matcher to the route tables
    finder (ashb)
