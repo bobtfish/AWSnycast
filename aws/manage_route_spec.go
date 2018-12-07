@@ -141,7 +141,7 @@ func (r *ManageRoutesSpec) UpdateRemoteHealthchecks() {
 		}
 	}
 	if len(eniIdsToFetch) > 0 {
-		out, err := r.Manager.(RouteTableManagerEC2).conn.DescribeNetworkInterfaces(&ec2.DescribeNetworkInterfacesInput{NetworkInterfaceIds: eniIdsToFetch})
+		out, err := r.Manager.(*RouteTableManagerEC2).conn.DescribeNetworkInterfaces(&ec2.DescribeNetworkInterfacesInput{NetworkInterfaceIds: eniIdsToFetch})
 		if err != nil {
 			log.Error("Error " + err.Error())
 			return

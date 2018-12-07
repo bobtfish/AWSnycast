@@ -1,3 +1,6 @@
+Version 0.2.1 - 2018-12-07
+ - Fix a bug causing crashes when using remote healthchecks
+
 Version 0.2.0 - 2018-12-06
  - Upgrade to build with Go 1.11
  - Support multiple NICs on a machine
