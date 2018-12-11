@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"github.com/bobtfish/AWSnycast/instancemetadata"
@@ -50,6 +51,9 @@ func (c *Config) Validate(im instancemetadata.InstanceMetadata, manager aws.Rout
 	}
 	if c.Healthchecks != nil {
 		for k, v := range c.Healthchecks {
+			if v == nil {
+				panic(fmt.Sprintf("Healthcheck %s is nil", k))
+			}
 			if err := v.Validate(k, false); err != nil {
 				result = multierror.Append(result, err)
 			}

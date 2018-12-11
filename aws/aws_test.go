@@ -304,12 +304,12 @@ func (f *FakeEC2Conn) DescribeNetworkInterfaces(*ec2.DescribeNetworkInterfacesIn
 	return f.DescribeNetworkInterfacesOutput, nil
 }
 func (f *FakeEC2Conn) DescribeInstanceStatus(*ec2.DescribeInstanceStatusInput) (*ec2.DescribeInstanceStatusOutput, error) {
-    return &ec2.DescribeInstanceStatusOutput{
-        InstanceStatuses: []*ec2.InstanceStatus{&ec2.InstanceStatus{
-            InstanceStatus: &ec2.InstanceStatusSummary{Status: aws.String("foo")},
-            SystemStatus: &ec2.InstanceStatusSummary{Status: aws.String("foo")},
-        }},
-    }, nil
+	return &ec2.DescribeInstanceStatusOutput{
+		InstanceStatuses: []*ec2.InstanceStatus{&ec2.InstanceStatus{
+			InstanceStatus: &ec2.InstanceStatusSummary{Status: aws.String("foo")},
+			SystemStatus:   &ec2.InstanceStatusSummary{Status: aws.String("foo")},
+		}},
+	}, nil
 }
 
 func TestMetaDataFetcher(t *testing.T) {

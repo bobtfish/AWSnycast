@@ -159,9 +159,9 @@ func (h *Healthcheck) PerformHealthcheck() {
 }
 
 func (h *Healthcheck) Validate(name string, remote bool) error {
-    if h == nil {
-        panic("Cannot validate nill healthcheck")
-    }
+	if h == nil {
+		panic("Cannot validate nill healthcheck")
+	}
 	if h.Config == nil {
 		h.Config = make(map[string]interface{})
 	}
