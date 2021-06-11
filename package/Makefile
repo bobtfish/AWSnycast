@@ -21,7 +21,7 @@ itest_%: $(PACKAGE_FILE)
 	docker run --rm -v $(CURDIR)/../dist:/dist:ro -v $(CURDIR)/itest.sh:/itest.sh:ro docker-dev.yelpcorp.com/$*_yelp:latest bash /itest.sh /$(PACKAGE_FILE)
 
 $(PACKAGE_FILE): 
-	docker run --rm -t -e VERSION=$(VERSION)-$(ITERATION) --interactive -v $$PWD/..:/awsnycast -w /awsnycast --entrypoint="" goreleaser/nfpm  /usr/local/bin/nfpm package --config nfpm.yaml --target $(PACKAGE_FILE)
+	docker run --rm -e VERSION=$(VERSION)-$(ITERATION) --interactive -v $$PWD/..:/awsnycast -w /awsnycast --entrypoint="" goreleaser/nfpm  /usr/local/bin/nfpm package --config nfpm.yaml --target $(PACKAGE_FILE)
 
 clean:
 	$(CLEAN_CONTAINER)
