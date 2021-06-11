@@ -7,7 +7,7 @@ import (
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"github.com/bobtfish/AWSnycast/instancemetadata"
-	log "github.com/bobtfish/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/hashicorp/go-multierror"
 )
 

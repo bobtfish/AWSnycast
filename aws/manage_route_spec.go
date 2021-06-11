@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/bobtfish/AWSnycast/healthcheck"
 	"github.com/bobtfish/AWSnycast/instancemetadata"
-	log "github.com/bobtfish/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/hashicorp/go-multierror"
 )
 

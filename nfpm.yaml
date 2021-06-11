@@ -1,0 +1,17 @@
+name: "AWSnycast"
+arch: "amd64"
+platform: "linux"
+version: "${VERSION}"
+section: "default"
+priority: "extra"
+maintainer: "Tomas Doran <tdoran@yelp.com>"
+description: |
+  Anycast in AWS.
+vendor: "Yelp"
+homepage: "https://github.com/bobtfish/AWSnycast/"
+license: "Apache License 2.0"
+contents:
+  - src: ./AWSnycast
+    dst: /usr/bin/AWSnycast
+
+

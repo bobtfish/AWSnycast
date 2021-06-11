@@ -38,17 +38,13 @@ coverage.out:
 	cd instancemetadata ; go test -coverprofile=coverage.out ./... ; cd ..
 	echo "mode: set" > coverage.out && cat */coverage.out | grep -v mode: | sort -r | awk '{if($$1 != last) {print $$0;last=$$1}}' >> coverage.out
 
-itest_%:
+itest_%: AWSnycast
 	mkdir -p dist
 	make -C package itest_$*
 
-Gemfile.lock:
-	bundle install
-
-dist: AWSnycast Gemfile.lock
+dist: AWSnycast
 	rm -rf dist/ *.deb
 	strip AWSnycast
-	bundle exec fpm -s dir -t deb --name awsnycast --url "https://github.com/bobtfish/AWSnycast" --maintainer "Tomas Doran <bobtfish@bobtfish.net>" --description "Anycast in AWS" --license Apache2 --iteration $(TRAVIS_BUILD_NUMBER) --version $$(./AWSnycast -version) --prefix /usr/bin AWSnycast
-	bundle exec fpm -s dir -t rpm --name awsnycast --url "https://github.com/bobtfish/AWSnycast" --maintainer "Tomas Doran <bobtfish@bobtfish.net>" --description "Anycast in AWS" --license Apache2 --iteration $(TRAVIS_BUILD_NUMBER) --version $$(./AWSnycast -version) --prefix /usr/bin AWSnycast
+	docker run --rm -t --interactive -v $PWD:/awsnycast -w /awsnycast --entrypoint="" goreleaser/nfpm  /usr/local/bin/nfpm package --config nfpm.yaml --target AWSnycast.deb
 	mkdir dist
 	mv *.deb *.rpm dist/

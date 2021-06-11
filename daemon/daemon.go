@@ -7,7 +7,7 @@ import (
 	"github.com/bobtfish/AWSnycast/aws"
 	"github.com/bobtfish/AWSnycast/config"
 	"github.com/bobtfish/AWSnycast/instancemetadata"
-	log "github.com/bobtfish/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 type Daemon struct {

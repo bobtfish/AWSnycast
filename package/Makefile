@@ -17,26 +17,11 @@ PACKAGE_FILE := dist/$(PACKAGE_NAME)
 
 DOCKER_TAG = $(PROJECT)_$(shell date +%s)
 
-CLEAN_CONTAINER := [ -e .docker_container_id ] && docker rm --force $$(cat .docker_container_id) || true; rm -f .docker_container_id
-
 itest_%: $(PACKAGE_FILE)
 	docker run --rm -v $(CURDIR)/../dist:/dist:ro -v $(CURDIR)/itest.sh:/itest.sh:ro docker-dev.yelpcorp.com/$*_yelp:latest bash /itest.sh /$(PACKAGE_FILE)
 
-$(PACKAGE_FILE): .docker_container_id
-	docker cp $$(cat .docker_container_id):/$(PACKAGE_FILE) ../dist/
-
-.docker_container_id: .docker_image_id
-	docker run --rm=false \
-		-v $(CURDIR)/..:/go/src/github.com/bobtfish/AWSnycast:rw \
-		-v $(CURDIR)/build.sh:/build.sh:ro \
-		--cidfile=$(CURDIR)/.docker_container_id \
-		$$(cat .docker_image_id) \
-		bash /build.sh $(PROJECT) $(VERSION) $(ITERATION) || \
-	(retval=$$?; $(CLEAN_CONTAINER); exit $$retval; )
-
-.docker_image_id: Dockerfile
-	docker build -t $(DOCKER_TAG) .
-	docker inspect -f '{{ .Id }}' $(DOCKER_TAG) > .docker_image_id
+$(PACKAGE_FILE): 
+	docker run --rm -t -e VERSION=$(VERSION)-$(ITERATION) --interactive -v $$PWD/..:/awsnycast -w /awsnycast --entrypoint="" goreleaser/nfpm  /usr/local/bin/nfpm package --config nfpm.yaml --target $(PACKAGE_FILE)
 
 clean:
 	$(CLEAN_CONTAINER)
