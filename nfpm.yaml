@@ -1,4 +1,4 @@
-name: "AWSnycast"
+name: "awsnycast"
 arch: "amd64"
 platform: "linux"
 version: "${VERSION}"
