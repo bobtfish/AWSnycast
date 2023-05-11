@@ -3,4 +3,5 @@ type: debian
 platforms: [
            'bionic',
            'xenial',
+           'jammy',
        ],
